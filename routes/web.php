@@ -16,6 +16,7 @@ Route::get('/', function () {
 });
 
 Route::middleware(['auth'])->group(function () {
+    Route::view('/offline', 'offline')->name('offline');
     Route::resource('tasks', TaskController::class);
     Route::resource('projects', ProjectController::class);
     Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index');
