@@ -4,47 +4,34 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Task;
-use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Notifications\AdminNotification;
 
 class TaskController extends Controller
 {
+    // ========================== USER ==============================
+
     public function index()
     {
-        $tasks = Task::where('user_id', Auth::id())
-            ->with('project')
-            ->latest()
-            ->paginate(10);
+        $tasks = Task::where('user_id', Auth::id())->latest()->paginate(10);
         return view('tasks.index', compact('tasks'));
     }
 
-    public function create(Request $request)
+    public function create()
     {
-        $projects = Project::where('user_id', Auth::id())->get();
-        $selectedProjectId = $request->query('project_id');
-        
-        return view('tasks.create', compact('projects', 'selectedProjectId'));
+        return view('tasks.create');
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'project_id' => 'nullable|exists:projects,id',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'status' => 'required|in:todo,in_progress,done',
             'priority' => 'required|in:low,medium,high,urgent',
             'due_date' => 'nullable|date',
         ]);
-
-        // Pastikan project milik user
-        if ($validated['project_id']) {
-            $project = Project::where('id', $validated['project_id'])
-                ->where('user_id', auth()->id())
-                ->firstOrFail();
-        }
 
         $validated['user_id'] = auth()->id();
         $task = Task::create($validated);
@@ -54,30 +41,22 @@ class TaskController extends Controller
             $admin->notify(new AdminNotification(
                 'New Task Created',
                 auth()->user()->name . ' created a new task: ' . $task->title,
-                route('tasks.show', $task)
+                route('task.show', $task)
             ));
         }
-
-        if ($request->query('from') === 'project' && $task->project_id) {
-            return redirect()->route('projects.show', $task->project_id)
-                ->with('success', 'Task created successfully.');
-        }
-
-        return redirect()->route('tasks.index')->with('success', 'Task created successfully.');
+        return redirect()->route('tasks.index')->with('success', 'Task berhasil dibuat.');
     }
 
     public function show(Task $task)
     {
         $this->authorize('view', $task);
-        $task->load('project');
         return view('tasks.show', compact('task'));
     }
 
     public function edit(Task $task)
     {
         $this->authorize('update', $task);
-        $projects = Project::where('user_id', Auth::id())->get();
-        return view('tasks.edit', compact('task', 'projects'));
+        return view('tasks.edit', compact('task'));
     }
 
     public function update(Request $request, Task $task)
@@ -85,19 +64,12 @@ class TaskController extends Controller
         $this->authorize('update', $task);
 
         $validated = $request->validate([
-            'project_id' => 'nullable|exists:projects,id',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'status' => 'required|in:todo,in_progress,done',
             'priority' => 'required|in:low,medium,high,urgent',
             'due_date' => 'nullable|date',
         ]);
-
-        if ($validated['project_id']) {
-            $project = Project::where('id', $validated['project_id'])
-                ->where('user_id', auth()->id())
-                ->firstOrFail();
-        }
 
         $task->update($validated);
 
@@ -112,15 +84,16 @@ class TaskController extends Controller
         return redirect()->route('tasks.index')->with('success', 'Task deleted successfully.');
     }
 
+    // ========================== ADMIN ==============================
+
     public function adminIndex()
     {
-        $tasks = Task::with(['user', 'project'])->latest()->paginate(15);
+        $tasks = Task::with('user')->latest()->paginate(15);
         return view('admin.tasks.index', compact('tasks'));
     }
 
     public function adminShow(Task $task)
     {
-        $task->load('project');
         return view('admin.tasks.show', compact('task'));
     }
 

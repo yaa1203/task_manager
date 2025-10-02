@@ -1,5 +1,4 @@
 <?php
-// app/Models/Project.php
 
 namespace App\Models;
 
@@ -11,45 +10,22 @@ class Project extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
         'name',
         'description',
         'start_date',
         'end_date',
+        'user_id',
     ];
 
-    protected $casts = [
-        'start_date' => 'date',
-        'end_date' => 'date',
-    ];
-
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
-
+    // Relasi: 1 project bisa punya banyak task
     public function tasks()
     {
         return $this->hasMany(Task::class);
     }
 
-    // Helper methods
-    public function getProgressAttribute()
+    // Relasi: project dimiliki oleh user
+    public function user()
     {
-        $total = $this->tasks()->count();
-        if ($total === 0) return 0;
-        
-        $completed = $this->tasks()->where('status', 'done')->count();
-        return round(($completed / $total) * 100);
-    }
-
-    public function getTaskStatsAttribute()
-    {
-        return [
-            'total' => $this->tasks()->count(),
-            'todo' => $this->tasks()->where('status', 'todo')->count(),
-            'in_progress' => $this->tasks()->where('status', 'in_progress')->count(),
-            'done' => $this->tasks()->where('status', 'done')->count(),
-        ];
+        return $this->belongsTo(User::class);
     }
 }
