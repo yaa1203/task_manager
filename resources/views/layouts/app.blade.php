@@ -7,8 +7,8 @@
 
         <title>{{ config('app.name', 'Laravel') }}</title>
 
-        <link rel="manifest" href="/manifest.json">
-        <meta name="theme-color" content="#0d6efd">
+        <!-- <link rel="manifest" href="/manifest.json">
+        <meta name="theme-color" content="#0d6efd"> -->
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -36,7 +36,7 @@
             </main>
         </div>
 
-        <script>
+        <!-- <script>
         if ("serviceWorker" in navigator) {
             window.addEventListener("load", () => {
                 navigator.serviceWorker.register("/service-worker.js")
@@ -44,6 +44,6 @@
                     .catch(err => console.log("SW failed:", err));
             });
         }
-    </script>
+    </script> -->
     </body>
 </html>
