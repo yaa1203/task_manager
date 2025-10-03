@@ -21,11 +21,11 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('projects', ProjectController::class);
     Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index');
     Route::get('/calendar/events', [CalendarController::class, 'events'])->name('calendar.events');
+    Route::post('/calendar/quick-create', [CalendarController::class, 'quickCreateTask'])->name('calendar.quick-create');
+    Route::put('/calendar/tasks/{task}/update-date', [CalendarController::class, 'updateTaskDate'])->name('calendar.tasks.update-date');
+    Route::put('/calendar/projects/{project}/update-date', [CalendarController::class, 'updateProjectDate'])->name('calendar.projects.update-date');
     Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
     Route::get('/analytics/data', [AnalyticsController::class, 'data'])->name('analytics.data');
-    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
-    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
-    Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
 });
 
 Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])
