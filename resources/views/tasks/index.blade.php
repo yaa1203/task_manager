@@ -161,7 +161,7 @@
 
             {{-- Empty State --}}
             @if($tasks->isEmpty())
-            <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl shadow-sm p-8 sm:p-12 text-center">
+            <div class="bg-white rounded-2xl shadow-sm p-8 sm:p-12 text-center">
                 <div class="bg-white w-20 h-20 sm:w-24 sm:h-24 mx-auto rounded-full flex items-center justify-center shadow-lg mb-6">
                     <svg class="w-10 h-10 sm:w-12 sm:h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
@@ -181,105 +181,8 @@
             </div>
             @else
 
-            {{-- Grid View --}}
-            <div id="gridView" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                @foreach($tasks as $task)
-                <div class="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all border border-gray-100 overflow-hidden group">
-                    {{-- Priority Strip --}}
-                    <div class="h-1.5 {{ $task->priority == 'urgent' ? 'bg-red-500' : ($task->priority == 'high' ? 'bg-orange-500' : ($task->priority == 'medium' ? 'bg-blue-500' : 'bg-gray-400')) }}"></div>
-                    
-                    <div class="p-4">
-                        {{-- Header --}}
-                        <div class="flex items-start justify-between mb-3">
-                            <h3 class="text-base font-bold text-gray-900 flex-1 pr-2 group-hover:text-blue-600 transition line-clamp-2">
-                                {{ $task->title }}
-                            </h3>
-                            @php
-                            $statusBadges = [
-                                'done' => ['bg' => 'bg-green-100', 'text' => 'text-green-700', 'icon' => 'M5 13l4 4L19 7'],
-                                'in_progress' => ['bg' => 'bg-yellow-100', 'text' => 'text-yellow-700', 'icon' => 'M13 10V3L4 14h7v7l9-11h-7z'],
-                                'pending' => ['bg' => 'bg-gray-100', 'text' => 'text-gray-700', 'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z']
-                            ];
-                            $badge = $statusBadges[$task->status] ?? $statusBadges['pending'];
-                            @endphp
-                            <div class="flex items-center gap-1 px-2 py-1 {{ $badge['bg'] }} {{ $badge['text'] }} rounded-full">
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $badge['icon'] }}"/>
-                                </svg>
-                            </div>
-                        </div>
-
-                        {{-- Description --}}
-                        @if($task->description)
-                        <p class="text-xs text-gray-600 mb-3 line-clamp-2">{{ $task->description }}</p>
-                        @endif
-
-                        {{-- Project --}}
-                        @if($task->project)
-                        <div class="flex items-center gap-1.5 text-xs text-blue-600 mb-3 bg-blue-50 px-2 py-1.5 rounded-lg">
-                            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
-                            </svg>
-                            <a href="{{ route('projects.show', $task->project) }}" class="hover:underline font-medium truncate">
-                                {{ $task->project->name }}
-                            </a>
-                        </div>
-                        @endif
-
-                        {{-- Meta Info --}}
-                        <div class="flex items-center justify-between pt-3 border-t border-gray-100">
-                            {{-- Priority --}}
-                            @php
-                            $priorityBadges = [
-                                'urgent' => ['bg' => 'bg-red-100', 'text' => 'text-red-700', 'dot' => 'bg-red-500'],
-                                'high' => ['bg' => 'bg-orange-100', 'text' => 'text-orange-700', 'dot' => 'bg-orange-500'],
-                                'medium' => ['bg' => 'bg-blue-100', 'text' => 'text-blue-700', 'dot' => 'bg-blue-500'],
-                                'low' => ['bg' => 'bg-gray-100', 'text' => 'text-gray-700', 'dot' => 'bg-gray-500']
-                            ];
-                            $pBadge = $priorityBadges[$task->priority] ?? $priorityBadges['low'];
-                            @endphp
-                            <div class="flex items-center gap-1.5 px-2 py-1 {{ $pBadge['bg'] }} {{ $pBadge['text'] }} rounded-md">
-                                <span class="w-1.5 h-1.5 {{ $pBadge['dot'] }} rounded-full"></span>
-                                <span class="text-xs font-medium">{{ ucfirst($task->priority) }}</span>
-                            </div>
-
-                            {{-- Due Date --}}
-                            @if($task->due_date)
-                            <div class="flex items-center gap-1 text-xs {{ $task->isOverdue() ? 'text-red-600 font-semibold' : 'text-gray-600' }}">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                </svg>
-                                {{ $task->due_date->format('M d') }}
-                            </div>
-                            @endif
-                        </div>
-
-                        {{-- Actions --}}
-                        <div class="flex gap-2 mt-4 pt-3 border-t border-gray-100">
-                            <a href="{{ route('tasks.show', $task) }}" 
-                               class="flex-1 text-center px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition text-xs font-medium">
-                                View
-                            </a>
-                            <a href="{{ route('tasks.edit', $task) }}" 
-                               class="flex-1 text-center px-3 py-2 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition text-xs font-medium">
-                                Edit
-                            </a>
-                            <form action="{{ route('tasks.destroy', $task) }}" method="POST" 
-                                  onsubmit="return confirm('Delete this task?')" class="flex-1">
-                                @csrf @method('DELETE')
-                                <button type="submit" 
-                                        class="w-full px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition text-xs font-medium">
-                                    Delete
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-                @endforeach
-            </div>
-
-            {{-- List View (Desktop) --}}
-            <div id="listView" class="hidden md:block bg-white shadow-sm rounded-xl overflow-hidden mb-6">
+            {{-- Desktop List View --}}
+            <div class="hidden md:block bg-white shadow-sm rounded-xl overflow-hidden mb-6">
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
@@ -372,8 +275,8 @@
                 </div>
             </div>
 
-            {{-- Mobile Card View --}}
-            <div id="mobileView" class="md:hidden space-y-3">
+            {{-- Mobile Grid/Card View --}}
+            <div class="md:hidden grid grid-cols-1 gap-3 mb-6">
                 @foreach($tasks as $task)
                 <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-100 hover:shadow-md transition-all">
                     {{-- Priority Indicator --}}
@@ -513,6 +416,15 @@
             color: #2563eb;
         }
 
+        .view-btn {
+            color: #6b7280;
+        }
+
+        .view-btn.active {
+            background-color: #dbeafe;
+            color: #2563eb;
+        }
+
         /* Smooth transitions */
         * {
             transition-property: background-color, border-color, color, fill, stroke;
@@ -521,54 +433,9 @@
         }
     </style>
 
-    {{-- JavaScript for View Switching --}}
+    {{-- JavaScript --}}
     <script>
-        // Initialize view
-        let currentView = localStorage.getItem('taskView') || 'list';
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            switchView(currentView);
-        });
-
-        function switchView(view) {
-            const gridView = document.getElementById('gridView');
-            const listView = document.getElementById('listView');
-            const mobileView = document.getElementById('mobileView');
-            const gridBtn = document.getElementById('gridViewBtn');
-            const listBtn = document.getElementById('listViewBtn');
-
-            // Hide all views
-            if (gridView) gridView.classList.add('hidden');
-            if (listView) listView.classList.add('hidden');
-            
-            // Remove active state from buttons
-            gridBtn?.classList.remove('active', 'bg-blue-100', 'text-blue-600');
-            listBtn?.classList.remove('active', 'bg-blue-100', 'text-blue-600');
-            gridBtn?.classList.add('text-gray-600');
-            listBtn?.classList.add('text-gray-600');
-
-            if (view === 'grid') {
-                if (gridView) {
-                    gridView.classList.remove('hidden');
-                    gridView.classList.add('grid');
-                }
-                gridBtn?.classList.add('active', 'bg-blue-100', 'text-blue-600');
-                gridBtn?.classList.remove('text-gray-600');
-            } else {
-                if (listView) {
-                    listView.classList.remove('hidden');
-                    listView.classList.add('block');
-                }
-                listBtn?.classList.add('active', 'bg-blue-100', 'text-blue-600');
-                listBtn?.classList.remove('text-gray-600');
-            }
-
-            // Save preference
-            localStorage.setItem('taskView', view);
-            currentView = view;
-        }
-
-        // Auto-dismiss success message
+        // Auto-dismiss success message after 5 seconds
         setTimeout(function() {
             const alert = document.querySelector('.animate-fade-in');
             if (alert) {
