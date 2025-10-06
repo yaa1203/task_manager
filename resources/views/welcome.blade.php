@@ -40,12 +40,18 @@
         .mobile-nav {
             display: none;
         }
+        
+        /* Animasi untuk hamburger menu */
+        .hamburger-line {
+            transition: all 0.3s ease;
+        }
+        
         @media (max-width: 640px) {
             .desktop-nav {
                 display: none;
             }
             .mobile-nav {
-                display: flex;
+                display: block;
             }
             .hero-image {
                 max-width: 280px;
@@ -147,15 +153,17 @@
                 <span class="bg-blue-600 text-white rounded-lg w-8 h-8 flex items-center justify-center font-bold">T</span>
                 <span class="font-bold text-lg ml-2 gradient-text">Taskly</span>
             </div>
-            <button id="mobile-menu-button" class="text-gray-600 focus:outline-none">
-                <i class="fas fa-bars text-xl"></i>
+            <button id="mobile-menu-button" class="text-gray-600 focus:outline-none p-2">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path class="hamburger-line" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
             </button>
         </div>
         <!-- Mobile Menu Dropdown -->
         <div id="mobile-menu" class="hidden bg-white border-t">
             <div class="px-4 py-3 space-y-2">
-                <a href="{{ route('login') }}" class="block text-blue-600 font-medium py-2">Masuk</a>
-                <a href="{{ route('register') }}" class="block bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-medium text-center">
+                <a href="{{ route('login')}}" class="block text-blue-600 font-medium py-2">Masuk</a>
+                <a href="{{ route('register')}}" class="block bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-medium text-center">
                     Daftar
                 </a>
             </div>
@@ -171,8 +179,8 @@
                     <span class="font-bold text-xl ml-2 gradient-text">Taskly</span>
                 </div>
                 <div class="flex items-center space-x-6">
-                    <a href="{{ route('login') }}" class="text-blue-600 font-medium hover:underline">Masuk</a>
-                    <a href="{{ route('register') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition">
+                    <a href="#" class="text-blue-600 font-medium hover:underline">Masuk</a>
+                    <a href="#" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition">
                         Daftar Gratis
                     </a>
                 </div>
@@ -193,7 +201,7 @@
                         Atur prioritas, delegasikan, dan raih fokus — semua dalam satu aplikasi ringan yang dirancang untuk produktivitas Anda.
                     </p>
                     <div class="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
-                        <a href="{{ route('register') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-5 md:px-8 py-3 rounded-xl font-semibold text-base md:text-lg transition transform hover:scale-105 flex items-center justify-center">
+                        <a href="#" class="bg-blue-600 hover:bg-blue-700 text-white px-5 md:px-8 py-3 rounded-xl font-semibold text-base md:text-lg transition transform hover:scale-105 flex items-center justify-center">
                             <i class="fas fa-rocket mr-2"></i>Mulai Sekarang
                         </a>
                         <a href="#features" class="bg-white hover:bg-gray-50 text-blue-600 border border-blue-600 px-5 md:px-8 py-3 rounded-xl font-semibold text-base md:text-lg transition flex items-center justify-center">
@@ -203,7 +211,9 @@
                 </div>
                 <div class="mockup-container flex justify-center">
                     <div class="mockup float-animation">
-                        <img src="{{ asset('images/welcome-illustration.svg') }}" alt="Taskly App Preview" class="hero-image w-full max-w-xs md:max-w-sm rounded-2xl shadow-2xl">
+                        <div class="hero-image w-full max-w-xs md:max-w-sm rounded-2xl shadow-2xl bg-gradient-to-br from-blue-400 to-purple-500 aspect-square flex items-center justify-center text-white text-6xl">
+                            <i class="fas fa-tasks"></i>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -321,7 +331,7 @@
                 Bergabung dengan ribuan pengguna yang telah mengubah cara mereka bekerja
             </p>
             <div class="flex flex-col sm:flex-row gap-3 justify-center">
-                <a href="{{ route('register') }}" class="bg-white text-blue-600 hover:bg-gray-100 px-5 md:px-8 py-3 md:py-4 rounded-xl font-semibold text-base md:text-lg transition transform hover:scale-105 flex items-center justify-center">
+                <a href="#" class="bg-white text-blue-600 hover:bg-gray-100 px-5 md:px-8 py-3 md:py-4 rounded-xl font-semibold text-base md:text-lg transition transform hover:scale-105 flex items-center justify-center">
                     <i class="fas fa-user-plus mr-2"></i>Buat Akun Gratis
                 </a>
             </div>
