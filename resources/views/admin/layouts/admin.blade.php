@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Admin Dashboard</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="font-sans antialiased bg-gray-100">
 

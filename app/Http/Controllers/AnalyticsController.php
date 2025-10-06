@@ -116,7 +116,7 @@ class AnalyticsController extends Controller
     // === Analytics Global untuk Admin ===
     public function adminIndex()
     {
-        return view('admin.analytics.index'); // Fixed typo: analyticts -> analytics
+        return view('admin.analyticts.index'); // Fixed typo: analyticts -> analytics
     }
 
     public function adminData()
