@@ -4,7 +4,6 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes">
         <meta name="csrf-token" content="{{ csrf_token() }}">
-          <script src="https://cdn.tailwindcss.com"></script>
         
         <!-- Primary Meta Tags -->
         <title>{{ config('app.name', 'Laravel') }}</title>
@@ -43,6 +42,9 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
         
+        <!-- Alpine.js -->
+        <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+        
         <!-- Tailwind CSS -->
         <script src="https://cdn.tailwindcss.com"></script>
         
@@ -51,7 +53,13 @@
         
         <!-- PWA Install Prompt Styles -->
         <style>
-            /* Only minimal custom styles needed */
+            /* Prevent horizontal scroll on mobile */
+            html, body {
+                overflow-x: hidden;
+                width: 100%;
+            }
+            
+            /* PWA Install Prompt */
             .pwa-install-prompt {
                 position: fixed;
                 bottom: 20px;
@@ -62,11 +70,18 @@
                 border-radius: 8px;
                 box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
                 display: none;
-                align-items: center;
+                flex-direction: column;
                 gap: 12px;
                 z-index: 1000;
                 max-width: 90%;
                 animation: slideUp 0.3s ease-out;
+            }
+            
+            @media (min-width: 640px) {
+                .pwa-install-prompt {
+                    flex-direction: row;
+                    align-items: center;
+                }
             }
             
             @keyframes slideUp {
@@ -84,6 +99,7 @@
                 display: flex;
             }
             
+            /* Offline Banner */
             .offline-banner {
                 position: fixed;
                 top: 0;
@@ -95,12 +111,14 @@
                 text-align: center;
                 z-index: 999;
                 display: none;
+                font-size: 14px;
             }
             
             .offline-banner.show {
                 display: block;
             }
             
+            /* Update Banner */
             .update-banner {
                 position: fixed;
                 top: 0;
@@ -117,6 +135,19 @@
             .update-banner.show {
                 display: block;
             }
+            
+            /* Improve touch targets for mobile */
+            @media (max-width: 640px) {
+                button, a {
+                    min-height: 44px;
+                    min-width: 44px;
+                }
+            }
+            
+            /* Smooth scrolling */
+            html {
+                scroll-behavior: smooth;
+            }
         </style>
     </head>
     <body class="font-sans antialiased">
@@ -128,7 +159,7 @@
         <!-- Update Banner -->
         <div id="update-banner" class="update-banner">
             <span>A new version is available!</span>
-            <button onclick="window.location.reload()" class="ml-4 px-3 py-1 bg-white text-blue-600 rounded text-sm font-semibold">
+            <button onclick="window.location.reload()" class="ml-4 px-3 py-1 bg-white text-blue-600 rounded text-sm font-semibold hover:bg-gray-100 transition">
                 Update Now
             </button>
         </div>
@@ -146,7 +177,7 @@
             @endisset
             
             <!-- Page Content -->
-            <main>
+            <main class="pb-20 sm:pb-0">
                 {{ $slot }}
             </main>
         </div>
@@ -154,17 +185,17 @@
         <!-- PWA Install Prompt -->
         <div id="pwa-install-prompt" class="pwa-install-prompt">
             <div class="flex items-center gap-3">
-                <img src="/icons/logo.png" alt="App Icon" class="w-12 h-12">
+                <img src="/icons/logo.png" alt="App Icon" class="w-12 h-12 flex-shrink-0">
                 <div>
                     <p class="font-semibold">Install Task App</p>
                     <p class="text-sm text-gray-600">Install our app for a better experience</p>
                 </div>
             </div>
-            <div class="flex gap-2">
-                <button id="pwa-install-btn" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition">
+            <div class="flex gap-2 w-full sm:w-auto">
+                <button id="pwa-install-btn" class="flex-1 sm:flex-none px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
                     Install
                 </button>
-                <button id="pwa-dismiss-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition">
+                <button id="pwa-dismiss-btn" class="flex-1 sm:flex-none px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 transition">
                     Later
                 </button>
             </div>
@@ -187,7 +218,6 @@
                                 const newWorker = registration.installing;
                                 newWorker.addEventListener('statechange', () => {
                                     if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                        // New service worker installed, show update banner
                                         document.getElementById('update-banner').classList.add('show');
                                     }
                                 });
@@ -209,7 +239,6 @@
                 e.preventDefault();
                 deferredPrompt = e;
                 
-                // Show install prompt after 30 seconds or on scroll
                 setTimeout(() => showInstallPrompt(), 30000);
                 
                 let scrolled = false;
@@ -218,7 +247,7 @@
                         scrolled = true;
                         showInstallPrompt();
                     }
-                });
+                }, { passive: true });
             });
             
             function showInstallPrompt() {
@@ -235,13 +264,6 @@
                 
                 if (outcome === 'accepted') {
                     console.log('User accepted the install prompt');
-                    // Track installation
-                    if (typeof gtag !== 'undefined') {
-                        gtag('event', 'pwa_install', {
-                            'event_category': 'engagement',
-                            'event_label': 'accepted'
-                        });
-                    }
                 }
                 
                 deferredPrompt = null;
@@ -252,13 +274,11 @@
                 localStorage.setItem('pwa-install-dismissed', 'true');
                 installPrompt.classList.remove('show');
                 
-                // Ask again after 7 days
                 setTimeout(() => {
                     localStorage.removeItem('pwa-install-dismissed');
                 }, 7 * 24 * 60 * 60 * 1000);
             });
             
-            // Check if app is installed
             window.addEventListener('appinstalled', () => {
                 console.log('PWA was installed');
                 installPrompt.classList.remove('show');
@@ -272,7 +292,6 @@
                 if (navigator.onLine) {
                     offlineBanner.classList.remove('show');
                     
-                    // Sync data when back online using service worker registration
                     if (serviceWorkerRegistration && 'sync' in serviceWorkerRegistration) {
                         serviceWorkerRegistration.sync.register('sync-data')
                             .then(() => console.log('Sync registered'))
@@ -285,8 +304,6 @@
             
             window.addEventListener('online', updateOnlineStatus);
             window.addEventListener('offline', updateOnlineStatus);
-            
-            // Initial check
             updateOnlineStatus();
             
             // Request Notification Permission
@@ -295,14 +312,12 @@
                     Notification.requestPermission().then(permission => {
                         if (permission === 'granted') {
                             console.log('Notification permission granted');
-                            // Subscribe to push notifications if needed
                             subscribeToPushNotifications();
                         }
                     });
                 }
             }
             
-            // Subscribe to Push Notifications
             async function subscribeToPushNotifications() {
                 if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
                     return;
@@ -310,32 +325,11 @@
                 
                 try {
                     const registration = await navigator.serviceWorker.ready;
-                    
-                    // Check if already subscribed
                     const existingSubscription = await registration.pushManager.getSubscription();
                     if (existingSubscription) {
                         console.log('Already subscribed to push notifications');
                         return;
                     }
-                    
-                    // For development, you can comment out the actual subscription
-                    // until you have a valid VAPID key
-                    /*
-                    const subscription = await registration.pushManager.subscribe({
-                        userVisibleOnly: true,
-                        applicationServerKey: urlBase64ToUint8Array('YOUR_VAPID_PUBLIC_KEY')
-                    });
-                    
-                    // Send subscription to server
-                    await fetch('/api/push-subscription', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                        },
-                        body: JSON.stringify(subscription)
-                    });
-                    */
                     
                     console.log('Push notification subscription would be set up with valid VAPID key');
                 } catch (error) {
@@ -343,32 +337,14 @@
                 }
             }
             
-            function urlBase64ToUint8Array(base64String) {
-                const padding = '='.repeat((4 - base64String.length % 4) % 4);
-                const base64 = (base64String + padding)
-                    .replace(/\-/g, '+')
-                    .replace(/_/g, '/');
-                
-                const rawData = window.atob(base64);
-                const outputArray = new Uint8Array(rawData.length);
-                
-                for (let i = 0; i < rawData.length; ++i) {
-                    outputArray[i] = rawData.charCodeAt(i);
-                }
-                return outputArray;
-            }
-            
-            // Request notification permission after user interaction
             document.addEventListener('click', () => {
                 requestNotificationPermission();
             }, { once: true });
             
-            // Listen for messages from service worker
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.addEventListener('message', (event) => {
                     if (event.data && event.data.type === 'SYNC_COMPLETE') {
                         console.log('Data sync completed:', event.data.message);
-                        // Optionally refresh data on the page
                         if (window.location.pathname.includes('/analytics')) {
                             if (typeof loadAnalytics === 'function') {
                                 loadAnalytics();
@@ -378,7 +354,6 @@
                 });
             }
             
-            // Function to manually clear cache (useful for debugging)
             window.clearAppCache = function() {
                 if ('caches' in window) {
                     caches.keys().then(names => {
@@ -400,26 +375,15 @@
                 }
             };
             
-            // Mobile menu toggle
-            document.addEventListener('DOMContentLoaded', () => {
-                const mobileMenuButton = document.getElementById('mobile-menu-button');
-                const mobileMenu = document.getElementById('mobile-menu');
-                
-                if (mobileMenuButton && mobileMenu) {
-                    mobileMenuButton.addEventListener('click', () => {
-                        mobileMenu.classList.toggle('hidden');
-                        mobileMenu.classList.toggle('flex');
-                    });
-                    
-                    // Close mobile menu when clicking outside
-                    document.addEventListener('click', (e) => {
-                        if (!mobileMenu.contains(e.target) && !mobileMenuButton.contains(e.target)) {
-                            mobileMenu.classList.add('hidden');
-                            mobileMenu.classList.remove('flex');
-                        }
-                    });
+            // Prevent double-tap zoom on buttons
+            let lastTouchEnd = 0;
+            document.addEventListener('touchend', (e) => {
+                const now = Date.now();
+                if (now - lastTouchEnd <= 300) {
+                    e.preventDefault();
                 }
-            });
+                lastTouchEnd = now;
+            }, { passive: false });
         </script>
     </body>
 </html>
