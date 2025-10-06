@@ -120,9 +120,6 @@
 
                 <!-- Footer -->
                 <div class="mt-8 text-center">
-                    <p class="text-xs text-gray-500">
-                        &copy; {{ date('Y') }} {{ config('app.name', 'TaskFlow') }}. All rights reserved.
-                    </p>
                 </div>
             </div>
         </div>
