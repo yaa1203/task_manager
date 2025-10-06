@@ -1,9 +1,12 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-            <h2 class="font-semibold text-xl text-gray-800">📅 Calendar</h2>
-            <button onclick="openQuickAddModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg flex items-center gap-2 transition text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div>
+                <h2 class="font-semibold text-xl text-gray-800">📅 Calendar</h2>
+                <p class="text-sm text-gray-600 mt-1">Manage your tasks and projects</p>
+            </div>
+            <button onclick="openQuickAddModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition text-sm sm:text-base font-medium shadow-sm">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
                 <span class="hidden sm:inline">Quick Add Task</span>
@@ -27,11 +30,11 @@
                 @endphp
 
                 @foreach($statCards as $card)
-                <div class="bg-white rounded-lg shadow p-3 sm:p-4 border-l-4 border-{{ $card['color'] }}-500">
+                <div class="bg-white rounded-lg shadow p-3 sm:p-4 border-l-4 border-{{ $card['color'] }}-500 transition-all hover:shadow-md">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-xs sm:text-sm text-gray-600">{{ $card['label'] }}</p>
-                            <p class="text-xl sm:text-2xl font-bold text-gray-800">{{ $card['value'] }}</p>
+                            <p class="text-xs sm:text-sm text-gray-600 font-medium">{{ $card['label'] }}</p>
+                            <p class="text-xl sm:text-2xl font-bold text-gray-800 mt-1">{{ $card['value'] }}</p>
                         </div>
                         <div class="bg-{{ $card['color'] }}-100 p-2 sm:p-3 rounded-full">
                             <svg class="w-5 h-5 sm:w-6 sm:h-6 text-{{ $card['color'] }}-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -62,15 +65,43 @@
                         @endforeach
                     </div>
 
-                    <button onclick="calendar.today()" class="ml-auto text-xs sm:text-sm text-blue-600 hover:text-blue-800 font-medium">
+                    <button onclick="calendar.today()" class="ml-auto text-xs sm:text-sm text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
                         Today
                     </button>
                 </div>
             </div>
 
             {{-- Calendar --}}
-            <div class="bg-white shadow-lg rounded-lg p-3 sm:p-6">
-                <div id="calendar"></div>
+            <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+                <div class="bg-gradient-to-r from-indigo-600 to-blue-600 p-4 text-white">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            <h3 id="calendar-title" class="text-lg sm:text-xl font-semibold">Calendar</h3>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="calendar.prev()" class="bg-white bg-opacity-20 hover:bg-opacity-30 p-2 rounded-md transition">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                                </svg>
+                            </button>
+                            <button onclick="calendar.today()" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-1 rounded-md text-sm font-medium transition">
+                                Today
+                            </button>
+                            <button onclick="calendar.next()" class="bg-white bg-opacity-20 hover:bg-opacity-30 p-2 rounded-md transition">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div id="calendar" class="p-3 sm:p-6"></div>
             </div>
 
             {{-- Legend --}}
@@ -114,14 +145,14 @@
                 <div class="mb-4">
                     <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-2">{{ $field['label'] }}</label>
                     <input type="{{ $field['type'] }}" id="{{ $field['id'] }}" required 
-                           class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                            @if(isset($field['placeholder'])) placeholder="{{ $field['placeholder'] }}" @endif>
                 </div>
                 @endforeach
 
                 <div class="mb-4">
                     <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-2">Priority</label>
-                    <select id="quick-priority" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <select id="quick-priority" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
                         @foreach(['low' => 'Low', 'medium' => 'Medium', 'high' => 'High'] as $val => $label)
                         <option value="{{ $val }}" {{ $val === 'medium' ? 'selected' : '' }}>{{ $label }}</option>
                         @endforeach
@@ -129,7 +160,7 @@
                 </div>
 
                 <div class="flex gap-2 sm:gap-3">
-                    <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition text-sm">
+                    <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-lg transition text-sm">
                         Add Task
                     </button>
                     <button type="button" onclick="closeQuickAddModal()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 px-4 rounded-lg transition text-sm">
@@ -155,7 +186,7 @@
             <div id="eventModalContent" class="space-y-3 text-sm"></div>
 
             <div class="mt-6 flex gap-2 sm:gap-3">
-                <a id="eventModalLink" href="#" class="flex-1 text-center bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition text-sm">
+                <a id="eventModalLink" href="#" class="flex-1 text-center bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-lg transition text-sm">
                     View Details
                 </a>
                 <button onclick="closeEventModal()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 px-4 rounded-lg transition text-sm">
@@ -175,25 +206,41 @@
         #calendar { font-family: 'Inter', sans-serif; }
         
         .fc .fc-button {
-            background-color: #3b82f6;
+            background-color: #4f46e5;
             border: none;
             padding: 0.4rem 0.8rem;
             text-transform: capitalize;
             font-weight: 500;
             font-size: 0.875rem;
+            border-radius: 6px;
         }
-        .fc .fc-button:hover { background-color: #2563eb; }
-        .fc .fc-button-active { background-color: #1d4ed8 !important; }
-        .fc-theme-standard td, .fc-theme-standard th { border-color: #e5e7eb; }
-        .fc-day-today { background-color: #eff6ff !important; }
+        .fc .fc-button:hover { 
+            background-color: #4338ca; 
+        }
+        .fc .fc-button-active { 
+            background-color: #4338ca !important; 
+        }
+        .fc-theme-standard td, .fc-theme-standard th { 
+            border-color: #e5e7eb; 
+        }
+        .fc-day-today { 
+            background-color: #ede9fe !important; 
+        }
         .fc-event {
             cursor: pointer;
-            border-radius: 4px;
+            border-radius: 6px;
             padding: 2px 4px;
             font-size: 0.75rem;
+            font-weight: 500;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
         }
-        .fc-event:hover { opacity: 0.85; }
-        .fc-daygrid-event { white-space: normal; }
+        .fc-event:hover { 
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .fc-daygrid-event { 
+            white-space: normal; 
+        }
         .fc .fc-toolbar-title {
             font-size: 1.25rem;
             font-weight: 600;
@@ -203,17 +250,32 @@
             background-color: #f9fafb;
             font-weight: 600;
             color: #6b7280;
-            padding: 0.5rem 0;
+            padding: 0.75rem 0;
             font-size: 0.875rem;
         }
         
         @media (max-width: 640px) {
-            .fc .fc-toolbar { flex-direction: column; gap: 0.5rem; }
-            .fc .fc-toolbar-chunk { width: 100%; }
-            .fc .fc-toolbar-title { font-size: 1rem; text-align: center; }
-            .fc-header-toolbar { margin-bottom: 1rem !important; }
-            .fc .fc-button { padding: 0.375rem 0.75rem; font-size: 0.75rem; }
-            .fc-daygrid-day-number { font-size: 0.875rem; }
+            .fc .fc-toolbar { 
+                flex-direction: column; 
+                gap: 0.5rem; 
+            }
+            .fc .fc-toolbar-chunk { 
+                width: 100%; 
+            }
+            .fc .fc-toolbar-title { 
+                font-size: 1rem; 
+                text-align: center; 
+            }
+            .fc-header-toolbar { 
+                margin-bottom: 1rem !important; 
+            }
+            .fc .fc-button { 
+                padding: 0.375rem 0.75rem; 
+                font-size: 0.75rem; 
+            }
+            .fc-daygrid-day-number { 
+                font-size: 0.875rem; 
+            }
         }
     </style>
 
@@ -273,6 +335,9 @@
             calendar.render();
             setupFilters();
             
+            // Update calendar title
+            updateCalendarTitle();
+            
             // Responsive view switch
             window.addEventListener('resize', () => {
                 if (window.innerWidth < 768 && calendar.view.type === 'dayGridMonth') {
@@ -280,6 +345,23 @@
                 }
             });
         });
+
+        function updateCalendarTitle() {
+            const titleElement = document.getElementById('calendar-title');
+            const currentDate = calendar.getDate();
+            const options = { year: 'numeric', month: 'long' };
+            
+            if (calendar.view.type === 'dayGridMonth') {
+                titleElement.textContent = currentDate.toLocaleDateString(undefined, options);
+            } else if (calendar.view.type === 'listWeek') {
+                const weekStart = new Date(currentDate);
+                weekStart.setDate(weekStart.getDate() - currentDate.getDay());
+                const weekEnd = new Date(weekStart);
+                weekEnd.setDate(weekEnd.getDate() + 6);
+                
+                titleElement.textContent = `${weekStart.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} - ${weekEnd.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}`;
+            }
+        }
 
         function applyFilters() {
             const filters = {
@@ -358,23 +440,41 @@
             document.getElementById('eventModalLink').href = event.url;
             
             let content = p.type === 'task' ? `
-                <div class="flex items-center gap-2 mb-2">
-                    <span class="font-medium text-gray-600">Status:</span>
-                    <span class="px-2 py-1 rounded text-xs font-medium ${statusColors[p.status] || 'bg-gray-100 text-gray-800'}">
-                        ${p.status.replace('_', ' ').toUpperCase()}
-                    </span>
+                <div class="space-y-3">
+                    <div class="flex items-center gap-2">
+                        <span class="font-medium text-gray-700">Status:</span>
+                        <span class="px-2 py-1 rounded text-xs font-medium ${statusColors[p.status] || 'bg-gray-100 text-gray-800'}">
+                            ${p.status.replace('_', ' ').toUpperCase()}
+                        </span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-medium text-gray-700">Due:</span>
+                        <span class="text-gray-800">${event.startStr}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-medium text-gray-700">Priority:</span>
+                        <span class="px-2 py-1 rounded text-xs font-medium ${
+                            p.priority === 'high' ? 'bg-red-100 text-red-800' : 
+                            p.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' : 
+                            'bg-green-100 text-green-800'
+                        }">
+                            ${p.priority.toUpperCase()}
+                        </span>
+                    </div>
+                    ${p.isOverdue ? '<div class="mt-2 p-3 bg-red-50 text-red-700 rounded-lg flex items-center gap-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> <span class="font-medium">Overdue</span></div>' : ''}
+                    ${p.description ? `<div class="mt-3"><h4 class="font-medium text-gray-700 mb-1">Description</h4><p class="text-gray-600">${p.description}</p></div>` : ''}
                 </div>
-                <div class="flex items-center gap-2 mb-2">
-                    <span class="font-medium text-gray-600">Due:</span>
-                    <span class="text-gray-800">${event.startStr}</span>
-                </div>
-                ${p.isOverdue ? '<div class="text-red-600 font-medium">⚠️ Overdue</div>' : ''}
-                ${p.description ? `<div class="mt-3 text-gray-600">${p.description}</div>` : ''}
             ` : `
-                <div class="space-y-2">
-                    <div><span class="font-medium text-gray-600">Start:</span> ${event.startStr}</div>
-                    <div><span class="font-medium text-gray-600">End:</span> ${event.endStr}</div>
-                    ${p.description ? `<div class="mt-3 text-gray-600">${p.description}</div>` : ''}
+                <div class="space-y-3">
+                    <div>
+                        <span class="font-medium text-gray-700">Start:</span>
+                        <span class="text-gray-800">${event.startStr}</span>
+                    </div>
+                    <div>
+                        <span class="font-medium text-gray-700">End:</span>
+                        <span class="text-gray-800">${event.endStr}</span>
+                    </div>
+                    ${p.description ? `<div class="mt-3"><h4 class="font-medium text-gray-700 mb-1">Description</h4><p class="text-gray-600">${p.description}</p></div>` : ''}
                 </div>
             `;
             

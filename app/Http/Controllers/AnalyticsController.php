@@ -24,8 +24,9 @@ class AnalyticsController extends Controller
         $tasks = Task::where('user_id', $userId)
             ->selectRaw("
                 CASE 
-                    WHEN status = 'done' THEN 'done'
-                    WHEN status IN ('in_progress', 'in-progress', 'progress') THEN 'in_progress'
+                    WHEN LOWER(status) = 'done' OR LOWER(status) = 'completed' THEN 'done'
+                    WHEN LOWER(status) IN ('in_progress', 'in-progress', 'progress', 'in progress') THEN 'in_progress'
+                    WHEN LOWER(status) IN ('pending', 'todo', 'to do', 'not started') THEN 'pending'
                     ELSE 'pending'
                 END as normalized_status,
                 COUNT(*) as total
@@ -33,31 +34,56 @@ class AnalyticsController extends Controller
             ->groupBy('normalized_status')
             ->pluck('total', 'normalized_status');
 
-        // Ensure all statuses exist
+        // Ensure all statuses exist with actual count
         $taskStats = [
             'pending' => $tasks['pending'] ?? 0,
             'in_progress' => $tasks['in_progress'] ?? 0,
             'done' => $tasks['done'] ?? 0,
         ];
 
+        // Get actual total count from database
+        $actualTotal = Task::where('user_id', $userId)->count();
+        
+        // If there's a mismatch, recalculate
+        if (array_sum($taskStats) != $actualTotal) {
+            // Direct query to get accurate counts
+            $pendingCount = Task::where('user_id', $userId)
+                ->whereIn('status', ['pending', 'todo', 'to do', 'not started'])
+                ->count();
+            
+            $progressCount = Task::where('user_id', $userId)
+                ->whereIn('status', ['in_progress', 'in-progress', 'progress', 'in progress'])
+                ->count();
+            
+            $doneCount = Task::where('user_id', $userId)
+                ->whereIn('status', ['done', 'completed'])
+                ->count();
+            
+            $taskStats = [
+                'pending' => $pendingCount,
+                'in_progress' => $progressCount,
+                'done' => $doneCount,
+            ];
+        }
+
         // Statistik Project user
         $projects = Project::where('user_id', $userId)->get();
         $now = Carbon::now();
         
         $activeProjects = $projects->filter(function($project) use ($now) {
-            return Carbon::parse($project->end_date)->gte($now);
+            return $project->end_date && Carbon::parse($project->end_date)->gte($now);
         })->count();
         
         $finishedProjects = $projects->filter(function($project) use ($now) {
-            return Carbon::parse($project->end_date)->lt($now);
+            return $project->end_date && Carbon::parse($project->end_date)->lt($now);
         })->count();
 
-        // Weekly trend data (last 7 days)
+        // Weekly trend data (last 7 days) - only count actual completed tasks
         $weeklyTrend = [];
         for ($i = 6; $i >= 0; $i--) {
             $date = Carbon::now()->subDays($i);
             $count = Task::where('user_id', $userId)
-                ->where('status', 'done')
+                ->whereIn('status', ['done', 'completed'])
                 ->whereDate('updated_at', $date)
                 ->count();
             
@@ -67,6 +93,12 @@ class AnalyticsController extends Controller
             ];
         }
 
+        // Calculate completion rate based on actual data
+        $totalTasks = array_sum($taskStats);
+        $completionRate = $totalTasks > 0 
+            ? round(($taskStats['done'] / $totalTasks) * 100, 1)
+            : 0;
+
         return response()->json([
             'tasks' => $taskStats,
             'projects' => [
@@ -75,10 +107,8 @@ class AnalyticsController extends Controller
             ],
             'weekly_trend' => $weeklyTrend,
             'summary' => [
-                'total_tasks' => array_sum($taskStats),
-                'completion_rate' => array_sum($taskStats) > 0 
-                    ? round(($taskStats['done'] / array_sum($taskStats)) * 100, 1)
-                    : 0,
+                'total_tasks' => $totalTasks,
+                'completion_rate' => $completionRate,
             ]
         ]);
     }
@@ -86,7 +116,7 @@ class AnalyticsController extends Controller
     // === Analytics Global untuk Admin ===
     public function adminIndex()
     {
-        return view('admin.analyticts.index'); // Fix typo: analyticts -> analytics
+        return view('admin.analytics.index'); // Fixed typo: analyticts -> analytics
     }
 
     public function adminData()
@@ -94,8 +124,9 @@ class AnalyticsController extends Controller
         // Statistik Task semua user dengan normalisasi status
         $tasks = Task::selectRaw("
                 CASE 
-                    WHEN status = 'done' THEN 'done'
-                    WHEN status IN ('in_progress', 'in-progress', 'progress') THEN 'in_progress'
+                    WHEN LOWER(status) = 'done' OR LOWER(status) = 'completed' THEN 'done'
+                    WHEN LOWER(status) IN ('in_progress', 'in-progress', 'progress', 'in progress') THEN 'in_progress'
+                    WHEN LOWER(status) IN ('pending', 'todo', 'to do', 'not started') THEN 'pending'
                     ELSE 'pending'
                 END as normalized_status,
                 COUNT(*) as total
@@ -110,16 +141,27 @@ class AnalyticsController extends Controller
             'done' => $tasks['done'] ?? 0,
         ];
 
+        // Validate total count
+        $actualTotal = Task::count();
+        if (array_sum($taskStats) != $actualTotal) {
+            // Recalculate with direct queries
+            $taskStats = [
+                'pending' => Task::whereIn('status', ['pending', 'todo', 'to do', 'not started'])->count(),
+                'in_progress' => Task::whereIn('status', ['in_progress', 'in-progress', 'progress', 'in progress'])->count(),
+                'done' => Task::whereIn('status', ['done', 'completed'])->count(),
+            ];
+        }
+
         // Statistik Project semua user
         $projects = Project::all();
         $now = Carbon::now();
         
         $activeProjects = $projects->filter(function($project) use ($now) {
-            return Carbon::parse($project->end_date)->gte($now);
+            return $project->end_date && Carbon::parse($project->end_date)->gte($now);
         })->count();
         
         $finishedProjects = $projects->filter(function($project) use ($now) {
-            return Carbon::parse($project->end_date)->lt($now);
+            return $project->end_date && Carbon::parse($project->end_date)->lt($now);
         })->count();
 
         // Get user statistics
@@ -127,6 +169,11 @@ class AnalyticsController extends Controller
         $activeUsers = Task::distinct('user_id')
             ->whereDate('updated_at', '>=', Carbon::now()->subDays(7))
             ->count('user_id');
+
+        $totalTasks = array_sum($taskStats);
+        $completionRate = $totalTasks > 0 
+            ? round(($taskStats['done'] / $totalTasks) * 100, 1)
+            : 0;
 
         return response()->json([
             'tasks' => $taskStats,
@@ -139,10 +186,8 @@ class AnalyticsController extends Controller
                 'active' => $activeUsers,
             ],
             'summary' => [
-                'total_tasks' => array_sum($taskStats),
-                'completion_rate' => array_sum($taskStats) > 0 
-                    ? round(($taskStats['done'] / array_sum($taskStats)) * 100, 1)
-                    : 0,
+                'total_tasks' => $totalTasks,
+                'completion_rate' => $completionRate,
             ]
         ]);
     }

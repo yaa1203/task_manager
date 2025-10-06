@@ -1,5 +1,5 @@
 // Service Worker Version - update this when you want to force cache refresh
-const CACHE_VERSION = 'v1.0.0';
+const CACHE_VERSION = 'v1.0.2'; // Increment version to force cache refresh
 const CACHE_NAME = `taskapp-cache-${CACHE_VERSION}`;
 const DATA_CACHE_NAME = `taskapp-data-cache-${CACHE_VERSION}`;
 
@@ -44,12 +44,18 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
+          // Delete ALL old caches that don't match current version
           if (cacheName !== CACHE_NAME && cacheName !== DATA_CACHE_NAME) {
             console.log('[ServiceWorker] Removing old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
+    }).then(() => {
+      // Clear data cache for API calls to ensure fresh data
+      return caches.delete(DATA_CACHE_NAME).then(() => {
+        return caches.open(DATA_CACHE_NAME);
+      });
     }).then(() => self.clients.claim()) // Take control of all pages immediately
   );
 });
@@ -65,24 +71,43 @@ self.addEventListener('fetch', (event) => {
   }
 
   // Handle API requests differently (network first, then cache)
-  if (request.url.includes('/api/') || request.url.includes('/admin/')) {
+  // IMPORTANT: Don't cache analytics data to avoid stale counts
+  if (request.url.includes('/api/') || request.url.includes('/admin/') || 
+      request.url.includes('/analytics/data')) {
     event.respondWith(
-      fetch(request)
-        .then((response) => {
-          // Clone the response before caching
+      fetch(request, {
+        cache: 'no-cache', // Force fresh data
+        credentials: 'same-origin'
+      })
+      .then((response) => {
+        // Only cache non-analytics API responses
+        if (!request.url.includes('/analytics/data') && 
+            !request.url.includes('/tasks/count') &&
+            !request.url.includes('/projects/count')) {
           const responseToCache = response.clone();
           
           caches.open(DATA_CACHE_NAME)
             .then((cache) => {
               cache.put(request, responseToCache);
             });
-          
-          return response;
-        })
-        .catch(() => {
-          // If network fails, try to get from cache
+        }
+        
+        return response;
+      })
+      .catch(() => {
+        // If network fails and it's not analytics, try cache
+        if (!request.url.includes('/analytics/data')) {
           return caches.match(request);
-        })
+        }
+        // For analytics, return empty data instead of cached
+        return new Response(JSON.stringify({
+          tasks: { pending: 0, in_progress: 0, done: 0 },
+          projects: { active: 0, finished: 0 },
+          summary: { total_tasks: 0, completion_rate: 0 }
+        }), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+      })
     );
     return;
   }
@@ -90,7 +115,7 @@ self.addEventListener('fetch', (event) => {
   // For navigation requests (HTML pages)
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request)
+      fetch(request, { cache: 'no-cache' })
         .then((response) => {
           // Update cache with fresh content
           const responseToCache = response.clone();
@@ -120,7 +145,21 @@ self.addEventListener('fetch', (event) => {
     caches.match(request)
       .then((response) => {
         if (response) {
-          // Return cached version
+          // Return cached version but update cache in background
+          fetch(request)
+            .then((response) => {
+              if (response && response.status === 200) {
+                const responseToCache = response.clone();
+                caches.open(CACHE_NAME)
+                  .then((cache) => {
+                    cache.put(request, responseToCache);
+                  });
+              }
+            })
+            .catch(() => {
+              // Silently fail if network is unavailable
+            });
+          
           return response;
         }
 
@@ -141,6 +180,12 @@ self.addEventListener('fetch', (event) => {
               });
 
             return response;
+          })
+          .catch(() => {
+            // If both cache and network fail, return offline page for HTML requests
+            if (request.destination === 'document') {
+              return caches.match('/offline');
+            }
           });
       })
       .catch(() => {
@@ -156,7 +201,7 @@ self.addEventListener('fetch', (event) => {
 self.addEventListener('sync', (event) => {
   console.log('[ServiceWorker] Background sync:', event.tag);
   
-  if (event.tag === 'sync-tasks') {
+  if (event.tag === 'sync-tasks' || event.tag === 'sync-data') {
     event.waitUntil(syncTasks());
   }
 });
@@ -164,9 +209,20 @@ self.addEventListener('sync', (event) => {
 // Function to sync tasks when back online
 async function syncTasks() {
   try {
+    // Clear analytics cache to get fresh data
     const cache = await caches.open(DATA_CACHE_NAME);
     const requests = await cache.keys();
     
+    // Delete all analytics-related cached requests
+    for (const request of requests) {
+      if (request.url.includes('/analytics/') || 
+          request.url.includes('/tasks') ||
+          request.url.includes('/projects')) {
+        await cache.delete(request);
+      }
+    }
+    
+    // Process pending task submissions
     const taskRequests = requests.filter(req => 
       req.url.includes('/tasks') && req.method === 'POST'
     );
@@ -181,6 +237,17 @@ async function syncTasks() {
         console.error('[ServiceWorker] Sync failed for:', request.url);
       }
     }
+    
+    // Notify all clients to refresh their data
+    const clients = await self.clients.matchAll();
+    clients.forEach(client => {
+      if (client.postMessage) {
+        client.postMessage({
+          type: 'SYNC_COMPLETE',
+          message: 'Data synchronized'
+        });
+      }
+    });
   } catch (error) {
     console.error('[ServiceWorker] Sync tasks failed:', error);
   }
@@ -249,20 +316,34 @@ self.addEventListener('notificationclick', (event) => {
 });
 
 // Periodic Background Sync (if supported)
-self.addEventListener('periodicsync', (event) => {
-  if (event.tag === 'update-data') {
-    event.waitUntil(updateData());
-  }
-});
+if ('periodicSync' in self) {
+  self.addEventListener('periodicsync', (event) => {
+    if (event.tag === 'update-data') {
+      event.waitUntil(updateData());
+    }
+  });
+}
 
 async function updateData() {
   try {
-    const response = await fetch('/api/sync-data');
+    // Clear cache before fetching new data
+    const cache = await caches.open(DATA_CACHE_NAME);
+    const requests = await cache.keys();
+    
+    for (const request of requests) {
+      if (request.url.includes('/analytics/') || 
+          request.url.includes('/api/sync-data')) {
+        await cache.delete(request);
+      }
+    }
+    
+    const response = await fetch('/api/sync-data', { cache: 'no-cache' });
     const data = await response.json();
     
-    // Update cache with fresh data
-    const cache = await caches.open(DATA_CACHE_NAME);
-    await cache.put('/api/sync-data', new Response(JSON.stringify(data)));
+    // Don't cache analytics data
+    if (!response.url.includes('/analytics/')) {
+      await cache.put('/api/sync-data', new Response(JSON.stringify(data)));
+    }
     
     // Show notification if there are updates
     if (data.hasUpdates) {
@@ -275,3 +356,24 @@ async function updateData() {
     console.error('[ServiceWorker] Update data failed:', error);
   }
 }
+
+// Message handler for manual cache clearing
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'CLEAR_CACHE') {
+    event.waitUntil(
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            console.log('[ServiceWorker] Clearing cache:', cacheName);
+            return caches.delete(cacheName);
+          })
+        );
+      }).then(() => {
+        // Send confirmation back to client
+        if (event.ports && event.ports[0]) {
+          event.ports[0].postMessage({ type: 'CACHE_CLEARED' });
+        }
+      })
+    );
+  }
+});

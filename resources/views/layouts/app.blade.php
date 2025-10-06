@@ -167,12 +167,15 @@
         
         <!-- PWA Scripts -->
         <script>
+            let serviceWorkerRegistration = null;
+            
             // Register Service Worker
             if ('serviceWorker' in navigator) {
                 window.addEventListener('load', () => {
                     navigator.serviceWorker.register('/service-worker.js')
                         .then(registration => {
                             console.log('ServiceWorker registration successful:', registration.scope);
+                            serviceWorkerRegistration = registration;
                             
                             // Check for updates
                             registration.addEventListener('updatefound', () => {
@@ -263,9 +266,12 @@
             function updateOnlineStatus() {
                 if (navigator.onLine) {
                     offlineBanner.classList.remove('show');
-                    // Sync data when back online
-                    if ('sync' in self.registration) {
-                        self.registration.sync.register('sync-data');
+                    
+                    // Sync data when back online using service worker registration
+                    if (serviceWorkerRegistration && 'sync' in serviceWorkerRegistration) {
+                        serviceWorkerRegistration.sync.register('sync-data')
+                            .then(() => console.log('Sync registered'))
+                            .catch(err => console.log('Sync registration failed:', err));
                     }
                 } else {
                     offlineBanner.classList.add('show');
@@ -299,9 +305,20 @@
                 
                 try {
                     const registration = await navigator.serviceWorker.ready;
+                    
+                    // Check if already subscribed
+                    const existingSubscription = await registration.pushManager.getSubscription();
+                    if (existingSubscription) {
+                        console.log('Already subscribed to push notifications');
+                        return;
+                    }
+                    
+                    // For development, you can comment out the actual subscription
+                    // until you have a valid VAPID key
+                    /*
                     const subscription = await registration.pushManager.subscribe({
                         userVisibleOnly: true,
-                        applicationServerKey: urlBase64ToUint8Array('YOUR_VAPID_PUBLIC_KEY') // Replace with your VAPID key
+                        applicationServerKey: urlBase64ToUint8Array('YOUR_VAPID_PUBLIC_KEY')
                     });
                     
                     // Send subscription to server
@@ -313,6 +330,9 @@
                         },
                         body: JSON.stringify(subscription)
                     });
+                    */
+                    
+                    console.log('Push notification subscription would be set up with valid VAPID key');
                 } catch (error) {
                     console.error('Failed to subscribe to push notifications:', error);
                 }
@@ -337,6 +357,43 @@
             document.addEventListener('click', () => {
                 requestNotificationPermission();
             }, { once: true });
+            
+            // Listen for messages from service worker
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.addEventListener('message', (event) => {
+                    if (event.data && event.data.type === 'SYNC_COMPLETE') {
+                        console.log('Data sync completed:', event.data.message);
+                        // Optionally refresh data on the page
+                        if (window.location.pathname.includes('/analytics')) {
+                            if (typeof loadAnalytics === 'function') {
+                                loadAnalytics();
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Function to manually clear cache (useful for debugging)
+            window.clearAppCache = function() {
+                if ('caches' in window) {
+                    caches.keys().then(names => {
+                        names.forEach(name => {
+                            caches.delete(name);
+                            console.log('Cleared cache:', name);
+                        });
+                    }).then(() => {
+                        console.log('All caches cleared');
+                        if (serviceWorkerRegistration) {
+                            serviceWorkerRegistration.unregister().then(() => {
+                                console.log('Service worker unregistered');
+                                window.location.reload();
+                            });
+                        } else {
+                            window.location.reload();
+                        }
+                    });
+                }
+            };
         </script>
     </body>
 </html>
