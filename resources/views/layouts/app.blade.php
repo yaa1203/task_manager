@@ -42,11 +42,15 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
         
+        <!-- Tailwind CSS -->
+        <script src="https://cdn.tailwindcss.com"></script>
+        
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         
         <!-- PWA Install Prompt Styles -->
         <style>
+            /* Only minimal custom styles needed */
             .pwa-install-prompt {
                 position: fixed;
                 bottom: 20px;
@@ -394,6 +398,27 @@
                     });
                 }
             };
+            
+            // Mobile menu toggle
+            document.addEventListener('DOMContentLoaded', () => {
+                const mobileMenuButton = document.getElementById('mobile-menu-button');
+                const mobileMenu = document.getElementById('mobile-menu');
+                
+                if (mobileMenuButton && mobileMenu) {
+                    mobileMenuButton.addEventListener('click', () => {
+                        mobileMenu.classList.toggle('hidden');
+                        mobileMenu.classList.toggle('flex');
+                    });
+                    
+                    // Close mobile menu when clicking outside
+                    document.addEventListener('click', (e) => {
+                        if (!mobileMenu.contains(e.target) && !mobileMenuButton.contains(e.target)) {
+                            mobileMenu.classList.add('hidden');
+                            mobileMenu.classList.remove('flex');
+                        }
+                    });
+                }
+            });
         </script>
     </body>
 </html>
