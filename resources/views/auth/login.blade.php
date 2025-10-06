@@ -23,8 +23,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                         </svg>
                     </div>
-                    <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
-                    <p class="text-sm sm:text-base text-gray-600">Sign in to manage your tasks and projects</p>
+                    <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Selamat Datang Kembali</h1>
+                    <p class="text-sm sm:text-base text-gray-600">Masuk untuk mengelola tugas dan proyek Anda</p>
                 </div>
 
                 <!-- Session Status -->
@@ -46,7 +46,7 @@
                     <!-- Email -->
                     <div>
                         <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">
-                            Email Address
+                            Email
                         </label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -94,25 +94,12 @@
                     </div>
 
                     <!-- Remember Me & Forgot Password -->
-                    <div class="flex items-center justify-between">
-                        <label for="remember_me" class="flex items-center group cursor-pointer">
-                            <input id="remember_me" type="checkbox" name="remember"
-                                   class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 transition">
-                            <span class="ml-2 text-sm text-gray-600 group-hover:text-gray-900 transition">Remember me</span>
-                        </label>
-
-                        @if (Route::has('password.request'))
-                        <a href="{{ route('password.request') }}" 
-                           class="text-sm font-semibold text-blue-600 hover:text-blue-700 transition">
-                            Forgot password?
-                        </a>
-                        @endif
-                    </div>
+                  
 
                     <!-- Submit Button -->
                     <button type="submit" 
                             class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 px-4 rounded-lg transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center justify-center gap-2 text-sm sm:text-base">
-                        <span>Sign In</span>
+                        <span>Masuk</span>
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
                         </svg>
@@ -123,9 +110,9 @@
                 @if (Route::has('register'))
                 <div class="mt-6 text-center">
                     <p class="text-sm text-gray-600">
-                        Don't have an account? 
+                       Jika Belum Memiliki Akun?
                         <a href="{{ route('register') }}" class="font-semibold text-blue-600 hover:text-blue-700 transition">
-                            Sign up for free
+                           Register
                         </a>
                     </p>
                 </div>
@@ -141,18 +128,14 @@
         </div>
 
         <!-- Right Side - Hero Section (Hidden on Mobile) -->
-        <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 items-center justify-center p-12 relative overflow-hidden">
+        <div class="hidden lg:flex lg:w-1/2 bg-blue-600 items-center justify-center p-12 relative overflow-hidden">
             <!-- Background Pattern -->
-            <div class="absolute inset-0 opacity-10">
-                <div class="absolute top-0 -left-4 w-72 h-72 bg-white rounded-full mix-blend-multiply filter blur-xl animate-blob"></div>
-                <div class="absolute top-0 -right-4 w-72 h-72 bg-white rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-2000"></div>
-                <div class="absolute -bottom-8 left-20 w-72 h-72 bg-white rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-4000"></div>
-            </div>
+            
 
             <div class="relative z-10 text-white max-w-lg">
-                <h2 class="text-4xl font-bold mb-6">Manage Your Tasks Efficiently</h2>
+                <h2 class="text-4xl font-bold mb-6">Kelola Tugas Anda Secara Efisien</h2>
                 <p class="text-lg text-blue-100 mb-8">
-                    Organize your projects, track your progress, and achieve your goals with our powerful task management system.
+                    Atur proyek Anda, lacak kemajuan Anda, dan capai tujuan Anda dengan sistem manajemen tugas kami yang canggih.
                 </p>
 
                 <!-- Feature List -->
@@ -165,7 +148,7 @@
                         </div>
                         <div>
                             <h3 class="font-semibold mb-1">Task Organization</h3>
-                            <p class="text-sm text-blue-100">Create, organize, and prioritize your tasks with ease</p>
+                            <p class="text-sm text-blue-100">Buat, atur, dan prioritaskan tugas Anda dengan mudah</p>
                         </div>
                     </div>
 
@@ -177,7 +160,7 @@
                         </div>
                         <div>
                             <h3 class="font-semibold mb-1">Project Management</h3>
-                            <p class="text-sm text-blue-100">Group tasks into projects and track progress</p>
+                            <p class="text-sm text-blue-100">Kelompokkan tugas ke dalam proyek dan lacak kemajuannya</p>
                         </div>
                     </div>
 
@@ -189,7 +172,7 @@
                         </div>
                         <div>
                             <h3 class="font-semibold mb-1">Real-time Updates</h3>
-                            <p class="text-sm text-blue-100">Stay updated with instant progress tracking</p>
+                            <p class="text-sm text-blue-100">Tetap perbarui dengan pelacakan kemajuan instan</p>
                         </div>
                     </div>
                 </div>
