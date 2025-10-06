@@ -8,4 +8,12 @@ export default defineConfig({
             refresh: true,
         }),
     ],
+      server: {
+    host: '0.0.0.0',   // biar bisa diakses dari device lain
+    port: 5173,
+    strictPort: true,
+    allowedHosts: [
+      '.ngrok-free.app', // izinkan semua host ngrok
+    ],
+  },
 });
