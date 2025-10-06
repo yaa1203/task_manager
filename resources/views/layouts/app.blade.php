@@ -4,6 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes">
         <meta name="csrf-token" content="{{ csrf_token() }}">
+          <script src="https://cdn.tailwindcss.com"></script>
         
         <!-- Primary Meta Tags -->
         <title>{{ config('app.name', 'Laravel') }}</title>
