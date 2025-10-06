@@ -23,8 +23,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                         </svg>
                     </div>
-                    <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Create Account</h1>
-                    <p class="text-sm sm:text-base text-gray-600">Join us and start managing your tasks</p>
+                    <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Membuat Akun</h1>
+                    <p class="text-sm sm:text-base text-gray-600">bergabunglah dengan kami dan mulai mengelola tugas Anda</p>
                 </div>
 
                 <!-- Register Form -->
@@ -34,7 +34,7 @@
                     <!-- Name -->
                     <div>
                         <label for="name" class="block text-sm font-semibold text-gray-700 mb-2">
-                            Full Name
+                            Nama Lengkap
                         </label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -59,7 +59,7 @@
                     <!-- Email -->
                     <div>
                         <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">
-                            Email Address
+                            Email
                         </label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -109,7 +109,7 @@
                     <!-- Confirm Password -->
                     <div>
                         <label for="password_confirmation" class="block text-sm font-semibold text-gray-700 mb-2">
-                            Confirm Password
+                          Konfirmasi Password
                         </label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -132,20 +132,12 @@
                     </div>
 
                     <!-- Terms Agreement -->
-                    <div class="flex items-start">
-                        <div class="flex items-center h-5">
-                            <input id="terms" name="terms" type="checkbox" required
-                                   class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 transition">
-                        </div>
-                        <label for="terms" class="ml-2 text-sm text-gray-600">
-                            I agree to the <a href="#" class="font-semibold text-blue-600 hover:text-blue-700">Terms of Service</a> and <a href="#" class="font-semibold text-blue-600 hover:text-blue-700">Privacy Policy</a>
-                        </label>
-                    </div>
+                  
 
                     <!-- Submit Button -->
                     <button type="submit" 
                             class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 px-4 rounded-lg transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center justify-center gap-2 text-sm sm:text-base">
-                        <span>Create Account</span>
+                        <span>Membuat Akun</span>
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
                         </svg>
@@ -155,35 +147,28 @@
                 <!-- Login Link -->
                 <div class="mt-6 text-center">
                     <p class="text-sm text-gray-600">
-                        Already have an account? 
+                        Sudah Memiliki Akun? 
                         <a href="{{ route('login') }}" class="font-semibold text-blue-600 hover:text-blue-700 transition">
-                            Sign in here
+                           Login
                         </a>
                     </p>
                 </div>
 
                 <!-- Footer -->
                 <div class="mt-8 text-center">
-                    <p class="text-xs text-gray-500">
-                        &copy; {{ date('Y') }} {{ config('app.name', 'TaskFlow') }}. All rights reserved.
-                    </p>
+                  
                 </div>
             </div>
         </div>
 
         <!-- Right Side - Hero Section (Hidden on Mobile) -->
-        <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 items-center justify-center p-12 relative overflow-hidden">
+        <div class="hidden lg:flex lg:w-1/2 bg-blue-600 items-center justify-center p-12 relative overflow-hidden">
             <!-- Background Pattern -->
-            <div class="absolute inset-0 opacity-10">
-                <div class="absolute top-0 -left-4 w-72 h-72 bg-white rounded-full mix-blend-multiply filter blur-xl animate-blob"></div>
-                <div class="absolute top-0 -right-4 w-72 h-72 bg-white rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-2000"></div>
-                <div class="absolute -bottom-8 left-20 w-72 h-72 bg-white rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-4000"></div>
-            </div>
 
             <div class="relative z-10 text-white max-w-lg">
-                <h2 class="text-4xl font-bold mb-6">Start Your Journey</h2>
+                <h2 class="text-4xl font-bold mb-6">Mulailah Perjalanan Anda</h2>
                 <p class="text-lg text-blue-100 mb-8">
-                    Create your free account and experience powerful task management that helps you stay organized and productive.
+                  Buat akun gratis Anda dan rasakan manajemen tugas hebat yang membantu Anda tetap terorganisir dan produktif.
                 </p>
 
                 <!-- Feature List -->
@@ -196,7 +181,8 @@
                         </div>
                         <div>
                             <h3 class="font-semibold mb-1">Free Forever</h3>
-                            <p class="text-sm text-blue-100">No credit card required. Start organizing immediately</p>
+                            <p class="text-sm text-blue-100">
+Tidak perlu kartu kredit. Mulai atur sekarang juga</p>
                         </div>
                     </div>
 
@@ -208,7 +194,7 @@
                         </div>
                         <div>
                             <h3 class="font-semibold mb-1">Secure & Private</h3>
-                            <p class="text-sm text-blue-100">Your data is encrypted and protected at all times</p>
+                            <p class="text-sm text-blue-100">Data Anda dienkripsi dan dilindungi setiap saat</p>
                         </div>
                     </div>
 
@@ -220,7 +206,8 @@
                         </div>
                         <div>
                             <h3 class="font-semibold mb-1">Access Anywhere</h3>
-                            <p class="text-sm text-blue-100">Sync across all your devices seamlessly</p>
+                            <p class="text-sm text-blue-100">
+Sinkronkan di semua perangkat Anda dengan lancar</p>
                         </div>
                     </div>
 
@@ -232,7 +219,7 @@
                         </div>
                         <div>
                             <h3 class="font-semibold mb-1">Team Collaboration</h3>
-                            <p class="text-sm text-blue-100">Work together and share projects with your team</p>
+                            <p class="text-sm text-blue-100">Bekerja sama dan berbagi proyek dengan tim Anda</p>
                         </div>
                     </div>
                 </div>
