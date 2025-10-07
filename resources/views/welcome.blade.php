@@ -164,6 +164,27 @@
         </div>
     </nav>
 
+<<<<<<< HEAD
+=======
+    <!-- Desktop Navigation -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50 desktop-nav">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <span class="bg-blue-600 text-white rounded-lg w-10 h-10 flex items-center justify-center font-bold text-xl">T</span>
+                    <span class="font-bold text-xl ml-2 gradient-text">Taskly</span>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <a href="#" class="text-blue-600 font-medium hover:underline">Masuk</a>
+                    <a href="#" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition">
+                        Daftar Gratis
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+>>>>>>> d2b96a4 (Simpan perubahan lokal sebelum revert)
     <!-- Hero Section -->
     <section class="relative overflow-hidden py-12 sm:py-16 lg:py-20">
         <div class="absolute inset-0 bg-gradient-to-br from-blue-50 to-purple-50 opacity-50"></div>
@@ -178,7 +199,11 @@
                         Atur prioritas, delegasikan, dan raih fokus — semua dalam satu aplikasi ringan yang dirancang untuk produktivitas Anda.
                     </p>
                     <div class="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
+<<<<<<< HEAD
                         <a href="#" class="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-semibold text-lg transition transform hover:scale-105">
+=======
+                        <a href="#" class="bg-blue-600 hover:bg-blue-700 text-white px-5 md:px-8 py-3 rounded-xl font-semibold text-base md:text-lg transition transform hover:scale-105 flex items-center justify-center">
+>>>>>>> d2b96a4 (Simpan perubahan lokal sebelum revert)
                             <i class="fas fa-rocket mr-2"></i>Mulai Sekarang
                         </a>
                         <a href="#features" class="inline-flex items-center justify-center bg-white hover:bg-gray-50 text-blue-600 border-2 border-blue-600 px-8 py-3 rounded-xl font-semibold text-lg transition">
@@ -313,9 +338,17 @@
             <p class="text-lg mb-6 opacity-90">
                 Bergabung dengan ribuan pengguna yang telah mengubah cara mereka bekerja
             </p>
+<<<<<<< HEAD
             <a href="#" class="inline-flex items-center justify-center bg-white text-blue-600 hover:bg-gray-100 px-8 py-4 rounded-xl font-semibold text-lg transition transform hover:scale-105">
                 <i class="fas fa-user-plus mr-2"></i>Buat Akun Gratis
             </a>
+=======
+            <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                <a href="#" class="bg-white text-blue-600 hover:bg-gray-100 px-5 md:px-8 py-3 md:py-4 rounded-xl font-semibold text-base md:text-lg transition transform hover:scale-105 flex items-center justify-center">
+                    <i class="fas fa-user-plus mr-2"></i>Buat Akun Gratis
+                </a>
+            </div>
+>>>>>>> d2b96a4 (Simpan perubahan lokal sebelum revert)
         </div>
     </section>
 
