@@ -210,6 +210,7 @@
 
                         <a href="{{ route('register')}}" class="bg-blue-600 hover:bg-blue-700 text-white px-5 md:px-8 py-3 rounded-xl font-semibold text-base md:text-lg transition transform hover:scale-105 flex items-center justify-center">
 
+                        <a href="#" class="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-semibold text-lg transition transform hover:scale-105">
                             <i class="fas fa-rocket mr-2"></i>Mulai Sekarang
                         </a>
                         <a href="#features" class="bg-white hover:bg-gray-50 text-blue-600 border border-blue-600 px-5 md:px-8 py-3 rounded-xl font-semibold text-base md:text-lg transition flex items-center justify-center">
@@ -347,6 +348,9 @@
                     <i class="fas fa-user-plus mr-2"></i>Buat Akun Gratis
                 </a>
             </div>
+            <a href="#" class="inline-flex items-center justify-center bg-white text-blue-600 hover:bg-gray-100 px-8 py-4 rounded-xl font-semibold text-lg transition transform hover:scale-105">
+                <i class="fas fa-user-plus mr-2"></i>Buat Akun Gratis
+            </a>
         </div>
     </section>
 
