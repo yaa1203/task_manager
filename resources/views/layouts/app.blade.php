@@ -415,27 +415,11 @@
         
         <!-- PWA Install Prompt (Expanded) -->
         <div id="pwa-install-prompt" class="pwa-install-prompt">
-<<<<<<< HEAD
             <div class="flex items-center gap-3">
                 <img src="/icons/logo72x72.png" alt="App Icon" class="w-12 h-12 rounded-lg flex-shrink-0">
                 <div>
                     <p class="font-semibold">Install Task App</p>
                     <p class="text-sm text-gray-600">Install our app for a better experience</p>
-=======
-            <!-- Minimize Button -->
-            <button id="pwa-minimize-btn" class="pwa-minimize-btn" aria-label="Minimize">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M5 7.5L10 12.5L15 7.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </button>
-            
-            <!-- Content -->
-            <div class="pwa-content">
-                <img src="/icons/logo.png" alt="App Icon" class="pwa-icon">
-                <div class="pwa-text">
-                    <div class="pwa-title">Install Task App</div>
-                    <div class="pwa-description">Get quick access and work offline</div>
->>>>>>> fba4bf82f10ede74b7d72d796ff7356aedf175cd
                 </div>
             </div>
             
