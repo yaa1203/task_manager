@@ -33,7 +33,7 @@
         <link rel="apple-touch-startup-image" href="/splash/splash-2048x2732.png" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2)">
         
         <!-- Icons -->
-        <link rel="icon" type="image/png" sizes="32x32" href="/icons/logo.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="/icons/logo72x72.png">
         <link rel="icon" type="image/png" sizes="16x16" href="/icons/logo.png">
         <link rel="shortcut icon" href="/favicon.ico">
         <link rel="apple-touch-icon" sizes="180x180" href="/icons/logo.png">
@@ -185,7 +185,7 @@
         <!-- PWA Install Prompt -->
         <div id="pwa-install-prompt" class="pwa-install-prompt">
             <div class="flex items-center gap-3">
-                <img src="/icons/logo.png" alt="App Icon" class="w-12 h-12 flex-shrink-0">
+                <img src="/icons/logo72x72.png" alt="App Icon" class="w-12 h-12 rounded-lg flex-shrink-0">
                 <div>
                     <p class="font-semibold">Install Task App</p>
                     <p class="text-sm text-gray-600">Install our app for a better experience</p>

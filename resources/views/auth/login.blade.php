@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="id">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Login - {{ config('app.name', 'TaskFlow') }}</title>
-       <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
@@ -56,7 +56,7 @@
                                 </svg>
                             </div>
                             <input id="email" type="email" name="email" value="{{ old('email') }}"
-                                   class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm sm:text-base"
+                                   class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition text-sm sm:text-base bg-white"
                                    placeholder="you@example.com" required autofocus autocomplete="username">
                         </div>
                         @error('email')
@@ -81,7 +81,7 @@
                                 </svg>
                             </div>
                             <input id="password" type="password" name="password"
-                                   class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm sm:text-base"
+                                   class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition text-sm sm:text-base bg-white"
                                    placeholder="Enter your password" required autocomplete="current-password">
                         </div>
                         @error('password')
@@ -93,9 +93,6 @@
                         </p>
                         @enderror
                     </div>
-
-                    <!-- Remember Me & Forgot Password -->
-                  
 
                     <!-- Submit Button -->
                     <button type="submit" 
@@ -121,14 +118,19 @@
 
                 <!-- Footer -->
                 <div class="mt-8 text-center">
+                    <p class="text-xs text-gray-500">© 2025 TaskFlow. All rights reserved.</p>
                 </div>
             </div>
         </div>
 
         <!-- Right Side - Hero Section (Hidden on Mobile) -->
-        <div class="hidden lg:flex lg:w-1/2 bg-blue-600 items-center justify-center p-12 relative overflow-hidden">
+        <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 to-blue-700 items-center justify-center p-12 relative overflow-hidden">
             <!-- Background Pattern -->
-            
+            <div class="absolute inset-0 opacity-10">
+                <div class="absolute top-20 left-20 w-72 h-72 bg-white rounded-full mix-blend-multiply filter blur-xl animate-blob"></div>
+                <div class="absolute top-40 right-20 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-2000"></div>
+                <div class="absolute bottom-20 left-40 w-72 h-72 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-4000"></div>
+            </div>
 
             <div class="relative z-10 text-white max-w-lg">
                 <h2 class="text-4xl font-bold mb-6">Kelola Tugas Anda Secara Efisien</h2>

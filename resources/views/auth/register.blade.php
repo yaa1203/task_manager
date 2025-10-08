@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="id">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Register - {{ config('app.name', 'TaskFlow') }}</title>
-      <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
@@ -25,7 +25,7 @@
                         </svg>
                     </div>
                     <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Membuat Akun</h1>
-                    <p class="text-sm sm:text-base text-gray-600">bergabunglah dengan kami dan mulai mengelola tugas Anda</p>
+                    <p class="text-sm sm:text-base text-gray-600">Bergabunglah dengan kami dan mulai mengelola tugas Anda</p>
                 </div>
 
                 <!-- Register Form -->
@@ -44,7 +44,7 @@
                                 </svg>
                             </div>
                             <input id="name" type="text" name="name" value="{{ old('name') }}"
-                                   class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm sm:text-base"
+                                   class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition text-sm sm:text-base bg-white"
                                    placeholder="John Doe" required autofocus autocomplete="name">
                         </div>
                         @error('name')
@@ -69,7 +69,7 @@
                                 </svg>
                             </div>
                             <input id="email" type="email" name="email" value="{{ old('email') }}"
-                                   class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm sm:text-base"
+                                   class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition text-sm sm:text-base bg-white"
                                    placeholder="you@example.com" required autocomplete="username">
                         </div>
                         @error('email')
@@ -94,7 +94,7 @@
                                 </svg>
                             </div>
                             <input id="password" type="password" name="password"
-                                   class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm sm:text-base"
+                                   class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition text-sm sm:text-base bg-white"
                                    placeholder="Minimum 8 characters" required autocomplete="new-password">
                         </div>
                         @error('password')
@@ -110,7 +110,7 @@
                     <!-- Confirm Password -->
                     <div>
                         <label for="password_confirmation" class="block text-sm font-semibold text-gray-700 mb-2">
-                          Konfirmasi Password
+                            Konfirmasi Password
                         </label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -119,7 +119,7 @@
                                 </svg>
                             </div>
                             <input id="password_confirmation" type="password" name="password_confirmation"
-                                   class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm sm:text-base"
+                                   class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition text-sm sm:text-base bg-white"
                                    placeholder="Confirm your password" required autocomplete="new-password">
                         </div>
                         @error('password_confirmation')
@@ -131,9 +131,6 @@
                         </p>
                         @enderror
                     </div>
-
-                    <!-- Terms Agreement -->
-                  
 
                     <!-- Submit Button -->
                     <button type="submit" 
@@ -150,26 +147,31 @@
                     <p class="text-sm text-gray-600">
                         Sudah Memiliki Akun? 
                         <a href="{{ route('login') }}" class="font-semibold text-blue-600 hover:text-blue-700 transition">
-                           Login
+                            Login
                         </a>
                     </p>
                 </div>
 
                 <!-- Footer -->
                 <div class="mt-8 text-center">
-                  
+                    <p class="text-xs text-gray-500">© 2025 TaskFlow. All rights reserved.</p>
                 </div>
             </div>
         </div>
 
         <!-- Right Side - Hero Section (Hidden on Mobile) -->
-        <div class="hidden lg:flex lg:w-1/2 bg-blue-600 items-center justify-center p-12 relative overflow-hidden">
+        <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 to-blue-700 items-center justify-center p-12 relative overflow-hidden">
             <!-- Background Pattern -->
+            <div class="absolute inset-0 opacity-10">
+                <div class="absolute top-20 left-20 w-72 h-72 bg-white rounded-full mix-blend-multiply filter blur-xl animate-blob"></div>
+                <div class="absolute top-40 right-20 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-2000"></div>
+                <div class="absolute bottom-20 left-40 w-72 h-72 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-4000"></div>
+            </div>
 
             <div class="relative z-10 text-white max-w-lg">
                 <h2 class="text-4xl font-bold mb-6">Mulailah Perjalanan Anda</h2>
                 <p class="text-lg text-blue-100 mb-8">
-                  Buat akun gratis Anda dan rasakan manajemen tugas hebat yang membantu Anda tetap terorganisir dan produktif.
+                    Buat akun gratis Anda dan rasakan manajemen tugas hebat yang membantu Anda tetap terorganisir dan produktif.
                 </p>
 
                 <!-- Feature List -->
@@ -181,9 +183,8 @@
                             </svg>
                         </div>
                         <div>
-                            <h3 class="font-semibold mb-1">Free Forever</h3>
-                            <p class="text-sm text-blue-100">
-Tidak perlu kartu kredit. Mulai atur sekarang juga</p>
+                            <h3 class="font-semibold mb-1">Gratis Selamanya</h3>
+                            <p class="text-sm text-blue-100">Tidak perlu kartu kredit. Mulai atur sekarang juga</p>
                         </div>
                     </div>
 
@@ -194,7 +195,7 @@ Tidak perlu kartu kredit. Mulai atur sekarang juga</p>
                             </svg>
                         </div>
                         <div>
-                            <h3 class="font-semibold mb-1">Secure & Private</h3>
+                            <h3 class="font-semibold mb-1">Aman & Privat</h3>
                             <p class="text-sm text-blue-100">Data Anda dienkripsi dan dilindungi setiap saat</p>
                         </div>
                     </div>
@@ -206,9 +207,8 @@ Tidak perlu kartu kredit. Mulai atur sekarang juga</p>
                             </svg>
                         </div>
                         <div>
-                            <h3 class="font-semibold mb-1">Access Anywhere</h3>
-                            <p class="text-sm text-blue-100">
-Sinkronkan di semua perangkat Anda dengan lancar</p>
+                            <h3 class="font-semibold mb-1">Akses Di Mana Saja</h3>
+                            <p class="text-sm text-blue-100">Sinkronkan di semua perangkat Anda dengan lancar</p>
                         </div>
                     </div>
 
@@ -219,7 +219,7 @@ Sinkronkan di semua perangkat Anda dengan lancar</p>
                             </svg>
                         </div>
                         <div>
-                            <h3 class="font-semibold mb-1">Team Collaboration</h3>
+                            <h3 class="font-semibold mb-1">Kolaborasi Tim</h3>
                             <p class="text-sm text-blue-100">Bekerja sama dan berbagi proyek dengan tim Anda</p>
                         </div>
                     </div>

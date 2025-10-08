@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="id">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Admin Registration - {{ config('app.name', 'TaskFlow') }}</title>
-     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
@@ -27,8 +27,8 @@
                             <span class="text-xs font-bold text-blue-900">ADMIN</span>
                         </div>
                     </div>
-                    <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Admin Registration</h1>
-                    <p class="text-sm sm:text-base text-gray-600">Create an administrator account with elevated privileges</p>
+                    <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Registrasi Admin</h1>
+                    <p class="text-sm sm:text-base text-gray-600">Buat akun administrator dengan hak akses penuh</p>
                 </div>
 
                 <!-- Security Notice -->
@@ -38,8 +38,8 @@
                             <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
                         </svg>
                         <div>
-                            <p class="text-sm font-semibold text-blue-900">Administrator Access</p>
-                            <p class="text-xs text-blue-700 mt-1">This account will have full system privileges. Keep credentials secure.</p>
+                            <p class="text-sm font-semibold text-blue-900">Akses Administrator</p>
+                            <p class="text-xs text-blue-700 mt-1">Akun ini akan memiliki hak akses penuh sistem. Jaga kerahasiaan kredensial Anda.</p>
                         </div>
                     </div>
                 </div>
@@ -51,7 +51,7 @@
                     <!-- Name -->
                     <div>
                         <label for="name" class="block text-sm font-semibold text-gray-700 mb-2">
-                            Full Name
+                            Nama Lengkap
                         </label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -60,8 +60,8 @@
                                 </svg>
                             </div>
                             <input id="name" type="text" name="name" value="{{ old('name') }}"
-                                   class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm sm:text-base"
-                                   placeholder="Administrator Name" required autofocus>
+                                   class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition text-sm sm:text-base bg-white"
+                                   placeholder="Nama Administrator" required autofocus>
                         </div>
                         @error('name')
                         <p class="mt-2 text-sm text-red-600 flex items-center gap-1">
@@ -76,7 +76,7 @@
                     <!-- Email -->
                     <div>
                         <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">
-                            Email Address
+                            Alamat Email
                         </label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -85,7 +85,7 @@
                                 </svg>
                             </div>
                             <input id="email" type="email" name="email" value="{{ old('email') }}"
-                                   class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition text-sm sm:text-base"
+                                   class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition text-sm sm:text-base bg-white"
                                    placeholder="admin@example.com" required>
                         </div>
                         @error('email')
@@ -110,8 +110,8 @@
                                 </svg>
                             </div>
                             <input id="password" type="password" name="password"
-                                   class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition text-sm sm:text-base"
-                                   placeholder="Strong password (min. 8 characters)" required>
+                                   class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition text-sm sm:text-base bg-white"
+                                   placeholder="Password kuat (min. 8 karakter)" required>
                         </div>
                         @error('password')
                         <p class="mt-2 text-sm text-red-600 flex items-center gap-1">
@@ -126,7 +126,7 @@
                     <!-- Confirm Password -->
                     <div>
                         <label for="password_confirmation" class="block text-sm font-semibold text-gray-700 mb-2">
-                            Confirm Password
+                            Konfirmasi Password
                         </label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -135,8 +135,8 @@
                                 </svg>
                             </div>
                             <input id="password_confirmation" type="password" name="password_confirmation"
-                                   class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition text-sm sm:text-base"
-                                   placeholder="Confirm your password" required>
+                                   class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition text-sm sm:text-base bg-white"
+                                   placeholder="Konfirmasi password Anda" required>
                         </div>
                         @error('password_confirmation')
                         <p class="mt-2 text-sm text-red-600 flex items-center gap-1">
@@ -155,7 +155,7 @@
                                    class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 transition">
                         </div>
                         <label for="admin_acknowledge" class="ml-2 text-sm text-gray-600">
-                            I understand that this account will have <span class="font-semibold text-blue-600">full administrative privileges</span> and agree to use them responsibly
+                            Saya memahami bahwa akun ini akan memiliki <span class="font-semibold text-blue-600">hak akses administrator penuh</span> dan setuju untuk menggunakannya dengan bertanggung jawab
                         </label>
                     </div>
 
@@ -165,16 +165,16 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                         </svg>
-                        <span>Register as Administrator</span>
+                        <span>Daftar sebagai Administrator</span>
                     </button>
                 </form>
 
                 <!-- Back to Login -->
                 <div class="mt-6 text-center">
                     <p class="text-sm text-gray-600">
-                        Already have an account? 
+                        Sudah memiliki akun? 
                         <a href="{{ route('login') }}" class="font-semibold text-blue-600 hover:text-blue-700 transition">
-                            Sign in here
+                            Masuk di sini
                         </a>
                     </p>
                 </div>
@@ -202,12 +202,12 @@
                     <svg class="w-5 h-5 text-blue-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
                     </svg>
-                    <span class="text-sm font-bold text-blue-900">ADMIN PANEL</span>
+                    <span class="text-sm font-bold text-blue-900">PANEL ADMIN</span>
                 </div>
 
-                <h2 class="text-4xl font-bold mb-6">Administrator Access</h2>
+                <h2 class="text-4xl font-bold mb-6">Akses Administrator</h2>
                 <p class="text-lg text-blue-100 mb-8">
-                    Gain complete control over system settings, user management, and advanced configurations.
+                    Dapatkan kontrol penuh atas pengaturan sistem, manajemen pengguna, dan konfigurasi lanjutan.
                 </p>
 
                 <!-- Admin Features -->
@@ -219,8 +219,8 @@
                             </svg>
                         </div>
                         <div>
-                            <h3 class="font-semibold mb-1">User Management</h3>
-                            <p class="text-sm text-blue-100">Full control over user accounts, roles, and permissions</p>
+                            <h3 class="font-semibold mb-1">Manajemen Pengguna</h3>
+                            <p class="text-sm text-blue-100">Kontrol penuh atas akun pengguna, peran, dan izin</p>
                         </div>
                     </div>
 
@@ -232,8 +232,8 @@
                             </svg>
                         </div>
                         <div>
-                            <h3 class="font-semibold mb-1">System Configuration</h3>
-                            <p class="text-sm text-blue-100">Access to advanced settings and system preferences</p>
+                            <h3 class="font-semibold mb-1">Konfigurasi Sistem</h3>
+                            <p class="text-sm text-blue-100">Akses ke pengaturan lanjutan dan preferensi sistem</p>
                         </div>
                     </div>
 
@@ -244,8 +244,8 @@
                             </svg>
                         </div>
                         <div>
-                            <h3 class="font-semibold mb-1">Analytics & Reports</h3>
-                            <p class="text-sm text-blue-100">Comprehensive insights and detailed system reports</p>
+                            <h3 class="font-semibold mb-1">Analitik & Laporan</h3>
+                            <p class="text-sm text-blue-100">Wawasan komprehensif dan laporan sistem detail</p>
                         </div>
                     </div>
 
@@ -256,8 +256,8 @@
                             </svg>
                         </div>
                         <div>
-                            <h3 class="font-semibold mb-1">Security Controls</h3>
-                            <p class="text-sm text-blue-100">Manage security policies and access controls</p>
+                            <h3 class="font-semibold mb-1">Kontrol Keamanan</h3>
+                            <p class="text-sm text-blue-100">Kelola kebijakan keamanan dan kontrol akses</p>
                         </div>
                     </div>
                 </div>
@@ -269,7 +269,7 @@
                             <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
                         </svg>
                         <p class="text-sm font-medium">
-                            Admin accounts should be protected with strong passwords and kept confidential at all times.
+                            Akun admin harus dilindungi dengan password yang kuat dan dijaga kerahasiaannya setiap saat.
                         </p>
                     </div>
                 </div>
