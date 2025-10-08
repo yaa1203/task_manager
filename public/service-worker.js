@@ -260,8 +260,8 @@ self.addEventListener('push', (event) => {
   let data = {
     title: 'New Notification',
     body: 'You have a new update',
-    icon: '/icons/logo 72 x 72 .png',
-    badge: '/icons/logo 72 x 72 .png'
+    icon: '/icons/logo.png',
+    badge: '/icons/logo.png'
   };
   
   if (event.data) {
@@ -274,8 +274,8 @@ self.addEventListener('push', (event) => {
   
   const options = {
     body: data.body,
-    icon: data.icon || '/icons/logo 72 x 72 .png',
-    badge: data.badge || '/icons/logo 72 x 72 .png',
+    icon: data.icon || '/icons/logo.png',
+    badge: data.badge || '/icons/logo.png',
     vibrate: [200, 100, 200],
     data: {
       dateOfArrival: Date.now(),
@@ -286,12 +286,12 @@ self.addEventListener('push', (event) => {
       {
         action: 'view',
         title: 'View',
-        icon: '/icons/logo 72 x 72 .png'
+        icon: '/icons/logo.png'
       },
       {
         action: 'close',
         title: 'Close',
-        icon: '/icons/logo 72 x 72 .png'
+        icon: '/icons/logo.png'
       }
     ]
   };
@@ -349,7 +349,7 @@ async function updateData() {
     if (data.hasUpdates) {
       self.registration.showNotification('Data Updated', {
         body: 'Your data has been synchronized',
-        icon: '/icons/logo 72 x 72 .png'
+        icon: '/icons/logo.png'
       });
     }
   } catch (error) {
