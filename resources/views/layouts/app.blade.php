@@ -57,46 +57,228 @@
             html, body {
                 overflow-x: hidden;
                 width: 100%;
+                position: relative;
             }
             
-            /* PWA Install Prompt */
+            /* PWA Install Prompt - Mobile First Design */
             .pwa-install-prompt {
                 position: fixed;
-                bottom: 20px;
-                left: 50%;
-                transform: translateX(-50%);
+                bottom: 0;
+                left: 0;
+                right: 0;
                 background: white;
-                padding: 16px 24px;
-                border-radius: 8px;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                padding: 16px;
+                border-top-left-radius: 16px;
+                border-top-right-radius: 16px;
+                box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
                 display: none;
                 flex-direction: column;
-                gap: 12px;
+                gap: 16px;
                 z-index: 1000;
-                max-width: 90%;
-                animation: slideUp 0.3s ease-out;
+                animation: slideUp 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+                transform: translateY(0);
+                transition: transform 0.3s ease-out;
+                safe-area-inset-bottom: env(safe-area-inset-bottom);
+                padding-bottom: calc(16px + env(safe-area-inset-bottom));
             }
             
+            /* Tablet and Desktop */
             @media (min-width: 640px) {
                 .pwa-install-prompt {
-                    flex-direction: row;
-                    align-items: center;
+                    bottom: 20px;
+                    left: 50%;
+                    right: auto;
+                    transform: translateX(-50%);
+                    max-width: 420px;
+                    width: calc(100% - 40px);
+                    border-radius: 12px;
+                    padding: 20px;
+                    padding-bottom: 20px;
                 }
             }
             
             @keyframes slideUp {
                 from {
-                    transform: translateX(-50%) translateY(100px);
+                    transform: translateY(100%);
                     opacity: 0;
                 }
                 to {
-                    transform: translateX(-50%) translateY(0);
+                    transform: translateY(0);
                     opacity: 1;
+                }
+            }
+            
+            @media (min-width: 640px) {
+                @keyframes slideUp {
+                    from {
+                        transform: translateX(-50%) translateY(100px);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateX(-50%) translateY(0);
+                        opacity: 1;
+                    }
                 }
             }
             
             .pwa-install-prompt.show {
                 display: flex;
+            }
+            
+            .pwa-install-prompt.hide {
+                transform: translateY(120%);
+            }
+            
+            @media (min-width: 640px) {
+                .pwa-install-prompt.hide {
+                    transform: translateX(-50%) translateY(120%);
+                }
+            }
+            
+            /* Minimize Button */
+            .pwa-minimize-btn {
+                position: absolute;
+                top: 12px;
+                right: 12px;
+                width: 28px;
+                height: 28px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: transparent;
+                border: none;
+                cursor: pointer;
+                color: #6b7280;
+                transition: all 0.2s;
+                border-radius: 50%;
+                padding: 0;
+            }
+            
+            .pwa-minimize-btn:hover {
+                background: #f3f4f6;
+                color: #374151;
+            }
+            
+            /* Mini Prompt (Collapsed State) */
+            .pwa-mini-prompt {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                width: 56px;
+                height: 56px;
+                background: #4f46e5;
+                border-radius: 50%;
+                display: none;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+                z-index: 999;
+                transition: all 0.3s ease;
+                animation: pulse 2s infinite;
+            }
+            
+            .pwa-mini-prompt:hover {
+                transform: scale(1.1);
+                box-shadow: 0 6px 20px rgba(79, 70, 229, 0.5);
+            }
+            
+            .pwa-mini-prompt.show {
+                display: flex;
+            }
+            
+            @keyframes pulse {
+                0%, 100% {
+                    transform: scale(1);
+                }
+                50% {
+                    transform: scale(1.05);
+                }
+            }
+            
+            /* Content Wrapper */
+            .pwa-content {
+                display: flex;
+                align-items: flex-start;
+                gap: 12px;
+            }
+            
+            .pwa-icon {
+                width: 48px;
+                height: 48px;
+                flex-shrink: 0;
+                border-radius: 12px;
+                overflow: hidden;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            }
+            
+            .pwa-text {
+                flex: 1;
+                margin-right: 20px;
+            }
+            
+            .pwa-title {
+                font-size: 16px;
+                font-weight: 600;
+                color: #111827;
+                margin-bottom: 4px;
+                line-height: 1.2;
+            }
+            
+            .pwa-description {
+                font-size: 14px;
+                color: #6b7280;
+                line-height: 1.4;
+            }
+            
+            /* Buttons Container */
+            .pwa-buttons {
+                display: flex;
+                gap: 12px;
+                width: 100%;
+            }
+            
+            .pwa-btn {
+                flex: 1;
+                padding: 12px 20px;
+                border-radius: 8px;
+                font-size: 15px;
+                font-weight: 500;
+                border: none;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                touch-action: manipulation;
+                -webkit-tap-highlight-color: transparent;
+                min-height: 48px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .pwa-btn-primary {
+                background: #4f46e5;
+                color: white;
+            }
+            
+            .pwa-btn-primary:hover {
+                background: #4338ca;
+            }
+            
+            .pwa-btn-primary:active {
+                transform: scale(0.98);
+            }
+            
+            .pwa-btn-secondary {
+                background: #f3f4f6;
+                color: #374151;
+            }
+            
+            .pwa-btn-secondary:hover {
+                background: #e5e7eb;
+            }
+            
+            .pwa-btn-secondary:active {
+                transform: scale(0.98);
             }
             
             /* Offline Banner */
@@ -105,17 +287,29 @@
                 top: 0;
                 left: 0;
                 right: 0;
-                background: #fbbf24;
+                background: linear-gradient(90deg, #fbbf24, #f59e0b);
                 color: #78350f;
-                padding: 8px;
+                padding: 10px 16px;
                 text-align: center;
                 z-index: 999;
                 display: none;
                 font-size: 14px;
+                font-weight: 500;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             }
             
             .offline-banner.show {
                 display: block;
+                animation: slideDown 0.3s ease-out;
+            }
+            
+            @keyframes slideDown {
+                from {
+                    transform: translateY(-100%);
+                }
+                to {
+                    transform: translateY(0);
+                }
             }
             
             /* Update Banner */
@@ -124,29 +318,66 @@
                 top: 0;
                 left: 0;
                 right: 0;
-                background: #3b82f6;
+                background: linear-gradient(90deg, #3b82f6, #2563eb);
                 color: white;
-                padding: 12px;
-                text-align: center;
+                padding: 12px 16px;
                 z-index: 999;
                 display: none;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             }
             
             .update-banner.show {
-                display: block;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 12px;
+                animation: slideDown 0.3s ease-out;
             }
             
-            /* Improve touch targets for mobile */
+            .update-btn {
+                padding: 6px 16px;
+                background: white;
+                color: #2563eb;
+                border-radius: 6px;
+                font-size: 14px;
+                font-weight: 600;
+                border: none;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+            
+            .update-btn:hover {
+                background: #f0f9ff;
+                transform: translateY(-1px);
+            }
+            
+            /* Mobile Optimizations */
             @media (max-width: 640px) {
                 button, a {
                     min-height: 44px;
                     min-width: 44px;
+                    touch-action: manipulation;
+                }
+                
+                /* Adjust main content padding for mobile */
+                main {
+                    padding-bottom: env(safe-area-inset-bottom, 20px);
                 }
             }
             
             /* Smooth scrolling */
             html {
                 scroll-behavior: smooth;
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+            }
+            
+            /* Focus styles for accessibility */
+            .pwa-btn:focus-visible,
+            .pwa-minimize-btn:focus-visible,
+            .pwa-mini-prompt:focus-visible {
+                outline: 2px solid #4f46e5;
+                outline-offset: 2px;
             }
         </style>
     </head>
@@ -158,8 +389,8 @@
         
         <!-- Update Banner -->
         <div id="update-banner" class="update-banner">
-            <span>A new version is available!</span>
-            <button onclick="window.location.reload()" class="ml-4 px-3 py-1 bg-white text-blue-600 rounded text-sm font-semibold hover:bg-gray-100 transition">
+            <span>🎉 A new version is available!</span>
+            <button onclick="window.location.reload()" class="update-btn">
                 Update Now
             </button>
         </div>
@@ -182,23 +413,49 @@
             </main>
         </div>
         
-        <!-- PWA Install Prompt -->
+        <!-- PWA Install Prompt (Expanded) -->
         <div id="pwa-install-prompt" class="pwa-install-prompt">
+<<<<<<< HEAD
             <div class="flex items-center gap-3">
                 <img src="/icons/logo72x72.png" alt="App Icon" class="w-12 h-12 rounded-lg flex-shrink-0">
                 <div>
                     <p class="font-semibold">Install Task App</p>
                     <p class="text-sm text-gray-600">Install our app for a better experience</p>
+=======
+            <!-- Minimize Button -->
+            <button id="pwa-minimize-btn" class="pwa-minimize-btn" aria-label="Minimize">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M5 7.5L10 12.5L15 7.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+            
+            <!-- Content -->
+            <div class="pwa-content">
+                <img src="/icons/logo.png" alt="App Icon" class="pwa-icon">
+                <div class="pwa-text">
+                    <div class="pwa-title">Install Task App</div>
+                    <div class="pwa-description">Get quick access and work offline</div>
+>>>>>>> fba4bf82f10ede74b7d72d796ff7356aedf175cd
                 </div>
             </div>
-            <div class="flex gap-2 w-full sm:w-auto">
-                <button id="pwa-install-btn" class="flex-1 sm:flex-none px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
-                    Install
+            
+            <!-- Buttons -->
+            <div class="pwa-buttons">
+                <button id="pwa-install-btn" class="pwa-btn pwa-btn-primary">
+                    Install App
                 </button>
-                <button id="pwa-dismiss-btn" class="flex-1 sm:flex-none px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 transition">
-                    Later
+                <button id="pwa-later-btn" class="pwa-btn pwa-btn-secondary">
+                    Maybe Later
                 </button>
             </div>
+        </div>
+        
+        <!-- PWA Mini Prompt (Collapsed) -->
+        <div id="pwa-mini-prompt" class="pwa-mini-prompt" aria-label="Install App">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <path d="M12 2L12 14M12 14L7 9M12 14L17 9" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M5 19H19" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
         </div>
         
         <!-- PWA Scripts -->
@@ -229,61 +486,165 @@
                 });
             }
             
-            // Install Prompt
+            // Install Prompt Management
             let deferredPrompt;
             const installPrompt = document.getElementById('pwa-install-prompt');
+            const miniPrompt = document.getElementById('pwa-mini-prompt');
             const installBtn = document.getElementById('pwa-install-btn');
-            const dismissBtn = document.getElementById('pwa-dismiss-btn');
+            const laterBtn = document.getElementById('pwa-later-btn');
+            const minimizeBtn = document.getElementById('pwa-minimize-btn');
             
+            // Session storage for temporary dismissal
+            const PROMPT_STATE_KEY = 'pwa-prompt-state';
+            const PROMPT_LAST_SHOWN_KEY = 'pwa-prompt-last-shown';
+            const SHOW_DELAY = 30000; // 30 seconds
+            const REMIND_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours
+            
+            // Get prompt state from session storage
+            function getPromptState() {
+                const state = sessionStorage.getItem(PROMPT_STATE_KEY);
+                return state ? JSON.parse(state) : { minimized: false, dismissed: false };
+            }
+            
+            // Save prompt state to session storage
+            function savePromptState(state) {
+                sessionStorage.setItem(PROMPT_STATE_KEY, JSON.stringify(state));
+            }
+            
+            // Check if should show prompt
+            function shouldShowPrompt() {
+                const state = getPromptState();
+                const lastShown = localStorage.getItem(PROMPT_LAST_SHOWN_KEY);
+                const now = Date.now();
+                
+                // If dismissed in this session, don't show
+                if (state.dismissed) return false;
+                
+                // If shown recently (within 24 hours), only show mini version
+                if (lastShown && (now - parseInt(lastShown)) < REMIND_INTERVAL) {
+                    return 'mini';
+                }
+                
+                return true;
+            }
+            
+            // Show install prompt
+            function showInstallPrompt() {
+                if (!deferredPrompt) return;
+                
+                const shouldShow = shouldShowPrompt();
+                if (!shouldShow) return;
+                
+                const state = getPromptState();
+                
+                if (shouldShow === 'mini' || state.minimized) {
+                    miniPrompt.classList.add('show');
+                } else {
+                    installPrompt.classList.add('show');
+                    localStorage.setItem(PROMPT_LAST_SHOWN_KEY, Date.now().toString());
+                }
+            }
+            
+            // Handle beforeinstallprompt event
             window.addEventListener('beforeinstallprompt', (e) => {
                 e.preventDefault();
                 deferredPrompt = e;
                 
-                setTimeout(() => showInstallPrompt(), 30000);
+                // Initial delay before showing
+                setTimeout(() => showInstallPrompt(), SHOW_DELAY);
                 
+                // Show on scroll (once)
                 let scrolled = false;
                 window.addEventListener('scroll', () => {
-                    if (!scrolled && window.scrollY > 100) {
+                    if (!scrolled && window.scrollY > 200) {
                         scrolled = true;
                         showInstallPrompt();
                     }
                 }, { passive: true });
+                
+                // Show on user engagement (after 3 page interactions)
+                let interactions = 0;
+                const interactionHandler = () => {
+                    interactions++;
+                    if (interactions >= 3) {
+                        showInstallPrompt();
+                        document.removeEventListener('click', interactionHandler);
+                    }
+                };
+                document.addEventListener('click', interactionHandler);
             });
             
-            function showInstallPrompt() {
-                if (deferredPrompt && !localStorage.getItem('pwa-install-dismissed')) {
-                    installPrompt.classList.add('show');
-                }
-            }
-            
+            // Install button click
             installBtn?.addEventListener('click', async () => {
                 if (!deferredPrompt) return;
                 
+                // Hide prompts
+                installPrompt.classList.remove('show');
+                miniPrompt.classList.remove('show');
+                
+                // Show install prompt
                 deferredPrompt.prompt();
                 const { outcome } = await deferredPrompt.userChoice;
                 
                 if (outcome === 'accepted') {
                     console.log('User accepted the install prompt');
+                    // Clear all storage
+                    sessionStorage.removeItem(PROMPT_STATE_KEY);
+                    localStorage.removeItem(PROMPT_LAST_SHOWN_KEY);
+                } else {
+                    // User cancelled, show mini prompt
+                    savePromptState({ minimized: true, dismissed: false });
+                    setTimeout(() => miniPrompt.classList.add('show'), 1000);
                 }
                 
                 deferredPrompt = null;
-                installPrompt.classList.remove('show');
             });
             
-            dismissBtn?.addEventListener('click', () => {
-                localStorage.setItem('pwa-install-dismissed', 'true');
-                installPrompt.classList.remove('show');
-                
+            // Later button click - minimize to mini prompt
+            laterBtn?.addEventListener('click', () => {
+                installPrompt.classList.add('hide');
                 setTimeout(() => {
-                    localStorage.removeItem('pwa-install-dismissed');
-                }, 7 * 24 * 60 * 60 * 1000);
+                    installPrompt.classList.remove('show', 'hide');
+                    miniPrompt.classList.add('show');
+                }, 300);
+                
+                savePromptState({ minimized: true, dismissed: false });
             });
             
+            // Minimize button click
+            minimizeBtn?.addEventListener('click', () => {
+                installPrompt.classList.add('hide');
+                setTimeout(() => {
+                    installPrompt.classList.remove('show', 'hide');
+                    miniPrompt.classList.add('show');
+                }, 300);
+                
+                savePromptState({ minimized: true, dismissed: false });
+            });
+            
+            // Mini prompt click - expand full prompt
+            miniPrompt?.addEventListener('click', () => {
+                miniPrompt.classList.remove('show');
+                installPrompt.classList.add('show');
+                savePromptState({ minimized: false, dismissed: false });
+            });
+            
+            // App installed event
             window.addEventListener('appinstalled', () => {
                 console.log('PWA was installed');
                 installPrompt.classList.remove('show');
+                miniPrompt.classList.remove('show');
                 deferredPrompt = null;
+                
+                // Clear storage
+                sessionStorage.removeItem(PROMPT_STATE_KEY);
+                localStorage.removeItem(PROMPT_LAST_SHOWN_KEY);
             });
+            
+            // Check if app is already installed
+            if (window.matchMedia('(display-mode: standalone)').matches) {
+                console.log('App is already installed');
+            }
             
             // Offline/Online Detection
             const offlineBanner = document.getElementById('offline-banner');
@@ -292,6 +653,7 @@
                 if (navigator.onLine) {
                     offlineBanner.classList.remove('show');
                     
+                    // Sync data when back online
                     if (serviceWorkerRegistration && 'sync' in serviceWorkerRegistration) {
                         serviceWorkerRegistration.sync.register('sync-data')
                             .then(() => console.log('Sync registered'))
@@ -309,15 +671,19 @@
             // Request Notification Permission
             function requestNotificationPermission() {
                 if ('Notification' in window && Notification.permission === 'default') {
-                    Notification.requestPermission().then(permission => {
-                        if (permission === 'granted') {
-                            console.log('Notification permission granted');
-                            subscribeToPushNotifications();
-                        }
-                    });
+                    // Ask after user interaction
+                    setTimeout(() => {
+                        Notification.requestPermission().then(permission => {
+                            if (permission === 'granted') {
+                                console.log('Notification permission granted');
+                                subscribeToPushNotifications();
+                            }
+                        });
+                    }, 5000);
                 }
             }
             
+            // Push Notification Subscription
             async function subscribeToPushNotifications() {
                 if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
                     return;
@@ -331,20 +697,24 @@
                         return;
                     }
                     
+                    // Note: You'll need to add your VAPID key here
                     console.log('Push notification subscription would be set up with valid VAPID key');
                 } catch (error) {
                     console.error('Failed to subscribe to push notifications:', error);
                 }
             }
             
+            // Request notifications after user interaction
             document.addEventListener('click', () => {
                 requestNotificationPermission();
             }, { once: true });
             
+            // Handle service worker messages
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.addEventListener('message', (event) => {
                     if (event.data && event.data.type === 'SYNC_COMPLETE') {
                         console.log('Data sync completed:', event.data.message);
+                        // Reload analytics if on analytics page
                         if (window.location.pathname.includes('/analytics')) {
                             if (typeof loadAnalytics === 'function') {
                                 loadAnalytics();
@@ -354,6 +724,7 @@
                 });
             }
             
+            // Clear cache function
             window.clearAppCache = function() {
                 if ('caches' in window) {
                     caches.keys().then(names => {
@@ -375,7 +746,7 @@
                 }
             };
             
-            // Prevent double-tap zoom on buttons
+            // Prevent double-tap zoom on mobile
             let lastTouchEnd = 0;
             document.addEventListener('touchend', (e) => {
                 const now = Date.now();
@@ -384,6 +755,15 @@
                 }
                 lastTouchEnd = now;
             }, { passive: false });
+            
+            // Handle viewport resize for mobile keyboards
+            let viewportHeight = window.innerHeight;
+            window.addEventListener('resize', () => {
+                const currentHeight = window.innerHeight;
+                if (Math.abs(currentHeight - viewportHeight) > 100) {
+                    document.documentElement.style.setProperty('--vh', `${currentHeight * 0.01}px`);
+                }
+            });
         </script>
     </body>
 </html>
