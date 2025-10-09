@@ -707,6 +707,29 @@
                     }
                 });
             }
+
+            // Tambahkan di bagian script HTML Anda
+            // Handle service worker updates
+            if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                // New service worker has taken control
+                console.log('New service worker activated');
+                
+                // Optional: Reload page untuk mendapatkan versi terbaru
+                if (confirm('New version available! Reload to update?')) {
+                window.location.reload();
+                }
+            });
+            
+            // Check for updates every 30 minutes
+            setInterval(() => {
+                if (navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({ 
+                    type: 'CHECK_UPDATE' 
+                });
+                }
+            }, 30 * 60 * 1000);
+            }
             
             // Clear cache function
             window.clearAppCache = function() {

@@ -127,6 +127,6 @@ class TaskController extends Controller
     public function adminDestroy(Task $task)
     {
         $task->delete();
-        return redirect()->route('admin.tasks.index')->with('success', 'Task deleted by Admin.');
+        return redirect()->route('task.index')->with('success', 'Task deleted by Admin.');
     }
 }
