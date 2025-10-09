@@ -119,25 +119,25 @@ class TaskController extends Controller
     }
 
     // Method untuk admin membuat tugas untuk user
-    public function adminCreate()
+     public function adminCreate()
     {
         $users = User::where('role', 'user')->get(); // Mendapatkan semua user
-        $projects = Project::all(); // Mendapatkan semua proyek
         
-        return view('admin.tugas.create', compact('users', 'projects'));
+        return view('admin.tugas.create', compact('users'));
     }
 
     // Method untuk menyimpan tugas yang dibuat oleh admin
     public function adminStore(Request $request)
     {
         $validated = $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'project_id' => 'nullable|exists:projects,id',
+            'user_ids' => 'required|array|min:1', // Mengubah menjadi array
+            'user_ids.*' => 'exists:users,id', // Validasi setiap ID user
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'status' => 'required|in:todo,in_progress,done',
             'priority' => 'required|in:low,medium,high,urgent',
             'due_date' => 'nullable|date',
+            'assign_to_all' => 'nullable|boolean', // Untuk fitur assign ke semua user
         ]);
 
         // Pastikan user yang login adalah admin
@@ -145,31 +145,60 @@ class TaskController extends Controller
             return redirect()->route('tugas.index')->with('error', 'Unauthorized action.');
         }
 
-        // Cek proyek jika ada dan milik user yang ditugaskan
-        if ($validated['project_id']) {
-            $project = Project::where('id', $validated['project_id'])
-                ->where('user_id', $validated['user_id'])
-                ->first();
+        // Jika assign ke semua user, ambil semua user dengan role user
+        if ($request->assign_to_all) {
+            $userIds = User::where('role', 'user')->pluck('id')->toArray();
+        } else {
+            $userIds = $validated['user_ids'];
+        }
+
+        // Buat tugas untuk setiap user yang dipilih
+        $tasks = [];
+        foreach ($userIds as $userId) {
+            $task = Task::create([
+                'user_id' => $userId,
+                'title' => $validated['title'],
+                'description' => $validated['description'],
+                'status' => $validated['status'],
+                'priority' => $validated['priority'],
+                'due_date' => $validated['due_date'],
+                'created_by' => auth()->id(),
+            ]);
             
-            if (!$project) {
-                return redirect()->back()->withInput()->with('error', 'The selected project does not belong to the selected user.');
+            $tasks[] = $task;
+            
+            // Notifikasi ke user yang ditugaskan
+            $assignedUser = User::find($userId);
+            if ($assignedUser) {
+                $assignedUser->notify(new AdminNotification(
+                    'New Task Assigned',
+                    'You have been assigned a new task: ' . $task->title,
+                    route('tasks.show', $task)
+                ));
             }
         }
 
-        $validated['user_id'] = $request->user_id; // Tetapkan user yang ditugaskan
-        $task = Task::create($validated);
-
-        // Notifikasi ke user yang ditugaskan
-        $assignedUser = User::find($validated['user_id']);
-        if ($assignedUser) {
-            $assignedUser->notify(new AdminNotification(
-                'New Task Assigned',
-                'You have been assigned a new task: ' . $task->title,
-                route('tasks.show', $task)
-            ));
-        }
-
-        return redirect()->route('tugas.index')->with('success', 'Task created successfully and assigned to user.');
+        return redirect()->route('tugas.index')->with('success', count($tasks) . ' task(s) created successfully and assigned to user(s).');
+    }
+    
+    // Method untuk pencarian tugas
+    public function adminSearch(Request $request)
+    {
+        $query = $request->input('query');
+        
+        $tasks = Task::with(['user'])
+            ->where(function($q) use ($query) {
+                $q->where('title', 'like', '%' . $query . '%')
+                  ->orWhere('description', 'like', '%' . $query . '%')
+                  ->orWhereHas('user', function($u) use ($query) {
+                      $u->where('name', 'like', '%' . $query . '%')
+                        ->orWhere('email', 'like', '%' . $query . '%');
+                  });
+            })
+            ->latest()
+            ->paginate(15);
+            
+        return view('admin.tugas.index', compact('tasks', 'query'));
     }
 
     public function adminShow(Task $task)

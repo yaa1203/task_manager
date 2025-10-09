@@ -54,6 +54,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/tugas', [TaskController::class, 'adminStore'])->name('tugas.store');
     Route::get('/tugas/{task}', [TaskController::class, 'adminShow'])->name('tugas.show');
     Route::delete('/tugas/{task}', [TaskController::class, 'adminDestroy'])->name('tugas.destroy');
+    Route::get('/tugas/search', [TaskController::class, 'adminSearch'])->name('tugas.search');
 
     Route::get('/analytict', [AnalyticsController::class, 'adminIndex'])->name('analytict.index');
     Route::get('/analytict/data', [AnalyticsController::class, 'adminData'])->name('analytict.data');

@@ -34,13 +34,14 @@
     </div>
     @endif
 
-    {{-- Filter & Search Section --}}
+    {{-- Search & Filter Section --}}
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
-        <div class="flex flex-col sm:flex-row gap-3">
+        <form action="{{ route('tugas.search') }}" method="GET" class="flex flex-col sm:flex-row gap-3">
             {{-- Search Bar --}}
             <div class="flex-1">
                 <div class="relative">
-                    <input type="text" placeholder="Search tasks..." 
+                    <input type="text" name="query" placeholder="Search by task title, description, user name or email..." 
+                           value="{{ $query ?? '' }}"
                            class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                     <svg class="w-5 h-5 text-gray-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
@@ -49,21 +50,20 @@
             </div>
 
             {{-- Filters --}}
-            <div class="flex gap-2 overflow-x-auto pb-2 sm:pb-0">
-                <select class="px-4 py-2.5 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 text-sm">
-                    <option>All Status</option>
-                    <option>Pending</option>
-                    <option>In Progress</option>
-                    <option>Done</option>
-                </select>
-                <select class="px-4 py-2.5 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 text-sm">
-                    <option>All Priority</option>
-                    <option>Low</option>
-                    <option>Medium</option>
-                    <option>High</option>
-                </select>
+            <div class="flex gap-2">
+                <button type="submit" 
+                        class="px-4 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    Search
+                </button>
+                <a href="{{ route('tugas.index') }}" 
+                   class="px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
+                    Clear
+                </a>
             </div>
-        </div>
+        </form>
     </div>
 
     {{-- Desktop Table View --}}
@@ -74,7 +74,7 @@
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">#</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Title</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Owner</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Assigned To</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Priority</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Due Date</th>
@@ -97,7 +97,10 @@
                                         {{ strtoupper(substr($task->user->name ?? 'N', 0, 1)) }}
                                     </span>
                                 </div>
-                                <span class="text-sm text-gray-900">{{ $task->user->name ?? '-' }}</span>
+                                <div>
+                                    <div class="text-sm text-gray-900">{{ $task->user->name ?? 'Unassigned' }}</div>
+                                    <div class="text-xs text-gray-500">{{ $task->user->email ?? '' }}</div>
+                                </div>
                             </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
@@ -210,6 +213,19 @@
                     </div>
                 </div>
 
+                {{-- Assigned To --}}
+                <div class="mb-3">
+                    <div class="flex items-center gap-2 text-sm text-gray-600">
+                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                        </svg>
+                        <span>{{ $task->user->name ?? 'Unassigned' }}</span>
+                        @if($task->user->email)
+                        <span class="text-xs text-gray-400">({{ $task->user->email }})</span>
+                        @endif
+                    </div>
+                </div>
+
                 {{-- Status --}}
                 <div class="mb-3">
                     @php
@@ -230,12 +246,6 @@
 
                 {{-- Info --}}
                 <div class="space-y-2 mb-4">
-                    <div class="flex items-center gap-2 text-sm text-gray-600">
-                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                        </svg>
-                        <span>{{ $task->user->name ?? 'Unassigned' }}</span>
-                    </div>
                     @if($task->due_date)
                     <div class="flex items-center gap-2 text-sm text-gray-600">
                         <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -284,7 +294,7 @@
     @if($tasks->hasPages())
     <div class="mt-6">
         <div class="bg-white rounded-lg border border-gray-200 px-4 py-3">
-            {{ $tasks->links() }}
+            {{ $tasks->appends(['query' => $query ?? ''])->links() }}
         </div>
     </div>
     @endif
