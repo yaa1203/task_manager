@@ -115,18 +115,72 @@ class TaskController extends Controller
     public function adminIndex()
     {
         $tasks = Task::with(['user', 'project'])->latest()->paginate(15);
-        return view('admin.tasks.index', compact('tasks'));
+        return view('admin.tugas.index', compact('tasks'));
+    }
+
+    // Method untuk admin membuat tugas untuk user
+    public function adminCreate()
+    {
+        $users = User::where('role', 'user')->get(); // Mendapatkan semua user
+        $projects = Project::all(); // Mendapatkan semua proyek
+        
+        return view('admin.tugas.create', compact('users', 'projects'));
+    }
+
+    // Method untuk menyimpan tugas yang dibuat oleh admin
+    public function adminStore(Request $request)
+    {
+        $validated = $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'project_id' => 'nullable|exists:projects,id',
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'status' => 'required|in:todo,in_progress,done',
+            'priority' => 'required|in:low,medium,high,urgent',
+            'due_date' => 'nullable|date',
+        ]);
+
+        // Pastikan user yang login adalah admin
+        if (auth()->user()->role !== 'admin') {
+            return redirect()->route('tugas.index')->with('error', 'Unauthorized action.');
+        }
+
+        // Cek proyek jika ada dan milik user yang ditugaskan
+        if ($validated['project_id']) {
+            $project = Project::where('id', $validated['project_id'])
+                ->where('user_id', $validated['user_id'])
+                ->first();
+            
+            if (!$project) {
+                return redirect()->back()->withInput()->with('error', 'The selected project does not belong to the selected user.');
+            }
+        }
+
+        $validated['user_id'] = $request->user_id; // Tetapkan user yang ditugaskan
+        $task = Task::create($validated);
+
+        // Notifikasi ke user yang ditugaskan
+        $assignedUser = User::find($validated['user_id']);
+        if ($assignedUser) {
+            $assignedUser->notify(new AdminNotification(
+                'New Task Assigned',
+                'You have been assigned a new task: ' . $task->title,
+                route('tasks.show', $task)
+            ));
+        }
+
+        return redirect()->route('tugas.index')->with('success', 'Task created successfully and assigned to user.');
     }
 
     public function adminShow(Task $task)
     {
         $task->load('project');
-        return view('admin.tasks.show', compact('task'));
+        return view('admin.tugas.show', compact('task'));
     }
 
     public function adminDestroy(Task $task)
     {
         $task->delete();
-        return redirect()->route('task.index')->with('success', 'Task deleted by Admin.');
+        return redirect()->route('tugas.index')->with('success', 'Task deleted by Admin.');
     }
 }

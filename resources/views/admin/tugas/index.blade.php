@@ -2,12 +2,22 @@
 
 @section('content')
 <div class="max-w-7xl mx-auto">
-    {{-- Header Section --}}
+    
+    <!-- Header Section -->
     <div class="mb-6">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Task Management</h1>
                 <p class="text-sm sm:text-base text-gray-600">Monitor and manage all project tasks</p>
+            </div>
+            <div>
+                <a href="{{ route('tugas.create') }}" 
+                   class="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Create Task
+                </a>
             </div>
         </div>
     </div>
@@ -133,7 +143,7 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm">
                             <div class="flex items-center gap-2">
-                                <a href="{{ route('task.show', $task) }}" 
+                                <a href="{{ route('tugas.show', $task) }}" 
                                    class="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -141,7 +151,7 @@
                                     </svg>
                                     View
                                 </a>
-                                <form action="{{ route('task.destroy', $task) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this task?');">
+                                <form action="{{ route('tugas.destroy', $task) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this task?');">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="inline-flex items-center gap-1 px-3 py-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">
@@ -238,7 +248,7 @@
 
                 {{-- Actions --}}
                 <div class="flex gap-2 pt-3 border-t border-gray-100">
-                    <a href="{{ route('task.show', $task) }}" 
+                    <a href="{{ route('tugas.show', $task) }}" 
                        class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -246,7 +256,7 @@
                         </svg>
                         <span class="font-medium">View</span>
                     </a>
-                    <form action="{{ route('task.destroy', $task) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this task?');" class="flex-1">
+                    <form action="{{ route('tugas.destroy', $task) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this task?');" class="flex-1">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">

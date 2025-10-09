@@ -49,9 +49,11 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/project/{project}', [ProjectController::class, 'adminShow'])->name('project.show');
     Route::delete('/project/{project}', [ProjectController::class, 'adminDestroy'])->name('project.destroy');
 
-    Route::get('/task', [TaskController::class, 'adminIndex'])->name('task.index');
-    Route::get('/task/{task}', [TaskController::class, 'adminShow'])->name('task.show');
-    Route::delete('/task/{task}', [TaskController::class, 'adminDestroy'])->name('task.destroy');
+    Route::get('/tugas', [TaskController::class, 'adminIndex'])->name('tugas.index');
+    Route::get('/tugas/create', [TaskController::class, 'adminCreate'])->name('tugas.create');
+    Route::post('/tugas', [TaskController::class, 'adminStore'])->name('tugas.store');
+    Route::get('/tugas/{task}', [TaskController::class, 'adminShow'])->name('tugas.show');
+    Route::delete('/tugas/{task}', [TaskController::class, 'adminDestroy'])->name('tugas.destroy');
 
     Route::get('/analytict', [AnalyticsController::class, 'adminIndex'])->name('analytict.index');
     Route::get('/analytict/data', [AnalyticsController::class, 'adminData'])->name('analytict.data');
