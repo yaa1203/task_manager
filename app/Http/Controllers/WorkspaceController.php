@@ -79,7 +79,7 @@ class WorkspaceController extends Controller
 
         $workspace = Workspace::create($validated);
 
-        return redirect()->route('workspace.show', $workspace)
+        return redirect()->route('workspaces.show', $workspace)
             ->with('success', 'Workspace created successfully!');
     }
 
