@@ -13,12 +13,14 @@ class AdminNotification extends Notification
     protected $title;
     protected $message;
     protected $url;
+    protected $taskId;
 
-    public function __construct($title, $message, $url = null)
+    public function __construct($title, $message, $url = null, $taskId = null)
     {
         $this->title = $title;
         $this->message = $message;
         $this->url = $url;
+        $this->taskId = $taskId;
     }
 
     public function via($notifiable)
@@ -32,6 +34,17 @@ class AdminNotification extends Notification
             'title' => $this->title,
             'message' => $this->message,
             'url' => $this->url,
+            'task_id' => $this->taskId,
+        ];
+    }
+
+    public function toArray($notifiable)
+    {
+        return [
+            'title' => $this->title,
+            'message' => $this->message,
+            'url' => $this->url,
+            'task_id' => $this->taskId,
         ];
     }
 }

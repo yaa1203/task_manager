@@ -9,6 +9,7 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -26,6 +27,10 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/calendar/projects/{project}/update-date', [CalendarController::class, 'updateProjectDate'])->name('calendar.projects.update-date');
     Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
     Route::get('/analytics/data', [AnalyticsController::class, 'data'])->name('analytics.data');
+    Route::get('/notifikasi', [NotificationController::class, 'index'])->name('notifikasi.index');
+    Route::get('/notifikasi/{notification}', [NotificationController::class, 'show'])->name('notifikasi.show');
+    Route::post('/notifikasi/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifikasi.read');
+    Route::post('/notifikasi/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])->name('notifikasi.markAllAsRead');
 });
 
 Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])

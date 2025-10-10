@@ -8,6 +8,7 @@ use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Notifications\AdminNotification;
+use App\Notifications\TaskAssignedNotification;
 
 class TaskController extends Controller
 {
@@ -126,18 +127,17 @@ class TaskController extends Controller
         return view('admin.tugas.create', compact('users'));
     }
 
-    // Method untuk menyimpan tugas yang dibuat oleh admin
     public function adminStore(Request $request)
     {
         $validated = $request->validate([
-            'user_ids' => 'required|array|min:1', // Mengubah menjadi array
-            'user_ids.*' => 'exists:users,id', // Validasi setiap ID user
+            'user_ids' => 'required|array|min:1',
+            'user_ids.*' => 'exists:users,id',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'status' => 'required|in:todo,in_progress,done',
             'priority' => 'required|in:low,medium,high,urgent',
             'due_date' => 'nullable|date',
-            'assign_to_all' => 'nullable|boolean', // Untuk fitur assign ke semua user
+            'assign_to_all' => 'nullable|boolean',
         ]);
 
         // Pastikan user yang login adalah admin
@@ -167,18 +167,17 @@ class TaskController extends Controller
             
             $tasks[] = $task;
             
-            // Notifikasi ke user yang ditugaskan
+            // Kirim notifikasi KEPADA USER YANG DIPILIH SAJA
             $assignedUser = User::find($userId);
             if ($assignedUser) {
-                $assignedUser->notify(new AdminNotification(
-                    'New Task Assigned',
-                    'You have been assigned a new task: ' . $task->title,
-                    route('tasks.show', $task)
+                $assignedUser->notify(new TaskAssignedNotification(
+                    $task,
+                    auth()->user()->name
                 ));
             }
         }
 
-        return redirect()->route('tugas.index')->with('success', count($tasks) . ' task(s) created successfully and assigned to user(s).');
+        return redirect()->route('tugas.index')->with('success', count($tasks) . ' task(s) created successfully and assigned to selected user(s).');
     }
     
     // Method untuk pencarian tugas

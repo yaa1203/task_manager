@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Notifications\AdminNotification;
 
 class User extends Authenticatable
 {
@@ -46,6 +47,20 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Send an admin notification to this user.
+     *
+     * @param string $title
+     * @param string $message
+     * @param string|null $url
+     * @param int|null $taskId
+     * @return void
+     */
+    public function sendAdminNotification($title, $message, $url = null, $taskId = null)
+    {
+        $this->notify(new AdminNotification($title, $message, $url, $taskId));
     }
 
     /**

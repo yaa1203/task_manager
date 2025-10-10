@@ -31,6 +31,124 @@
                     <x-nav-link :href="url('analytics')" :active="request()->routeIs('analytics.*')">
                         {{ __('Analytics') }}
                     </x-nav-link>
+                    <!-- Di bagian desktop navigation -->
+                    <x-nav-link :href="url('notifikasi')" :active="request()->routeIs('notifikasi.*')">
+                        {{ __('Notifications') }}
+                        @if (Auth::user()->unreadNotifications->count() > 0)
+                            <span class="ml-1 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                {{ Auth::user()->unreadNotifications->count() }}
+                            </span>
+                        @endif
+                    </x-nav-link>
+                </div>
+            </div>
+
+            <!-- Notifications Dropdown - Desktop -->
+            <div class="hidden sm:flex sm:items-center sm:ms-4">
+                <div class="relative" x-data="{ open: false }" @click.away="open = false">
+                    <button @click="open = !open" 
+                            class="inline-flex items-center p-2 text-sm font-medium text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
+                            type="button"
+                            aria-expanded="false"
+                            aria-label="View notifications">
+                        <span class="sr-only">View notifications</span>
+                        @if (Auth::user()->unreadNotifications->count() > 0)
+                            <span class="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 flex items-center justify-center">
+                                <span class="text-xs text-white font-bold">{{ Auth::user()->unreadNotifications->count() }}</span>
+                            </span>
+                        @endif
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                    </button>
+
+                    <!-- Dropdown Menu -->
+                    <div x-show="open"
+                        x-transition:enter="transition ease-out duration-200"
+                        x-transition:enter-start="opacity-0 scale-95"
+                        x-transition:enter-end="opacity-100 scale-100"
+                        x-transition:leave="transition ease-in duration-75"
+                        x-transition:leave-start="opacity-100 scale-100"
+                        x-transition:leave-end="opacity-0 scale-95"
+                        class="absolute right-0 mt-2 w-80 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50"
+                        style="display: none;">
+                        <div class="py-1">
+                            <div class="px-4 py-2 border-b border-gray-200">
+                                <h3 class="text-sm font-medium text-gray-900">{{ __('Notifications') }}</h3>
+                            </div>
+                            
+                            @php
+                                $unreadNotifications = Auth::user()->unreadNotifications()->latest()->take(5)->get();
+                                $readNotifications = Auth::user()->readNotifications()->latest()->take(5)->get();
+                            @endphp
+                            
+                            @if ($unreadNotifications->count() > 0)
+                                <div class="max-h-60 overflow-y-auto">
+                                    @foreach ($unreadNotifications as $notification)
+                                        <a href="{{ route('notifikasi.show', $notification) }}" 
+                                        class="block px-4 py-3 hover:bg-gray-50 border-b border-gray-100">
+                                            <div class="flex items-start">
+                                                <div class="flex-shrink-0">
+                                                    <span class="h-2 w-2 rounded-full bg-indigo-600"></span>
+                                                </div>
+                                                <div class="ml-3 flex-1">
+                                                    <p class="text-sm font-medium text-gray-900">
+                                                        {{ $notification->data['title'] ?? __('Notification') }}
+                                                    </p>
+                                                    <p class="text-sm text-gray-500">
+                                                        {{ $notification->data['message'] ?? __('You have a new notification') }}
+                                                    </p>
+                                                    <p class="text-xs text-gray-400 mt-1">
+                                                        {{ $notification->created_at->diffForHumans() }}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    @endforeach
+                                </div>
+                            @else
+                                <div class="px-4 py-3 text-center text-sm text-gray-500">
+                                    {{ __('No unread notifications') }}
+                                </div>
+                            @endif
+                            
+                            @if ($readNotifications->count() > 0)
+                                <div class="px-4 py-2 border-t border-gray-200">
+                                    <h4 class="text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('Earlier') }}</h4>
+                                </div>
+                                <div class="max-h-60 overflow-y-auto">
+                                    @foreach ($readNotifications as $notification)
+                                        <a href="{{ route('notifikasi.show', $notification) }}" 
+                                        class="block px-4 py-3 hover:bg-gray-50 border-b border-gray-100">
+                                            <div class="flex items-start">
+                                                <div class="flex-shrink-0">
+                                                    <span class="h-2 w-2 rounded-full bg-gray-300"></span>
+                                                </div>
+                                                <div class="ml-3 flex-1">
+                                                    <p class="text-sm font-medium text-gray-900">
+                                                        {{ $notification->data['title'] ?? __('Notification') }}
+                                                    </p>
+                                                    <p class="text-sm text-gray-500">
+                                                        {{ $notification->data['message'] ?? __('You have a new notification') }}
+                                                    </p>
+                                                    <p class="text-xs text-gray-400 mt-1">
+                                                        {{ $notification->created_at->diffForHumans() }}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    @endforeach
+                                </div>
+                            @endif
+                            
+                            <div class="px-4 py-3 border-t border-gray-200">
+                                <a href="{{ route('notifikasi.index') }}" 
+                                class="block text-center text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                                    {{ __('View all notifications') }}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -119,6 +237,19 @@
             <a href="{{ url('analytics') }}" 
                class="block pl-3 pr-4 py-2 border-l-4 {{ request()->routeIs('analytics.*') ? 'border-indigo-400 text-indigo-700 bg-indigo-50' : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300' }} text-base font-medium transition">
                 {{ __('Analytics') }}
+            </a>
+            <!-- Notifications - Mobile -->
+            <a href="{{ url('notifications') }}" 
+            class="flex items-center px-4 py-2 border-l-4 {{ request()->routeIs('notifications.*') ? 'border-indigo-400 text-indigo-700 bg-indigo-50' : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300' }} text-base font-medium transition">
+                <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+                {{ __('Notifications') }}
+                @if (Auth::user()->unreadNotifications->count() > 0)
+                    <span class="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                        {{ Auth::user()->unreadNotifications->count() }}
+                    </span>
+                @endif
             </a>
         </div>
 
