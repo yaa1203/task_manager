@@ -5,7 +5,7 @@
     @if($workspaces->count() > 0)
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             @foreach($workspaces as $workspace)
-                <a href="{{ route('user.workspaces.show', $workspace) }}" 
+                <a href="{{ route('my-workspaces.show', $workspace) }}" 
                    class="block bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition">
                     <div class="flex items-center gap-3 mb-3">
                         <div class="w-10 h-10 flex items-center justify-center text-xl rounded-lg" 

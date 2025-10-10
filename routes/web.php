@@ -58,13 +58,6 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/project/{project}', [ProjectController::class, 'adminShow'])->name('project.show');
     Route::delete('/project/{project}', [ProjectController::class, 'adminDestroy'])->name('project.destroy');
 
-    Route::get('/tugas', [TaskController::class, 'adminIndex'])->name('tugas.index');
-    Route::get('/tugas/create', [TaskController::class, 'adminCreate'])->name('tugas.create');
-    Route::post('/tugas', [TaskController::class, 'adminStore'])->name('tugas.store');
-    Route::get('/tugas/{task}', [TaskController::class, 'adminShow'])->name('tugas.show');
-    Route::delete('/tugas/{task}', [TaskController::class, 'adminDestroy'])->name('tugas.destroy');
-    Route::get('/tugas/search', [TaskController::class, 'adminSearch'])->name('tugas.search');
-
     Route::get('/analytict', [AnalyticsController::class, 'adminIndex'])->name('analytict.index');
     Route::get('/analytict/data', [AnalyticsController::class, 'adminData'])->name('analytict.data');
 
@@ -84,8 +77,16 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     
     Route::get('/workspaces/{workspace}/tasks/create', [WorkspaceController::class, 'createTask'])
         ->name('workspace.tasks.create');
+    Route::get('/workspaces/{workspace}/tasks/{task}/edit', [WorkspaceController::class, 'editTask'])
+        ->name('workspace.tasks.edit');
+    Route::put('/workspaces/{workspace}/tasks/{task}', [WorkspaceController::class, 'updateTask'])
+        ->name('workspace.tasks.update');
     Route::post('/workspaces/{workspace}/tasks', [WorkspaceController::class, 'storeTask'])
         ->name('workspace.tasks.store');
+    Route::delete('/workspaces/{workspace}/tasks/{task}', [WorkspaceController::class, 'destroyTask'])
+        ->name('workspace.tasks.destroy');
+    Route::get('/workspaces/{workspace}/tasks/{task}', [WorkspaceController::class, 'showTask'])
+        ->name('workspace.tasks.show');
     });
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
