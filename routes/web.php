@@ -32,6 +32,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/notifikasi/{notification}', [NotificationController::class, 'show'])->name('notifikasi.show');
     Route::post('/notifikasi/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifikasi.read');
     Route::post('/notifikasi/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])->name('notifikasi.markAllAsRead');
+    Route::get('/my-workspaces', [WorkspaceController::class, 'userIndex'])->name('my-workspaces.index');
+    Route::get('/my-workspaces/{workspace}', [WorkspaceController::class, 'userShow'])->name('my-workspaces.show');
+    Route::post('/my-workspaces/{workspace}/task/{task}/submit', [WorkspaceController::class, 'submitTask'])->name('my-workspaces.task.submit');
 });
 
 Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])
@@ -79,12 +82,11 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::delete('/workspaces/{workspace}', [WorkspaceController::class, 'destroy'])->name('workspaces.destroy');
     Route::post('/workspaces/{workspace}/toggle-archive', [WorkspaceController::class, 'toggleArchive'])->name('workspaces.toggle-archive');
     
-    // Add/Remove items from workspace
-    Route::post('/workspaces/{workspace}/add-task', [WorkspaceController::class, 'addTask'])->name('workspaces.add-task');
-    Route::delete('/workspaces/{workspace}/remove-task/{task}', [WorkspaceController::class, 'removeTask'])->name('workspaces.remove-task');
-    Route::post('/workspaces/{workspace}/add-project', [WorkspaceController::class, 'addProject'])->name('workspaces.add-project');
-    Route::delete('/workspaces/{workspace}/remove-project/{project}', [WorkspaceController::class, 'removeProject'])->name('workspaces.remove-project');
-});
+    Route::get('/workspaces/{workspace}/tasks/create', [WorkspaceController::class, 'createTask'])
+        ->name('workspace.tasks.create');
+    Route::post('/workspaces/{workspace}/tasks', [WorkspaceController::class, 'storeTask'])
+        ->name('workspace.tasks.store');
+    });
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/dashboard', [DashboardController::class, 'AdminIndex'])

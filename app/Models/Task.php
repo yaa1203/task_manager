@@ -52,4 +52,15 @@ class Task extends Model
         return $this->belongsToMany(Workspace::class, 'workspace_task')
                     ->withTimestamps();
     }
+
+    public function assignedUsers()
+    {
+        return $this->belongsToMany(User::class, 'task_user')->withTimestamps();
+    }
+
+    public function submissions()
+    {
+        return $this->hasMany(UserTaskSubmission::class);
+    }
+
 }
