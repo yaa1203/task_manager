@@ -58,4 +58,10 @@ class Project extends Model
         return $this->belongsToMany(Workspace::class, 'workspace_project')
                     ->withTimestamps();
     }
+
+    public function assignedUsers()
+    {
+        return $this->belongsToMany(User::class, 'project_user')->withTimestamps();
+    }
+
 }

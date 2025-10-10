@@ -72,4 +72,10 @@ class Workspace extends Model
     {
         return $this->getTasksCount() + $this->getProjectsCount();
     }
+
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'user_workspace')->withTimestamps();
+    }
+
 }

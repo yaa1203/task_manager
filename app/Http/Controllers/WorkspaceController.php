@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Workspace;
 use App\Models\Task;
+use App\Models\User;
 use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\UserTaskSubmission;
 
 class WorkspaceController extends Controller
 {
@@ -79,7 +81,7 @@ class WorkspaceController extends Controller
 
         $workspace = Workspace::create($validated);
 
-        return redirect()->route('workspace.show', $workspace)
+        return redirect()->route('workspaces.show', $workspace)
             ->with('success', 'Workspace created successfully!');
     }
 
@@ -90,7 +92,7 @@ class WorkspaceController extends Controller
     {
         $this->authorize('view', $workspace);
 
-        $workspace->load(['tasks.project', 'projects']);
+        $workspace->load(['tasks', 'projects']);
 
         $availableTasks = Task::where('user_id', Auth::id())
             ->whereDoesntHave('workspaces', function ($query) use ($workspace) {
@@ -264,5 +266,126 @@ class WorkspaceController extends Controller
 
         return redirect()->route('workspaces.show', $workspace)
             ->with('success', 'Project removed from workspace!');
+    }
+
+    public function userIndex()
+    {
+        $workspaces = Workspace::whereHas('tasks.assignedUsers', function ($q) {
+                $q->where('user_id', Auth::id());
+            })
+            ->orWhereHas('projects.assignedUsers', function ($q) {
+                $q->where('user_id', Auth::id());
+            })
+            ->withCount(['tasks', 'projects'])
+            ->get();
+
+        return view('work.index', compact('workspaces'));
+    }
+
+    /**
+     * Halaman detail workspace untuk USER (isi: task & project)
+     */
+    public function userShow(Workspace $workspace)
+    {
+        // Cegah akses ke workspace yang tidak ada tugas untuk user
+        $isAccessible = $workspace->tasks()->whereHas('assignedUsers', function ($q) {
+                $q->where('user_id', Auth::id());
+            })->exists()
+            || $workspace->projects()->whereHas('assignedUsers', function ($q) {
+                $q->where('user_id', Auth::id());
+            })->exists();
+
+        abort_unless($isAccessible, 403);
+
+        // Ambil data
+        $tasks = $workspace->tasks()
+            ->whereHas('assignedUsers', fn($q) => $q->where('user_id', Auth::id()))
+            ->with(['submissions' => fn($q) => $q->where('user_id', Auth::id())])
+            ->get();
+
+        $projects = $workspace->projects()
+            ->whereHas('assignedUsers', fn($q) => $q->where('user_id', Auth::id()))
+            ->get();
+
+        return view('work.show', compact('workspace', 'tasks', 'projects'));
+    }
+
+    /**
+     * User submit jawaban tugas
+     */
+    public function submitTask(Request $request, Workspace $workspace, $taskId)
+    {
+        $task = $workspace->tasks()->findOrFail($taskId);
+
+        $request->validate([
+            'file' => 'nullable|file|max:10240',
+            'link' => 'nullable|url',
+            'notes' => 'nullable|string|max:1000',
+        ]);
+
+        $filePath = $request->hasFile('file')
+            ? $request->file('file')->store('submissions', 'public')
+            : null;
+
+        UserTaskSubmission::create([
+            'task_id' => $task->id,
+            'user_id' => Auth::id(),
+            'file_path' => $filePath,
+            'link' => $request->link,
+            'notes' => $request->notes,
+        ]);
+
+        return back()->with('success', 'Jawaban berhasil dikirim!');
+    }
+
+    public function createTask(Workspace $workspace)
+    {
+        // Ambil SEMUA user dengan role 'user' (bukan dari relasi workspace)
+        $users = User::where('role', 'user')->get();
+
+        return view('admin.workspace.tasks.create', compact('workspace', 'users'));
+    }
+
+    public function storeTask(Request $request, Workspace $workspace)
+    {
+        $validated = $request->validate([
+            'user_ids' => 'required|array|min:1',
+            'user_ids.*' => 'exists:users,id',
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'status' => 'required|in:todo,in_progress,done',
+            'priority' => 'required|in:low,medium,high,urgent',
+            'due_date' => 'nullable|date',
+            'assign_to_all' => 'nullable|boolean',
+        ]);
+
+        // Hanya admin boleh membuat task workspace
+        if (auth()->user()->role !== 'admin') {
+            return redirect()->route('workspace.index')->with('error', 'Unauthorized action.');
+        }
+
+        // Ambil semua user jika assign_to_all dicentang
+        if ($request->assign_to_all) {
+            $userIds = User::where('role', 'user')->pluck('id')->toArray();
+        } else {
+            $userIds = $validated['user_ids'];
+        }
+
+        // Simpan task untuk setiap user
+        foreach ($userIds as $userId) {
+            Task::create([
+            'user_id' => $userId,
+            'workspace_id' => $workspace->id, // WAJIB ADA INI
+            'title' => $validated['title'],
+            'description' => $validated['description'] ?? null,
+            'status' => $validated['status'],
+            'priority' => $validated['priority'],
+            'due_date' => $validated['due_date'],
+            'created_by' => auth()->id(),
+        ]);
+        }
+
+        return redirect()->route('workspaces.show', $workspace->id)
+            ->with('success', 'Task created successfully.');
     }
 }

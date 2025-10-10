@@ -84,8 +84,8 @@
                         <div id="userSelectionContainer">
                             <div class="mb-3">
                                 <input type="text" id="searchUsers" 
-                                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
-                                       placeholder="Search users by name or email...">
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                                placeholder="Search users by name or email...">
                             </div>
 
                             <div class="border border-gray-300 rounded-lg divide-y divide-gray-200 max-h-64 sm:max-h-80 overflow-y-auto">
