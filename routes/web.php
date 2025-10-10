@@ -10,6 +10,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\WorkspaceController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -67,6 +68,22 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/notifications', [AdminNotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/{id}/read', [AdminNotificationController::class, 'markAsRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [AdminNotificationController::class, 'markAllAsRead'])->name('notifications.readAll');
+
+    // Workspaces Routes
+    Route::get('/workspaces', [WorkspaceController::class, 'index'])->name('workspaces.index');
+    Route::get('/workspaces/create', [WorkspaceController::class, 'create'])->name('workspaces.create');
+    Route::post('/workspaces', [WorkspaceController::class, 'store'])->name('workspaces.store');
+    Route::get('/workspaces/{workspace}', [WorkspaceController::class, 'show'])->name('workspaces.show');
+    Route::get('/workspaces/{workspace}/edit', [WorkspaceController::class, 'edit'])->name('workspaces.edit');
+    Route::put('/workspaces/{workspace}', [WorkspaceController::class, 'update'])->name('workspaces.update');
+    Route::delete('/workspaces/{workspace}', [WorkspaceController::class, 'destroy'])->name('workspaces.destroy');
+    Route::post('/workspaces/{workspace}/toggle-archive', [WorkspaceController::class, 'toggleArchive'])->name('workspaces.toggle-archive');
+    
+    // Add/Remove items from workspace
+    Route::post('/workspaces/{workspace}/add-task', [WorkspaceController::class, 'addTask'])->name('workspaces.add-task');
+    Route::delete('/workspaces/{workspace}/remove-task/{task}', [WorkspaceController::class, 'removeTask'])->name('workspaces.remove-task');
+    Route::post('/workspaces/{workspace}/add-project', [WorkspaceController::class, 'addProject'])->name('workspaces.add-project');
+    Route::delete('/workspaces/{workspace}/remove-project/{project}', [WorkspaceController::class, 'removeProject'])->name('workspaces.remove-project');
 });
 
 Route::middleware(['auth', 'role:admin'])->group(function () {

@@ -52,4 +52,10 @@ class Project extends Model
             'done' => $this->tasks()->where('status', 'done')->count(),
         ];
     }
+
+    public function workspaces()
+    {
+        return $this->belongsToMany(Workspace::class, 'workspace_project')
+                    ->withTimestamps();
+    }
 }

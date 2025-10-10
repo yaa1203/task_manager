@@ -46,4 +46,10 @@ class Task extends Model
         }
         return $this->due_date->isPast();
     }
+
+    public function workspaces()
+    {
+        return $this->belongsToMany(Workspace::class, 'workspace_task')
+                    ->withTimestamps();
+    }
 }
