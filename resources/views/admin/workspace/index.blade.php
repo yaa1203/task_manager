@@ -1,4 +1,6 @@
-<x-app-layout>
+@extends('admin.layouts.admin')
+
+@section('content')
     <x-slot name="header">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
@@ -203,4 +205,4 @@
             overflow: hidden;
         }
     </style>
-</x-app-layout>
+@endsection

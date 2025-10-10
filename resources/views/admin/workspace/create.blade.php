@@ -1,4 +1,6 @@
-<x-app-layout>
+@extends('admin.layouts.admin')
+
+@section('content')
     <x-slot name="header">
         <div class="flex items-center gap-3">
             <a href="{{ route('workspaces.index') }}" 
@@ -283,4 +285,4 @@
             overflow: hidden;
         }
     </style>
-</x-app-layout>
+@endsection
