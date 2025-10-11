@@ -29,10 +29,10 @@ class Workspace extends Model
         return $this->belongsTo(User::class);
     }
 
+    // Ubah relasi tasks menjadi hasMany (bukan belongsToMany)
     public function tasks()
     {
-        return $this->belongsToMany(Task::class, 'workspace_task')
-                    ->withTimestamps();
+        return $this->hasMany(Task::class);
     }
 
     public function projects()
@@ -77,5 +77,4 @@ class Workspace extends Model
     {
         return $this->belongsToMany(User::class, 'user_workspace')->withTimestamps();
     }
-
 }
