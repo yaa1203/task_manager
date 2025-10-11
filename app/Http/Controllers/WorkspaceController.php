@@ -241,10 +241,8 @@ class WorkspaceController extends Controller
         foreach ($userIds as $userId) {
             $assignedUser = User::find($userId);
             if ($assignedUser) {
-                $assignedUser->notify(new TaskAssignedNotification(
-                    $task,
-                    auth()->user()->name
-                ));
+                // Pastikan TaskAssignedNotification sudah disesuaikan dengan parameter yang benar
+                $assignedUser->notify(new TaskAssignedNotification($task));
             }
         }
 

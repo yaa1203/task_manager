@@ -29,7 +29,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
     Route::get('/analytics/data', [AnalyticsController::class, 'data'])->name('analytics.data');
     Route::get('/notifikasi', [NotificationController::class, 'index'])->name('notifikasi.index');
-    Route::get('/notifikasi/{notification}', [NotificationController::class, 'show'])->name('notifikasi.show');
     Route::post('/notifikasi/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifikasi.read');
     Route::post('/notifikasi/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])->name('notifikasi.markAllAsRead');
     Route::get('/my-workspaces', [WorkspaceController::class, 'userIndex'])->name('my-workspaces.index');
