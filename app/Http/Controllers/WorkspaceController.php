@@ -91,8 +91,10 @@ class WorkspaceController extends Controller
     {
         $this->authorize('view', $workspace);
 
-        $workspace->load(['tasks.assignedUsers']);
+        // Load tasks with their assigned users and submissions
+        $workspace->load(['tasks.assignedUsers', 'tasks.submissions']);
 
+        // Get all users for task assignment
         $users = User::where('role', 'user')->get();
 
         return view('admin.workspace.show', compact('workspace', 'users'));

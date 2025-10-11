@@ -82,12 +82,6 @@ class Task extends Model
         });
     }
 
-    // Helpers
-    public function isCompleted()
-    {
-        return $this->status === 'done';
-    }
-
     public function markAsCompleted()
     {
         $this->update([
@@ -106,5 +100,30 @@ class Task extends Model
     public function isAssignedTo($userId)
     {
         return $this->assignedUsers()->where('user_id', $userId)->exists();
+    }
+
+    /**
+     * Calculate progress percentage of the task
+     */
+    public function getProgressPercentage(): int
+    {
+        $totalUsers = $this->assignedUsers()->count();
+        
+        if ($totalUsers === 0) {
+            return 0;
+        }
+
+        $completedSubmissions = $this->submissions()->count();
+        $percentage = ($completedSubmissions / $totalUsers) * 100;
+        
+        return (int) round($percentage);
+    }
+
+    /**
+     * Check if task is completed
+     */
+    public function isCompleted(): bool
+    {
+        return $this->getProgressPercentage() === 100;
     }
 }
