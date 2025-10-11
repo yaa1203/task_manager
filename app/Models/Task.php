@@ -11,10 +11,9 @@ class Task extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
         'workspace_id',
         'project_id',
-        // 'created_by', // Uncomment setelah menambahkan kolom di migration
+        'created_by',
         'title',
         'description',
         'status',
@@ -29,9 +28,10 @@ class Task extends Model
     ];
 
     // Relationships
-    public function user()
+    public function assignedUsers()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsToMany(User::class, 'task_user')
+            ->withTimestamps();
     }
 
     public function workspace()
@@ -75,6 +75,15 @@ class Task extends Model
         return $query->where('priority', $priority);
     }
 
+    // app/Models/Task.php
+
+    public function scopeAssignedTo($query, $userId)
+    {
+        return $query->whereHas('assignedUsers', function ($q) use ($userId) {
+            $q->where('user_id', $userId);
+        });
+    }
+
     // Helpers
     public function isCompleted()
     {
@@ -91,9 +100,13 @@ class Task extends Model
 
     public function isOverdue()
     {
-        // If due_date exists and is in the past, and status is not 'done'
         return $this->due_date && 
                Carbon::parse($this->due_date)->isPast() && 
                $this->status !== 'done';
+    }
+
+    public function isAssignedTo($userId)
+    {
+        return $this->assignedUsers()->where('user_id', $userId)->exists();
     }
 }

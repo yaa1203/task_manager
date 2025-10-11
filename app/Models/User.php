@@ -85,4 +85,15 @@ class User extends Authenticatable
     {
         return $this->hasMany(Workspace::class);
     }
+
+    public function assignedTasks()
+    {
+        return $this->belongsToMany(Task::class, 'task_user')
+            ->withTimestamps();
+    }
+
+    public function createdTasks()
+    {
+        return $this->hasMany(Task::class, 'created_by');
+    }
 }

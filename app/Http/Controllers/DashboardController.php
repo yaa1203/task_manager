@@ -14,11 +14,11 @@ class DashboardController extends Controller
     {
         $userId = Auth::id();
 
-        // Statistik task
-        $tasksCount = Task::where('user_id', $userId)->count();
-        $tasksTodo = Task::where('user_id', $userId)->where('status', 'todo')->count();
-        $tasksInProgress = Task::where('user_id', $userId)->where('status', 'in_progress')->count();
-        $tasksDone = Task::where('user_id', $userId)->where('status', 'done')->count();
+        // Statistik task - menggunakan scope assignedTo (lebih bersih)
+        $tasksCount = Task::assignedTo($userId)->count();
+        $tasksTodo = Task::assignedTo($userId)->where('status', 'todo')->count();
+        $tasksInProgress = Task::assignedTo($userId)->where('status', 'in_progress')->count();
+        $tasksDone = Task::assignedTo($userId)->where('status', 'done')->count();
 
         // Statistik project
         $projectsCount = Project::where('user_id', $userId)->count();
@@ -39,7 +39,7 @@ class DashboardController extends Controller
     public function AdminIndex()
     {
         return view('admin.dashboard', [
-            'totalUsers' => User::where('role', 'user')->count(), // hanya user
+            'totalUsers' => User::where('role', 'user')->count(),
             'totalProjects' => Project::count(),
             'totalTasks' => Task::count(),
             'admins' => User::where('role', 'admin')->get(),

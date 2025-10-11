@@ -111,7 +111,7 @@
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">#</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Title</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Assigned To</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Assigned Users</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Priority</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Due Date</th>
@@ -130,17 +130,26 @@
                                 <div class="text-xs text-gray-500 line-clamp-1">{{ $task->description }}</div>
                                 @endif
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center gap-2">
-                                    <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center">
+                            <td class="px-6 py-4">
+                                <div class="flex -space-x-2">
+                                    @foreach($task->assignedUsers->take(3) as $user)
+                                    <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center border-2 border-white" 
+                                         title="{{ $user->name }}">
                                         <span class="text-xs font-semibold text-indigo-600">
-                                            {{ strtoupper(substr($task->user->name ?? 'N', 0, 1)) }}
+                                            {{ strtoupper(substr($user->name, 0, 1)) }}
                                         </span>
                                     </div>
-                                    <div>
-                                        <div class="text-sm text-gray-900">{{ $task->user->name ?? 'Unassigned' }}</div>
-                                        <div class="text-xs text-gray-500">{{ $task->user->email ?? '' }}</div>
+                                    @endforeach
+                                    @if($task->assignedUsers->count() > 3)
+                                    <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center border-2 border-white">
+                                        <span class="text-xs font-semibold text-gray-600">
+                                            +{{ $task->assignedUsers->count() - 3 }}
+                                        </span>
                                     </div>
+                                    @endif
+                                </div>
+                                <div class="text-xs text-gray-500 mt-1">
+                                    {{ $task->assignedUsers->count() }} user(s)
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
@@ -187,7 +196,6 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm">
                                 <div class="flex items-center gap-2">
-                                    <!-- View Button -->
                                     <a href="{{ route('workspace.tasks.show', [$workspace, $task]) }}" 
                                        class="inline-flex items-center gap-1 px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -196,7 +204,6 @@
                                         </svg>
                                         View
                                     </a>
-                                    <!-- Edit Button -->
                                     <a href="{{ route('workspace.tasks.edit', [$workspace, $task]) }}" 
                                        class="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -204,7 +211,6 @@
                                         </svg>
                                         Edit
                                     </a>
-                                    <!-- Delete Button -->
                                     <form action="{{ route('workspace.tasks.destroy', [$workspace, $task]) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this task?');">
                                         @csrf
                                         @method('DELETE')
@@ -254,11 +260,25 @@
                     </div>
 
                     <div class="mb-3">
-                        <div class="flex items-center gap-2 text-sm text-gray-600">
-                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                            </svg>
-                            <span>{{ $task->user->name ?? 'Unassigned' }}</span>
+                        <div class="flex items-center gap-2">
+                            <div class="flex -space-x-2">
+                                @foreach($task->assignedUsers->take(3) as $user)
+                                <div class="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center border-2 border-white"
+                                     title="{{ $user->name }}">
+                                    <span class="text-xs font-semibold text-indigo-600">
+                                        {{ strtoupper(substr($user->name, 0, 1)) }}
+                                    </span>
+                                </div>
+                                @endforeach
+                                @if($task->assignedUsers->count() > 3)
+                                <div class="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center border-2 border-white">
+                                    <span class="text-xs font-semibold text-gray-600">
+                                        +{{ $task->assignedUsers->count() - 3 }}
+                                    </span>
+                                </div>
+                                @endif
+                            </div>
+                            <span class="text-sm text-gray-600">{{ $task->assignedUsers->count() }} user(s)</span>
                         </div>
                     </div>
 
@@ -289,7 +309,6 @@
                     @endif
 
                     <div class="flex gap-2 pt-3 border-t border-gray-100">
-                        <!-- View Button -->
                         <a href="{{ route('workspace.tasks.show', [$workspace, $task]) }}" 
                            class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -298,7 +317,6 @@
                             </svg>
                             <span class="font-medium">View</span>
                         </a>
-                        <!-- Edit Button -->
                         <a href="{{ route('workspace.tasks.edit', [$workspace, $task]) }}" 
                            class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -306,7 +324,6 @@
                             </svg>
                             <span class="font-medium">Edit</span>
                         </a>
-                        <!-- Delete Button -->
                         <form action="{{ route('workspace.tasks.destroy', [$workspace, $task]) }}" method="POST" onsubmit="return confirm('Are you sure?');" class="flex-1">
                             @csrf
                             @method('DELETE')
@@ -360,21 +377,17 @@
 
 <script>
 function switchTab(tab) {
-    // Hide all content
     document.querySelectorAll('.tab-content').forEach(content => {
         content.classList.add('hidden');
     });
     
-    // Reset all tab buttons
     document.querySelectorAll('.tab-button').forEach(button => {
         button.classList.remove('border-indigo-600', 'text-indigo-600');
         button.classList.add('border-transparent', 'text-gray-500');
     });
     
-    // Show selected content
     document.getElementById('content-' + tab).classList.remove('hidden');
     
-    // Highlight selected tab
     const selectedTab = document.getElementById('tab-' + tab);
     selectedTab.classList.remove('border-transparent', 'text-gray-500');
     selectedTab.classList.add('border-indigo-600', 'text-indigo-600');
