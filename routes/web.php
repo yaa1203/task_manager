@@ -54,10 +54,6 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
     Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
 
-    Route::get('/project', [ProjectController::class, 'adminIndex'])->name('project.index');
-    Route::get('/project/{project}', [ProjectController::class, 'adminShow'])->name('project.show');
-    Route::delete('/project/{project}', [ProjectController::class, 'adminDestroy'])->name('project.destroy');
-
     Route::get('/analytict', [AnalyticsController::class, 'adminIndex'])->name('analytict.index');
     Route::get('/analytict/data', [AnalyticsController::class, 'adminData'])->name('analytict.data');
 

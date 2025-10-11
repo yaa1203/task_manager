@@ -6,7 +6,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <h1 class="font-bold text-2xl sm:text-3xl text-gray-900">My Workspaces</h1>
-                <p class="text-sm text-gray-600 mt-1">Organize your projects and tasks into workspaces</p>
+                <p class="text-sm text-gray-600 mt-1">Organize your tasks into workspaces</p>
             </div>
             <a href="{{ route('workspaces.create') }}" 
                class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all duration-200 shadow-md hover:shadow-lg font-medium">
@@ -61,9 +61,9 @@
                                 <h4 class="font-semibold text-gray-900 truncate group-hover:text-indigo-600 transition text-base">
                                     {{ $workspace->name }}
                                 </h4>
-                                <p class="text-xs text-gray-500 mt-0.5 capitalize flex items-center gap-1">
+                                <p class="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
                                     <span class="w-1.5 h-1.5 rounded-full" style="background-color: {{ $workspace->color }};"></span>
-                                    {{ $workspace->type }}
+                                    Task Workspace
                                 </p>
                             </div>
                         </div>
@@ -77,7 +77,6 @@
 
                     <!-- Stats -->
                     <div class="flex items-center gap-4 text-xs">
-                        @if($workspace->type === 'task' || $workspace->type === 'mixed')
                         <div class="flex items-center gap-1.5 text-gray-700 bg-white/60 px-2.5 py-1.5 rounded-lg">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
@@ -85,17 +84,6 @@
                             <span class="font-semibold">{{ $workspace->tasks_count }}</span>
                             <span>Task{{ $workspace->tasks_count !== 1 ? 's' : '' }}</span>
                         </div>
-                        @endif
-
-                        @if($workspace->type === 'project' || $workspace->type === 'mixed')
-                        <div class="flex items-center gap-1.5 text-gray-700 bg-white/60 px-2.5 py-1.5 rounded-lg">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
-                            </svg>
-                            <span class="font-semibold">{{ $workspace->projects_count }}</span>
-                            <span>Project{{ $workspace->projects_count !== 1 ? 's' : '' }}</span>
-                        </div>
-                        @endif
                     </div>
                 </div>
 
@@ -126,7 +114,7 @@
             </div>
             <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-2">No workspaces yet</h3>
             <p class="text-base text-gray-600 mb-8 leading-relaxed">
-                Get started by creating your first workspace to organize<br class="hidden sm:inline"> your projects and tasks efficiently
+                Get started by creating your first workspace to organize<br class="hidden sm:inline"> your tasks efficiently
             </p>
             <a href="{{ route('workspaces.create') }}" 
                class="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all duration-200 shadow-md hover:shadow-lg font-medium">

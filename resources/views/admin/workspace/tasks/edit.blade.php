@@ -59,30 +59,36 @@
 
             <!-- Assign To -->
             <div class="mb-5">
-                <label for="user_id" class="block text-sm font-medium text-gray-700 mb-2">
-                    Assigned To <span class="text-red-500">*</span>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Assign To <span class="text-red-500">*</span>
                 </label>
-                <select name="user_id" 
-                        id="user_id" 
-                        required
-                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 @error('user_id') border-red-500 @enderror">
-                    <option value="">Select a user</option>
+                
+                <!-- User Selection -->
+                <div class="border border-gray-300 rounded-lg p-4 max-h-60 overflow-y-auto">
                     @foreach($users as $user)
-                    <option value="{{ $user->id }}" 
-                            {{ old('user_id', $task->user_id) == $user->id ? 'selected' : '' }}>
-                        {{ $user->name }} ({{ $user->email }})
-                    </option>
+                    <label class="flex items-center gap-2 py-2 hover:bg-gray-50 px-2 rounded cursor-pointer">
+                        <input type="checkbox" 
+                               name="user_ids[]" 
+                               value="{{ $user->id }}"
+                               {{ $task->assignedUsers->contains($user->id) ? 'checked' : '' }}
+                               class="user-checkbox w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                        <div class="flex items-center gap-2 flex-1">
+                            <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center">
+                                <span class="text-xs font-semibold text-indigo-600">
+                                    {{ strtoupper(substr($user->name, 0, 1)) }}
+                                </span>
+                            </div>
+                            <div>
+                                <div class="text-sm font-medium text-gray-900">{{ $user->name }}</div>
+                                <div class="text-xs text-gray-500">{{ $user->email }}</div>
+                            </div>
+                        </div>
+                    </label>
                     @endforeach
-                </select>
-                @error('user_id')
+                </div>
+                @error('user_ids')
                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
-                <p class="mt-1 text-xs text-gray-500">
-                    <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    Note: Only one user can be assigned when editing a task
-                </p>
             </div>
 
             <!-- Status & Priority -->
@@ -140,27 +146,6 @@
                 @enderror
             </div>
 
-            <!-- Task Info -->
-            <div class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <h3 class="text-sm font-semibold text-gray-700 mb-3">Task Information</h3>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                    <div>
-                        <span class="text-gray-500">Created:</span>
-                        <span class="text-gray-900 font-medium ml-2">{{ $task->created_at->format('M d, Y H:i') }}</span>
-                    </div>
-                    <div>
-                        <span class="text-gray-500">Last Updated:</span>
-                        <span class="text-gray-900 font-medium ml-2">{{ $task->updated_at->format('M d, Y H:i') }}</span>
-                    </div>
-                    @if($task->completed_at)
-                    <div class="sm:col-span-2">
-                        <span class="text-gray-500">Completed:</span>
-                        <span class="text-green-600 font-medium ml-2">{{ $task->completed_at->format('M d, Y H:i') }}</span>
-                    </div>
-                    @endif
-                </div>
-            </div>
-
             <!-- Action Buttons -->
             <div class="flex gap-3 pt-4 border-t border-gray-200">
                 <a href="{{ route('workspaces.show', $workspace) }}" 
@@ -173,25 +158,6 @@
                 </button>
             </div>
         </form>
-
-        <!-- Delete Section -->
-        <div class="mt-6 pt-6 border-t border-gray-200">
-            <h3 class="text-sm font-semibold text-gray-700 mb-2">Danger Zone</h3>
-            <p class="text-sm text-gray-600 mb-3">Once you delete this task, there is no going back. Please be certain.</p>
-            <form action="{{ route('workspace.tasks.destroy', [$workspace, $task]) }}" 
-                  method="POST" 
-                  onsubmit="return confirm('Are you sure you want to delete this task? This action cannot be undone.');">
-                @csrf
-                @method('DELETE')
-                <button type="submit" 
-                        class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                    </svg>
-                    Delete Task
-                </button>
-            </form>
-        </div>
     </div>
 </div>
 @endsection

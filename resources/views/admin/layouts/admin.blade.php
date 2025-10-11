@@ -36,7 +36,6 @@
             $menuItems = [
                 ['route' => 'admin.dashboard', 'url' => null, 'label' => 'Dashboard Admin', 'icon' => '📊'],
                 ['route' => 'users.*', 'url' => 'users', 'label' => 'User Management', 'icon' => '👥'],
-                ['route' => 'project.*', 'url' => 'project', 'label' => 'Projects', 'icon' => '📁'],
                 ['route' => 'workspaces.*', 'url' => 'workspaces', 'label' => 'Workspace', 'icon' => '✅'],
                 ['route' => 'analytict.*', 'url' => 'analytict', 'label' => 'Analytics', 'icon' => '📈'],
                 ['route' => 'notifications.*', 'url' => 'notifications', 'label' => 'Notifications', 'icon' => '🔔', 'isNotification' => true]

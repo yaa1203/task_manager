@@ -21,7 +21,7 @@
                         </div>
                         <div>
                             <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">{{ $workspace->name }}</h1>
-                            <p class="text-sm text-gray-500 capitalize">{{ $workspace->type }} workspace</p>
+                            <p class="text-sm text-gray-500">Task workspace</p>
                         </div>
                     </div>
                 </div>
@@ -63,36 +63,15 @@
     </div>
     @endif
 
-    <!-- Tabs -->
-    <div class="mb-6">
-        <div class="border-b border-gray-200">
-            <nav class="-mb-px flex gap-4">
-                <button onclick="switchTab('tasks')" id="tab-tasks"
-                        class="tab-button border-b-2 border-indigo-600 text-indigo-600 py-3 px-1 font-medium">
-                    <div class="flex items-center gap-2">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                        </svg>
-                        <span>Tasks ({{ $workspace->tasks->count() }})</span>
-                    </div>
-                </button>
-                <button onclick="switchTab('projects')" id="tab-projects"
-                        class="tab-button border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 py-3 px-1 font-medium">
-                    <div class="flex items-center gap-2">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
-                        </svg>
-                        <span>Projects ({{ $workspace->projects->count() }})</span>
-                    </div>
-                </button>
-            </nav>
-        </div>
-    </div>
-
-    <!-- Tasks Tab Content -->
-    <div id="content-tasks" class="tab-content">
+    <!-- Tasks Section -->
+    <div>
         <div class="flex justify-between items-center mb-6">
-            <h2 class="text-xl font-bold text-gray-800">Tasks</h2>
+            <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+                Tasks ({{ $workspace->tasks->count() }})
+            </h2>
             <a href="{{ route('workspace.tasks.create', $workspace) }}" 
                class="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -103,218 +82,123 @@
         </div>
 
         @if($workspace->tasks->count() > 0)
-        <!-- Desktop Table View -->
-        <div class="hidden lg:block bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">#</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Title</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Assigned To</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Priority</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Due Date</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        @foreach($workspace->tasks as $task)
-                        <tr class="hover:bg-gray-50 transition">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                                {{ $loop->iteration }}
-                            </td>
-                            <td class="px-6 py-4">
-                                <div class="text-sm font-medium text-gray-900">{{ $task->title }}</div>
-                                @if($task->description)
-                                <div class="text-xs text-gray-500 line-clamp-1">{{ $task->description }}</div>
-                                @endif
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center gap-2">
-                                    <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center">
-                                        <span class="text-xs font-semibold text-indigo-600">
-                                            {{ strtoupper(substr($task->user->name ?? 'N', 0, 1)) }}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <div class="text-sm text-gray-900">{{ $task->user->name ?? 'Unassigned' }}</div>
-                                        <div class="text-xs text-gray-500">{{ $task->user->email ?? '' }}</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                @php
-                                    $statusConfig = [
-                                        'done' => ['bg' => 'bg-green-100', 'text' => 'text-green-800', 'icon' => 'M5 13l4 4L19 7'],
-                                        'in_progress' => ['bg' => 'bg-yellow-100', 'text' => 'text-yellow-800', 'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'],
-                                        'todo' => ['bg' => 'bg-gray-100', 'text' => 'text-gray-800', 'icon' => 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z']
-                                    ];
-                                    $config = $statusConfig[$task->status] ?? $statusConfig['todo'];
-                                @endphp
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium {{ $config['bg'] }} {{ $config['text'] }}">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $config['icon'] }}"/>
-                                    </svg>
-                                    {{ ucfirst(str_replace('_', ' ', $task->status)) }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                @php
-                                    $priorityConfig = [
-                                        'urgent' => ['bg' => 'bg-red-100', 'text' => 'text-red-800'],
-                                        'high' => ['bg' => 'bg-orange-100', 'text' => 'text-orange-800'],
-                                        'medium' => ['bg' => 'bg-yellow-100', 'text' => 'text-yellow-800'],
-                                        'low' => ['bg' => 'bg-blue-100', 'text' => 'text-blue-800']
-                                    ];
-                                    $pConfig = $priorityConfig[$task->priority] ?? $priorityConfig['low'];
-                                @endphp
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium {{ $pConfig['bg'] }} {{ $pConfig['text'] }}">
-                                    {{ ucfirst($task->priority) }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                @if($task->due_date)
-                                    <div class="flex items-center gap-1.5">
-                                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                        </svg>
-                                        {{ date('M d, Y', strtotime($task->due_date)) }}
-                                    </div>
-                                @else
-                                    <span class="text-gray-400">-</span>
-                                @endif
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                <div class="flex items-center gap-2">
-                                    <!-- View Button -->
-                                    <a href="{{ route('workspace.tasks.show', [$workspace, $task]) }}" 
-                                       class="inline-flex items-center gap-1 px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                        </svg>
-                                        View
-                                    </a>
-                                    <!-- Edit Button -->
-                                    <a href="{{ route('workspace.tasks.edit', [$workspace, $task]) }}" 
-                                       class="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                                        </svg>
-                                        Edit
-                                    </a>
-                                    <!-- Delete Button -->
-                                    <form action="{{ route('workspace.tasks.destroy', [$workspace, $task]) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this task?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="inline-flex items-center gap-1 px-3 py-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                            </svg>
-                                            Delete
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Mobile Card View -->
-        <div class="lg:hidden space-y-4">
+        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             @foreach($workspace->tasks as $task)
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                <div class="p-4">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+                <!-- Task Header -->
+                <div class="p-5 border-b border-gray-100">
                     <div class="flex items-start justify-between mb-3">
                         <div class="flex-1">
-                            <div class="flex items-center gap-2 mb-2">
-                                <span class="text-xs font-semibold text-gray-500">#{{ $loop->iteration }}</span>
-                                @php
-                                    $priorityConfig = [
-                                        'urgent' => ['bg' => 'bg-red-100', 'text' => 'text-red-800'],
-                                        'high' => ['bg' => 'bg-orange-100', 'text' => 'text-orange-800'],
-                                        'medium' => ['bg' => 'bg-yellow-100', 'text' => 'text-yellow-800'],
-                                        'low' => ['bg' => 'bg-blue-100', 'text' => 'text-blue-800']
-                                    ];
-                                    $pConfig = $priorityConfig[$task->priority] ?? $priorityConfig['low'];
-                                @endphp
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ $pConfig['bg'] }} {{ $pConfig['text'] }}">
-                                    {{ ucfirst($task->priority) }}
-                                </span>
-                            </div>
-                            <h3 class="text-base font-semibold text-gray-900 mb-1">{{ $task->title }}</h3>
+                            <h3 class="font-semibold text-gray-900 mb-1">{{ $task->title }}</h3>
                             @if($task->description)
-                            <p class="text-sm text-gray-600 line-clamp-2 mb-2">{{ $task->description }}</p>
+                            <p class="text-sm text-gray-600 line-clamp-2">{{ $task->description }}</p>
                             @endif
                         </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <div class="flex items-center gap-2 text-sm text-gray-600">
-                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                            </svg>
-                            <span>{{ $task->user->name ?? 'Unassigned' }}</span>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        @php
-                            $statusConfig = [
-                                'done' => ['bg' => 'bg-green-100', 'text' => 'text-green-800', 'icon' => 'M5 13l4 4L19 7'],
-                                'in_progress' => ['bg' => 'bg-yellow-100', 'text' => 'text-yellow-800', 'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'],
-                                'todo' => ['bg' => 'bg-gray-100', 'text' => 'text-gray-800', 'icon' => 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z']
-                            ];
-                            $config = $statusConfig[$task->status] ?? $statusConfig['todo'];
-                        @endphp
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium {{ $config['bg'] }} {{ $config['text'] }}">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $config['icon'] }}"/>
-                            </svg>
-                            {{ ucfirst(str_replace('_', ' ', $task->status)) }}
+                        <span class="text-xs font-medium px-2 py-1 rounded-full
+                            @php
+                                $priorityConfig = [
+                                    'urgent' => 'bg-red-100 text-red-800',
+                                    'high' => 'bg-orange-100 text-orange-800',
+                                    'medium' => 'bg-yellow-100 text-yellow-800',
+                                    'low' => 'bg-blue-100 text-blue-800'
+                                ];
+                                $pConfig = $priorityConfig[$task->priority] ?? $priorityConfig['low'];
+                            @endphp
+                            {{ $pConfig }}">
+                            {{ ucfirst($task->priority) }}
                         </span>
                     </div>
 
-                    @if($task->due_date)
-                    <div class="flex items-center gap-2 text-sm text-gray-600 mb-4">
-                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                        </svg>
-                        <span>{{ date('M d, Y', strtotime($task->due_date)) }}</span>
+                    <!-- Progress Section -->
+                    <div class="mb-3">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-xs font-medium text-gray-700">Progress</span>
+                            <span class="text-xs font-semibold text-gray-900">
+                                {{ $task->getProgressPercentage() }}%
+                            </span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-indigo-600 h-2 rounded-full transition-all duration-500" 
+                                 style="width: {{ $task->getProgressPercentage() }}%"></div>
+                        </div>
+                        <div class="flex justify-between items-center mt-1">
+                            <span class="text-xs text-gray-500">
+                                {{ $task->submissions->count() }}/{{ $task->assignedUsers->count() }} completed
+                            </span>
+                            @if($task->due_date)
+                            <span class="text-xs text-gray-500">
+                                Due: {{ date('M d, Y', strtotime($task->due_date)) }}
+                            </span>
+                            @endif
+                        </div>
                     </div>
-                    @endif
+                </div>
 
-                    <div class="flex gap-2 pt-3 border-t border-gray-100">
-                        <!-- View Button -->
+                <!-- Task Details -->
+                <div class="p-5">
+                    <!-- Assigned Users -->
+                    <div class="mb-4">
+                        <h4 class="text-sm font-medium text-gray-700 mb-2">Assigned Users</h4>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach($task->assignedUsers as $user)
+                            <div class="flex items-center gap-1.5 bg-gray-100 rounded-full px-2 py-1">
+                                <div class="w-5 h-5 rounded-full bg-indigo-100 flex items-center justify-center">
+                                    <span class="text-xs font-semibold text-indigo-600">
+                                        {{ strtoupper(substr($user->name, 0, 1)) }}
+                                    </span>
+                                </div>
+                                <span class="text-xs text-gray-700">{{ $user->name }}</span>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <!-- Status -->
+                    <div class="mb-4">
+                        <h4 class="text-sm font-medium text-gray-700 mb-2">Status</h4>
+                        <div class="flex items-center gap-2">
+                            @php
+                                $statusConfig = [
+                                    'done' => ['bg' => 'bg-green-100', 'text' => 'text-green-800', 'icon' => 'M5 13l4 4L19 7'],
+                                    'in_progress' => ['bg' => 'bg-yellow-100', 'text' => 'text-yellow-800', 'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'],
+                                    'todo' => ['bg' => 'bg-gray-100', 'text' => 'text-gray-800', 'icon' => 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z']
+                                ];
+                                $config = $statusConfig[$task->status] ?? $statusConfig['todo'];
+                            @endphp
+                            <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium {{ $config['bg'] }} {{ $config['text'] }}">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $config['icon'] }}"/>
+                                </svg>
+                                {{ ucfirst(str_replace('_', ' ', $task->status)) }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex gap-2 pt-2">
                         <a href="{{ route('workspace.tasks.show', [$workspace, $task]) }}" 
-                           class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition">
+                           class="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                             </svg>
-                            <span class="font-medium">View</span>
+                            <span class="text-sm font-medium">View</span>
                         </a>
-                        <!-- Edit Button -->
                         <a href="{{ route('workspace.tasks.edit', [$workspace, $task]) }}" 
-                           class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
+                           class="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                             </svg>
-                            <span class="font-medium">Edit</span>
+                            <span class="text-sm font-medium">Edit</span>
                         </a>
-                        <!-- Delete Button -->
-                        <form action="{{ route('workspace.tasks.destroy', [$workspace, $task]) }}" method="POST" onsubmit="return confirm('Are you sure?');" class="flex-1">
+                        <form action="{{ route('workspace.tasks.destroy', [$workspace, $task]) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this task?');" class="flex-1">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">
+                            <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                 </svg>
-                                <span class="font-medium">Delete</span>
+                                <span class="text-sm font-medium">Delete</span>
                             </button>
                         </form>
                     </div>
@@ -340,46 +224,6 @@
         @endif
     </div>
 </div>
-
-<!-- Add Project Modal -->
-@if($availableProjects->count() > 0)
-<div id="addProjectModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-lg max-w-md w-full p-6">
-        <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold text-gray-900">Add Project to Workspace</h3>
-            <button onclick="document.getElementById('addProjectModal').classList.add('hidden')" 
-                    class="text-gray-400 hover:text-gray-600">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            </button>
-        </div>
-    </div>
-</div>
-@endif
-
-<script>
-function switchTab(tab) {
-    // Hide all content
-    document.querySelectorAll('.tab-content').forEach(content => {
-        content.classList.add('hidden');
-    });
-    
-    // Reset all tab buttons
-    document.querySelectorAll('.tab-button').forEach(button => {
-        button.classList.remove('border-indigo-600', 'text-indigo-600');
-        button.classList.add('border-transparent', 'text-gray-500');
-    });
-    
-    // Show selected content
-    document.getElementById('content-' + tab).classList.remove('hidden');
-    
-    // Highlight selected tab
-    const selectedTab = document.getElementById('tab-' + tab);
-    selectedTab.classList.remove('border-transparent', 'text-gray-500');
-    selectedTab.classList.add('border-indigo-600', 'text-indigo-600');
-}
-</script>
 
 <style>
 @keyframes fade-in {

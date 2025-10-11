@@ -11,10 +11,9 @@ class Task extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
         'workspace_id',
         'project_id',
-        // 'created_by', // Uncomment setelah menambahkan kolom di migration
+        'created_by',
         'title',
         'description',
         'status',
@@ -29,9 +28,10 @@ class Task extends Model
     ];
 
     // Relationships
-    public function user()
+    public function assignedUsers()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsToMany(User::class, 'task_user')
+            ->withTimestamps();
     }
 
     public function workspace()
@@ -75,10 +75,11 @@ class Task extends Model
         return $query->where('priority', $priority);
     }
 
-    // Helpers
-    public function isCompleted()
+    public function scopeAssignedTo($query, $userId)
     {
-        return $this->status === 'done';
+        return $query->whereHas('assignedUsers', function ($q) use ($userId) {
+            $q->where('user_id', $userId);
+        });
     }
 
     public function markAsCompleted()
@@ -91,9 +92,38 @@ class Task extends Model
 
     public function isOverdue()
     {
-        // If due_date exists and is in the past, and status is not 'done'
         return $this->due_date && 
                Carbon::parse($this->due_date)->isPast() && 
                $this->status !== 'done';
+    }
+
+    public function isAssignedTo($userId)
+    {
+        return $this->assignedUsers()->where('user_id', $userId)->exists();
+    }
+
+    /**
+     * Calculate progress percentage of the task
+     */
+    public function getProgressPercentage(): int
+    {
+        $totalUsers = $this->assignedUsers()->count();
+        
+        if ($totalUsers === 0) {
+            return 0;
+        }
+
+        $completedSubmissions = $this->submissions()->count();
+        $percentage = ($completedSubmissions / $totalUsers) * 100;
+        
+        return (int) round($percentage);
+    }
+
+    /**
+     * Check if task is completed
+     */
+    public function isCompleted(): bool
+    {
+        return $this->getProgressPercentage() === 100;
     }
 }

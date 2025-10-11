@@ -44,30 +44,6 @@
             </div>
         </div>
 
-        {{-- Active Projects Card --}}
-        <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white transform hover:scale-105 transition-transform duration-300">
-            <div class="flex items-center justify-between mb-4">
-                <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center backdrop-blur-sm">
-                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
-                    </svg>
-                </div>
-                <div class="text-right">
-                    <p class="text-green-100 text-sm font-medium">Active</p>
-                </div>
-            </div>
-            <div>
-                <h2 class="text-lg font-semibold text-green-100 mb-1">Active Projects</h2>
-                <p class="text-4xl font-bold">{{ $totalProjects }}</p>
-                <div class="mt-3 flex items-center gap-1 text-sm">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    <span class="text-green-100">All running smoothly</span>
-                </div>
-            </div>
-        </div>
-
         {{-- Total Tasks Card --}}
         <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg p-6 text-white transform hover:scale-105 transition-transform duration-300">
             <div class="flex items-center justify-between mb-4">
