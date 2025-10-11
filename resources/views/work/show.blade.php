@@ -1,35 +1,110 @@
 <x-app-layout>
 <div class="max-w-7xl mx-auto px-4 py-8">
-    <!-- Header Workspace -->
+    <!-- Back Button -->
     <div class="mb-6">
-        <a href="{{ route('my-workspaces.index') }}" class="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4">
+        <a href="{{ route('my-workspaces.index') }}" class="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors">
             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
             </svg>
             Kembali ke Workspace
         </a>
-        
-        <div class="bg-white border border-gray-200 rounded-xl p-6">
-            <div class="flex items-start gap-4">
-                <div class="w-16 h-16 flex items-center justify-center text-3xl rounded-xl" 
-                     style="background-color: {{ $workspace->color }}20;">
-                    {{ $workspace->icon }}
-                </div>
-                <div class="flex-1">
-                    <div class="flex items-center gap-2 mb-2">
-                        <h1 class="text-2xl font-bold text-gray-900">{{ $workspace->name }}</h1>
-                        <span class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700">
-                            {{ ucfirst($workspace->type) }}
-                        </span>
-                    </div>
-                    <p class="text-gray-600 mb-4">{{ $workspace->description }}</p>
-                    <div class="flex items-center gap-6 text-sm text-gray-500">
-                        <span class="flex items-center gap-1">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                            </svg>
-                            {{ $tasks->count() }} Tasks
-                        </span>
+    </div>
+    
+    <!-- Header Workspace -->
+    <div class="mb-8">
+        <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+            <!-- Gradient Header -->
+            <div class="p-8 border-b border-gray-100" style="background: linear-gradient(135deg, {{ $workspace->color }}15 0%, {{ $workspace->color }}05 100%);">
+                <div class="flex items-start gap-6">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-3">
+                            <h1 class="text-3xl font-bold text-gray-900">{{ $workspace->name }}</h1>
+                            <span class="px-3 py-1 text-xs font-semibold rounded-full bg-white text-gray-700 shadow-sm border border-gray-200">
+                                {{ ucfirst($workspace->type) }}
+                            </span>
+                        </div>
+                        @if($workspace->description)
+                            <p class="text-gray-600 mb-4 text-base">{{ $workspace->description }}</p>
+                        @endif
+                        
+                        @php
+                            $myTasks = $tasks;
+                            $totalTasks = $myTasks->count();
+                            $doneTasks = $myTasks->filter(function($task) {
+                                return $task->submissions->isNotEmpty();
+                            })->count();
+                            
+                            $overdueTasks = $myTasks->filter(function($task) {
+                                $hasSubmission = $task->submissions->isNotEmpty();
+                                if (!$hasSubmission && $task->due_date) {
+                                    return \Carbon\Carbon::parse($task->due_date)->isPast();
+                                }
+                                return false;
+                            })->count();
+                            
+                            $unfinishedTasks = $totalTasks - $doneTasks - $overdueTasks;
+                            $progress = $totalTasks > 0 ? round(($doneTasks / $totalTasks) * 100) : 0;
+                        @endphp
+
+                        <!-- Statistics Cards -->
+                        <div class="grid grid-cols-4 gap-4">
+                            <!-- Total Tasks -->
+                            <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                    </svg>
+                                    <span class="text-2xl font-bold text-gray-900">{{ $totalTasks }}</span>
+                                </div>
+                                <p class="text-sm text-gray-600 font-medium">Total Tasks</p>
+                            </div>
+
+                            <!-- Done -->
+                            <div class="bg-green-50 rounded-lg p-4 shadow-sm border border-green-200">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                    </svg>
+                                    <span class="text-2xl font-bold text-green-700">{{ $doneTasks }}</span>
+                                </div>
+                                <p class="text-sm text-green-700 font-medium">Done</p>
+                            </div>
+
+                            <!-- Unfinished -->
+                            <div class="bg-gray-50 rounded-lg p-4 shadow-sm border border-gray-200">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    <span class="text-2xl font-bold text-gray-700">{{ $unfinishedTasks }}</span>
+                                </div>
+                                <p class="text-sm text-gray-600 font-medium">Unfinished</p>
+                            </div>
+
+                            <!-- Overdue -->
+                            <div class="bg-red-50 rounded-lg p-4 shadow-sm border border-red-200">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    <span class="text-2xl font-bold text-red-700">{{ $overdueTasks }}</span>
+                                </div>
+                                <p class="text-sm text-red-700 font-medium">Overdue</p>
+                            </div>
+                        </div>
+
+                        <!-- Progress Bar -->
+                        <div class="mt-6">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-sm font-semibold text-gray-700">Overall Progress</span>
+                                <span class="text-sm font-bold text-gray-900">{{ $progress }}%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-3 shadow-inner">
+                                <div class="h-3 rounded-full transition-all duration-500 shadow-sm" 
+                                     style="width: {{ $progress }}%; background: linear-gradient(90deg, {{ $workspace->color }}, {{ $workspace->color }}dd);">
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -38,23 +113,43 @@
 
     <!-- Tabs Filter -->
     <div class="mb-6">
-        <div class="border-b border-gray-200">
-            <nav class="-mb-px flex space-x-8">
+        <div class="bg-white border border-gray-200 rounded-xl p-2">
+            <nav class="flex space-x-2">
                 <button onclick="filterTasks('all')" id="tab-all" 
-                        class="tab-button border-b-2 border-blue-500 py-4 px-1 text-sm font-medium text-blue-600">
-                    All Tasks
+                        class="tab-button flex-1 px-4 py-3 text-sm font-semibold rounded-lg transition-all bg-blue-600 text-white shadow-sm">
+                    <span class="flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                        All Tasks
+                    </span>
                 </button>
                 <button onclick="filterTasks('unfinished')" id="tab-unfinished" 
-                        class="tab-button border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
-                    Unfinished
+                        class="tab-button flex-1 px-4 py-3 text-sm font-semibold rounded-lg transition-all text-gray-600 hover:bg-gray-50">
+                    <span class="flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        Unfinished
+                    </span>
                 </button>
                 <button onclick="filterTasks('overdue')" id="tab-overdue" 
-                        class="tab-button border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
-                    Overdue
+                        class="tab-button flex-1 px-4 py-3 text-sm font-semibold rounded-lg transition-all text-gray-600 hover:bg-gray-50">
+                    <span class="flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        Overdue
+                    </span>
                 </button>
                 <button onclick="filterTasks('done')" id="tab-done" 
-                        class="tab-button border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
-                    Done
+                        class="tab-button flex-1 px-4 py-3 text-sm font-semibold rounded-lg transition-all text-gray-600 hover:bg-gray-50">
+                    <span class="flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        Done
+                    </span>
                 </button>
             </nav>
         </div>
@@ -62,25 +157,25 @@
 
     <!-- Tasks Table -->
     <div>
-        <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
             @if($tasks->count() > 0)
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                                     Task
                                 </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                                     Status
                                 </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                                     Priority
                                 </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                                     Due Date
                                 </th>
-                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th class="px-6 py-4 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">
                                     Actions
                                 </th>
                             </tr>
@@ -88,21 +183,17 @@
                         <tbody class="bg-white divide-y divide-gray-200">
                             @foreach($tasks as $task)
                                 @php
-                                    // Check if user has submitted this task
                                     $hasSubmission = $task->submissions->isNotEmpty();
                                     $latestSubmission = $task->submissions->first();
                                     
-                                    // Check if task is overdue
                                     $isOverdue = false;
                                     if ($task->due_date && !$hasSubmission) {
                                         $isOverdue = \Carbon\Carbon::parse($task->due_date)->isPast();
                                     }
                                     
-                                    // Determine status
                                     $isDone = $hasSubmission;
                                     $isUnfinished = !$hasSubmission && !$isOverdue;
                                     
-                                    // Status for filtering
                                     if ($isDone) {
                                         $statusFilter = 'done';
                                     } elseif ($isOverdue) {
@@ -111,32 +202,36 @@
                                         $statusFilter = 'unfinished';
                                     }
                                 @endphp
-                                <tr class="hover:bg-gray-50 task-row" 
+                                <tr class="hover:bg-gray-50 task-row transition-colors" 
                                     data-status="{{ $statusFilter }}">
                                     <td class="px-6 py-4">
-                                        <div class="text-sm font-medium text-gray-900">{{ $task->title }}</div>
-                                        @if($task->description)
-                                            <div class="text-sm text-gray-500 line-clamp-1">{{ $task->description }}</div>
-                                        @endif
+                                        <div class="flex items-start gap-3">
+                                            <div class="flex-1">
+                                                <div class="text-sm font-semibold text-gray-900 mb-1">{{ $task->title }}</div>
+                                                @if($task->description)
+                                                    <div class="text-sm text-gray-500 line-clamp-2">{{ $task->description }}</div>
+                                                @endif
+                                            </div>
+                                        </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         @if($isDone)
-                                            <span class="inline-flex items-center gap-1 px-2 py-1 text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-full bg-green-100 text-green-800 border border-green-200">
+                                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                                                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                                                 </svg>
                                                 Done
                                             </span>
                                         @elseif($isOverdue)
-                                            <span class="inline-flex items-center gap-1 px-2 py-1 text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-full bg-red-100 text-red-800 border border-red-200">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                                 </svg>
                                                 Overdue
                                             </span>
                                         @else
-                                            <span class="inline-flex items-center gap-1 px-2 py-1 text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-full bg-gray-100 text-gray-800 border border-gray-200">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                                 </svg>
                                                 Unfinished
@@ -144,11 +239,11 @@
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
-                                            @if($task->priority === 'urgent') bg-red-100 text-red-800
-                                            @elseif($task->priority === 'high') bg-orange-100 text-orange-800
-                                            @elseif($task->priority === 'medium') bg-yellow-100 text-yellow-800
-                                            @else bg-gray-100 text-gray-800
+                                        <span class="px-3 py-1.5 inline-flex text-xs font-bold rounded-full border
+                                            @if($task->priority === 'urgent') bg-red-100 text-red-800 border-red-200
+                                            @elseif($task->priority === 'high') bg-orange-100 text-orange-800 border-orange-200
+                                            @elseif($task->priority === 'medium') bg-yellow-100 text-yellow-800 border-yellow-200
+                                            @else bg-gray-100 text-gray-800 border-gray-200
                                             @endif">
                                             {{ ucfirst($task->priority) }}
                                         </span>
@@ -156,11 +251,11 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                                         @if($task->due_date)
                                             <div class="flex flex-col">
-                                                <span class="{{ $isOverdue ? 'text-red-600 font-medium' : 'text-gray-500' }}">
+                                                <span class="{{ $isOverdue ? 'text-red-600 font-semibold' : 'text-gray-700 font-medium' }}">
                                                     {{ \Carbon\Carbon::parse($task->due_date)->format('d M Y') }}
                                                 </span>
                                                 @if($isOverdue)
-                                                    <span class="text-xs text-red-500">
+                                                    <span class="text-xs text-red-500 font-medium">
                                                         {{ \Carbon\Carbon::parse($task->due_date)->diffForHumans() }}
                                                     </span>
                                                 @endif
@@ -171,7 +266,7 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
                                         <a href="{{ route('my-workspaces.task.show', [$workspace, $task]) }}" 
-                                           class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 font-medium">
+                                           class="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors shadow-sm">
                                             View Detail
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
@@ -185,18 +280,20 @@
                 </div>
 
                 <!-- Empty State for Filtered Results -->
-                <div id="empty-state" class="hidden text-center py-12">
-                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div id="empty-state" class="hidden text-center py-16">
+                    <svg class="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                     </svg>
-                    <p class="mt-2 text-sm text-gray-500" id="empty-message">No tasks found</p>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2" id="empty-message">No tasks found</h3>
+                    <p class="text-sm text-gray-500">Try selecting a different filter</p>
                 </div>
             @else
-                <div class="text-center py-12">
-                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="text-center py-16">
+                    <svg class="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                     </svg>
-                    <p class="mt-2 text-sm text-gray-500">Belum ada task di workspace ini</p>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Belum Ada Task</h3>
+                    <p class="text-sm text-gray-500">Belum ada task di workspace ini</p>
                 </div>
             @endif
         </div>
@@ -204,9 +301,9 @@
 </div>
 
 <style>
-.line-clamp-1 {
+.line-clamp-2 {
     display: -webkit-box;
-    -webkit-line-clamp: 1;
+    -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
@@ -222,13 +319,13 @@ function filterTasks(filter) {
     
     // Update tab styles
     document.querySelectorAll('.tab-button').forEach(button => {
-        button.classList.remove('border-blue-500', 'text-blue-600');
-        button.classList.add('border-transparent', 'text-gray-500');
+        button.classList.remove('bg-blue-600', 'text-white', 'shadow-sm');
+        button.classList.add('text-gray-600', 'hover:bg-gray-50');
     });
     
     const activeTab = document.getElementById('tab-' + filter);
-    activeTab.classList.remove('border-transparent', 'text-gray-500');
-    activeTab.classList.add('border-blue-500', 'text-blue-600');
+    activeTab.classList.remove('text-gray-600', 'hover:bg-gray-50');
+    activeTab.classList.add('bg-blue-600', 'text-white', 'shadow-sm');
     
     // Filter rows
     rows.forEach(row => {
