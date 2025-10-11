@@ -374,11 +374,45 @@ class WorkspaceController extends Controller
     }
 
     /**
+     * User view task detail
+     */
+    public function userShowTask(Workspace $workspace, Task $task)
+    {
+        $isAccessible = $task->assignedUsers()
+            ->where('user_id', Auth::id())
+            ->exists();
+
+        abort_unless($isAccessible, 403);
+
+        if ($task->workspace_id !== $workspace->id) {
+            abort(404);
+        }
+
+        $submissions = $task->submissions()
+            ->where('user_id', Auth::id())
+            ->latest()
+            ->get();
+
+        $hasSubmitted = $submissions->isNotEmpty();
+
+        return view('work.tasks.show', compact('workspace', 'task', 'submissions', 'hasSubmitted'));
+    }
+
+    /**
      * User submit task
      */
-    public function submitTask(Request $request, Workspace $workspace, $taskId)
+    public function submitTask(Request $request, Workspace $workspace, Task $task)
     {
-        $task = $workspace->tasks()->findOrFail($taskId);
+        // Check if user has access to this task
+        $isAccessible = $task->assignedUsers()
+            ->where('user_id', Auth::id())
+            ->exists();
+
+        abort_unless($isAccessible, 403);
+
+        if ($task->workspace_id !== $workspace->id) {
+            abort(404);
+        }
 
         $request->validate([
             'file' => 'nullable|file|max:10240',
@@ -390,13 +424,20 @@ class WorkspaceController extends Controller
             ? $request->file('file')->store('submissions', 'public')
             : null;
 
-        UserTaskSubmission::create([
-            'task_id' => $task->id,
-            'user_id' => Auth::id(),
-            'file_path' => $filePath,
-            'link' => $request->link,
-            'notes' => $request->notes,
-        ]);
+        // Update or Create submission
+        UserTaskSubmission::updateOrCreate(
+            [
+                'task_id' => $task->id,
+                'user_id' => Auth::id(),
+            ],
+            [
+                'file_path' => $filePath,
+                'link' => $request->link,
+                'notes' => $request->notes,
+                'status' => 'pending',
+                'submitted_at' => now(),
+            ]
+        );
 
         return back()->with('success', 'Submission sent successfully!');
     }

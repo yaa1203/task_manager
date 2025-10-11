@@ -35,6 +35,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/my-workspaces', [WorkspaceController::class, 'userIndex'])->name('my-workspaces.index');
     Route::get('/my-workspaces/{workspace}', [WorkspaceController::class, 'userShow'])->name('my-workspaces.show');
     Route::post('/my-workspaces/{workspace}/task/{task}/submit', [WorkspaceController::class, 'submitTask'])->name('my-workspaces.task.submit');
+    Route::get('/my-workspaces/{workspace}/task/{task}', [WorkspaceController::class, 'userShowTask'])->name('my-workspaces.task.show');
 });
 
 Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])

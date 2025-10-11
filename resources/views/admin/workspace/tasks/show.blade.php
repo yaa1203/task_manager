@@ -33,13 +33,20 @@
                     
                     <div>
                         <p class="text-sm text-gray-500 mb-1">Status</p>
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium {{ 
-                            $task->status === 'done' ? 'bg-green-100 text-green-800' : 
-                            ($task->status === 'in_progress' ? 'bg-yellow-100 text-yellow-800' : 
-                            'bg-gray-100 text-gray-800')
-                        }}">
-                            {{ ucfirst(str_replace('_', ' ', $task->status)) }}
-                        </span>
+                        @php
+                            $totalUsers = $task->assignedUsers->count();
+                            $submittedCount = $task->submissions->count();
+                            $isAllDone = $totalUsers > 0 && $submittedCount === $totalUsers;
+                        @endphp
+                        @if($isAllDone)
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                Done
+                            </span>
+                        @else
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                Unfinished
+                            </span>
+                        @endif
                     </div>
                     
                     <div>
@@ -53,17 +60,6 @@
                             {{ ucfirst($task->priority) }}
                         </span>
                     </div>
-                    
-                    <div>
-                        <p class="text-sm text-gray-500 mb-1">Due Date</p>
-                        <p class="text-gray-700">
-                            @if($task->due_date)
-                                {{ date('M d, Y', strtotime($task->due_date)) }}
-                            @else
-                                <span class="text-gray-400">No due date</span>
-                            @endif
-                        </p>
-                    </div>
                 </div>
             </div>
             
@@ -72,20 +68,6 @@
                 <h2 class="text-lg font-semibold text-gray-900 mb-4">Assignment</h2>
                 
                 <div class="space-y-4">
-                    <div>
-                        <p class="text-sm text-gray-500 mb-1">Assigned To</p>
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                                <span class="text-sm font-semibold text-indigo-600">
-                                    {{ strtoupper(substr($task->user->name ?? 'N', 0, 1)) }}
-                                </span>
-                            </div>
-                            <div>
-                                <p class="font-medium text-gray-900">{{ $task->user->name ?? 'Unassigned' }}</p>
-                                <p class="text-sm text-gray-500">{{ $task->user->email ?? '' }}</p>
-                            </div>
-                        </div>
-                    </div>
                     
                     <div>
                         <p class="text-sm text-gray-500 mb-1">Workspace</p>
@@ -101,6 +83,17 @@
                     <div>
                         <p class="text-sm text-gray-500 mb-1">Created</p>
                         <p class="text-gray-700">{{ $task->created_at->format('M d, Y') }}</p>
+                    </div>
+                    
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1">Due Date</p>
+                        <p class="text-gray-700">
+                            @if($task->due_date)
+                                {{ date('M d, Y', strtotime($task->due_date)) }}
+                            @else
+                                <span class="text-gray-400">No due date</span>
+                            @endif
+                        </p>
                     </div>
                 </div>
             </div>
