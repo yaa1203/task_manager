@@ -72,23 +72,5 @@
                 <p class="text-gray-500 text-sm">Belum ada tugas untuk Anda di workspace ini.</p>
             @endif
         </div>
-
-        {{-- Daftar Projects --}}
-        <div>
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">Proyek</h2>
-            @if($projects->count() > 0)
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    @foreach($projects as $project)
-                        <div class="bg-white border border-gray-200 rounded-xl p-4">
-                            <h3 class="font-semibold text-gray-900">{{ $project->name }}</h3>
-                            <p class="text-sm text-gray-600 mb-2">{{ $project->description }}</p>
-                            <p class="text-xs text-gray-500">Status: {{ ucfirst($project->status ?? 'pending') }}</p>
-                        </div>
-                    @endforeach
-                </div>
-            @else
-                <p class="text-gray-500 text-sm">Belum ada proyek untuk Anda di workspace ini.</p>
-            @endif
-        </div>
     </div>
 </x-app-layout>

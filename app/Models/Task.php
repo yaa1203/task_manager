@@ -75,8 +75,6 @@ class Task extends Model
         return $query->where('priority', $priority);
     }
 
-    // app/Models/Task.php
-
     public function scopeAssignedTo($query, $userId)
     {
         return $query->whereHas('assignedUsers', function ($q) use ($userId) {

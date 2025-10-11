@@ -32,7 +32,7 @@
                             <input type="text" id="name" name="name" required
                                    value="{{ old('name', $workspace->name) }}"
                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-base"
-                                   placeholder="e.g., Web Development Projects">
+                                   placeholder="e.g., Web Development Tasks">
                             @error('name')
                                 <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                             @enderror
@@ -56,33 +56,11 @@
                             <label class="block text-sm font-semibold text-gray-900 mb-3">
                                 Workspace Type <span class="text-red-500">*</span>
                             </label>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                <label class="relative cursor-pointer">
-                                    <input type="radio" name="type" value="mixed" 
-                                           class="peer sr-only" 
-                                           {{ old('type', $workspace->type) === 'mixed' ? 'checked' : '' }}>
-                                    <div class="p-4 border-2 border-gray-300 rounded-lg peer-checked:border-indigo-600 peer-checked:bg-indigo-50 hover:border-gray-400 transition">
-                                        <div class="text-2xl mb-2">📦</div>
-                                        <div class="font-semibold text-gray-900">Mixed</div>
-                                        <div class="text-xs text-gray-600 mt-1">Projects & Tasks</div>
-                                    </div>
-                                </label>
-
-                                <label class="relative cursor-pointer">
-                                    <input type="radio" name="type" value="project" 
-                                           class="peer sr-only"
-                                           {{ old('type', $workspace->type) === 'project' ? 'checked' : '' }}>
-                                    <div class="p-4 border-2 border-gray-300 rounded-lg peer-checked:border-indigo-600 peer-checked:bg-indigo-50 hover:border-gray-400 transition">
-                                        <div class="text-2xl mb-2">📁</div>
-                                        <div class="font-semibold text-gray-900">Projects</div>
-                                        <div class="text-xs text-gray-600 mt-1">Projects only</div>
-                                    </div>
-                                </label>
-
+                            <div class="grid grid-cols-1 gap-3">
                                 <label class="relative cursor-pointer">
                                     <input type="radio" name="type" value="task" 
-                                           class="peer sr-only"
-                                           {{ old('type', $workspace->type) === 'task' ? 'checked' : '' }}>
+                                           class="peer sr-only" 
+                                           checked>
                                     <div class="p-4 border-2 border-gray-300 rounded-lg peer-checked:border-indigo-600 peer-checked:bg-indigo-50 hover:border-gray-400 transition">
                                         <div class="text-2xl mb-2">✅</div>
                                         <div class="font-semibold text-gray-900">Tasks</div>
@@ -159,7 +137,7 @@
                                                 {{ $workspace->name }}
                                             </h4>
                                             <p id="previewType" class="text-xs text-gray-500 mt-0.5 capitalize">
-                                                {{ $workspace->type }}
+                                                Task Workspace
                                             </p>
                                         </div>
                                     </div>
@@ -222,10 +200,10 @@
                 previewDesc.textContent = this.value || 'Your workspace description will appear here';
             });
 
-            // Update preview type
+            // Update preview type - always show "Task Workspace"
             typeRadios.forEach(radio => {
                 radio.addEventListener('change', function() {
-                    previewType.textContent = this.value;
+                    previewType.textContent = 'Task Workspace';
                 });
             });
 

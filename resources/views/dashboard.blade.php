@@ -17,13 +17,6 @@
                 @php
                 $stats = [
                     [
-                        'title' => 'Total Projects',
-                        'value' => $projectsCount,
-                        'icon' => 'M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z',
-                        'color' => 'blue',
-                        'bg' => 'from-blue-500 to-blue-600'
-                    ],
-                    [
                         'title' => 'Total Tasks',
                         'value' => $tasksCount,
                         'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2',
@@ -77,7 +70,6 @@
                     @php
                     $quickLinks = [
                         ['url' => 'tasks', 'label' => 'Tasks', 'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4', 'color' => 'blue'],
-                        ['url' => 'projects', 'label' => 'Projects', 'icon' => 'M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z', 'color' => 'indigo'],
                         ['url' => 'calendar', 'label' => 'Calendar', 'icon' => 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', 'color' => 'purple'],
                         ['url' => 'analytics', 'label' => 'Analytics', 'icon' => 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', 'color' => 'green']
                     ];
@@ -119,26 +111,6 @@
                             <p class="text-sm font-medium text-gray-900">You have {{ $tasksTodo + $tasksInProgress }} active tasks</p>
                             <p class="text-xs text-gray-500">{{ $tasksTodo }} pending, {{ $tasksInProgress }} in progress</p>
                         </div>
-                    </div>
-                    @endif
-                    
-                    @if($projectsCount > 0)
-                    <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                        <div class="bg-indigo-100 p-2 rounded">
-                            <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
-                            </svg>
-                        </div>
-                        <div class="flex-1">
-                            <p class="text-sm font-medium text-gray-900">{{ $projectsCount }} active {{ Str::plural('project', $projectsCount) }}</p>
-                            <p class="text-xs text-gray-500">Keep up the great work!</p>
-                        </div>
-                    </div>
-                    @endif
-
-                    @if($tasksCount === 0 && $projectsCount === 0)
-                    <div class="text-center py-6">
-                        <p class="text-sm text-gray-500">No recent activity. Start by creating a task or project!</p>
                     </div>
                     @endif
                 </div>

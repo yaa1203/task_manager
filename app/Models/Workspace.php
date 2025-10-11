@@ -35,12 +35,6 @@ class Workspace extends Model
         return $this->hasMany(Task::class);
     }
 
-    public function projects()
-    {
-        return $this->belongsToMany(Project::class, 'workspace_project')
-                    ->withTimestamps();
-    }
-
     // Scopes
     public function scopeActive($query)
     {
@@ -61,11 +55,6 @@ class Workspace extends Model
     public function getTasksCount()
     {
         return $this->tasks()->count();
-    }
-
-    public function getProjectsCount()
-    {
-        return $this->projects()->count();
     }
 
     public function getTotalItemsCount()

@@ -16,12 +16,8 @@
                         {{ __('Dashboard') }}
                     </x-nav-link>
 
-                    <x-nav-link :href="url('tasks')" :active="request()->routeIs('tasks.*')">
-                        {{ __('Tasks') }}
-                    </x-nav-link>
-
-                    <x-nav-link :href="url('projects')" :active="request()->routeIs('projects.*')">
-                        {{ __('Projects') }}
+                    <x-nav-link :href="url('my-workspaces')" :active="request()->routeIs('my-workspaces.*')">
+                        {{ __('Workspace') }}
                     </x-nav-link>
 
                     <x-nav-link :href="url('calendar')" :active="request()->routeIs('calendar.*')">
@@ -218,14 +214,9 @@
                 {{ __('Dashboard') }}
             </a>
 
-            <a href="{{ url('tasks') }}" 
-               class="block pl-3 pr-4 py-2 border-l-4 {{ request()->routeIs('tasks.*') ? 'border-indigo-400 text-indigo-700 bg-indigo-50' : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300' }} text-base font-medium transition">
-                {{ __('Tasks') }}
-            </a>
-
-            <a href="{{ url('projects') }}" 
-               class="block pl-3 pr-4 py-2 border-l-4 {{ request()->routeIs('projects.*') ? 'border-indigo-400 text-indigo-700 bg-indigo-50' : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300' }} text-base font-medium transition">
-                {{ __('Projects') }}
+            <a href="{{ url('my-workspaces') }}" 
+               class="block pl-3 pr-4 py-2 border-l-4 {{ request()->routeIs('my-workspaces.*') ? 'border-indigo-400 text-indigo-700 bg-indigo-50' : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300' }} text-base font-medium transition">
+                {{ __('Workspace') }}
             </a>
 
             <a href="{{ url('calendar') }}" 

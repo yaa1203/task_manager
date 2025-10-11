@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Workspace;
 use App\Models\Task;
 use App\Models\User;
-use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\UserTaskSubmission;
@@ -20,13 +19,13 @@ class WorkspaceController extends Controller
     {
         $workspaces = Workspace::where('user_id', Auth::id())
             ->active()
-            ->withCount(['tasks', 'projects'])
+            ->withCount(['tasks'])
             ->latest()
             ->get();
 
         $archivedWorkspaces = Workspace::where('user_id', Auth::id())
             ->archived()
-            ->withCount(['tasks', 'projects'])
+            ->withCount(['tasks'])
             ->latest()
             ->get();
 
@@ -75,7 +74,6 @@ class WorkspaceController extends Controller
             'description' => 'nullable|string',
             'color' => 'required|string',
             'icon' => 'required|string',
-            'type' => 'required|in:project,task,mixed',
         ]);
 
         $validated['user_id'] = Auth::id();
@@ -93,17 +91,11 @@ class WorkspaceController extends Controller
     {
         $this->authorize('view', $workspace);
 
-        $workspace->load(['tasks.assignedUsers', 'projects']);
-
-        $availableProjects = Project::where('user_id', Auth::id())
-            ->whereDoesntHave('workspaces', function ($query) use ($workspace) {
-                $query->where('workspace_id', $workspace->id);
-            })
-            ->get();
+        $workspace->load(['tasks.assignedUsers']);
 
         $users = User::where('role', 'user')->get();
 
-        return view('admin.workspace.show', compact('workspace', 'availableProjects', 'users'));
+        return view('admin.workspace.show', compact('workspace', 'users'));
     }
 
     /**
@@ -152,7 +144,6 @@ class WorkspaceController extends Controller
             'description' => 'nullable|string',
             'color' => 'required|string',
             'icon' => 'required|string',
-            'type' => 'required|in:project,task,mixed',
         ]);
 
         $workspace->update($validated);
@@ -346,42 +337,6 @@ class WorkspaceController extends Controller
     }
 
     /**
-     * Add project to workspace
-     */
-    public function addProject(Request $request, Workspace $workspace)
-    {
-        $this->authorize('update', $workspace);
-
-        $validated = $request->validate([
-            'project_id' => 'required|exists:projects,id'
-        ]);
-
-        $project = Project::findOrFail($validated['project_id']);
-
-        if ($project->user_id !== Auth::id()) {
-            abort(403);
-        }
-
-        $workspace->projects()->attach($validated['project_id']);
-
-        return redirect()->route('workspaces.show', $workspace)
-            ->with('success', 'Project added to workspace!');
-    }
-
-    /**
-     * Remove project from workspace
-     */
-    public function removeProject(Workspace $workspace, Project $project)
-    {
-        $this->authorize('update', $workspace);
-
-        $workspace->projects()->detach($project->id);
-
-        return redirect()->route('workspaces.show', $workspace)
-            ->with('success', 'Project removed from workspace!');
-    }
-
-    /**
      * User workspace index
      */
     public function userIndex()
@@ -389,10 +344,7 @@ class WorkspaceController extends Controller
         $workspaces = Workspace::whereHas('tasks.assignedUsers', function ($q) {
                 $q->where('user_id', Auth::id());
             })
-            ->orWhereHas('projects.assignedUsers', function ($q) {
-                $q->where('user_id', Auth::id());
-            })
-            ->withCount(['tasks', 'projects'])
+            ->withCount(['tasks'])
             ->get();
 
         return view('work.index', compact('workspaces'));
@@ -405,9 +357,6 @@ class WorkspaceController extends Controller
     {
         $isAccessible = $workspace->tasks()->whereHas('assignedUsers', function ($q) {
                 $q->where('user_id', Auth::id());
-            })->exists()
-            || $workspace->projects()->whereHas('assignedUsers', function ($q) {
-                $q->where('user_id', Auth::id());
             })->exists();
 
         abort_unless($isAccessible, 403);
@@ -419,11 +368,7 @@ class WorkspaceController extends Controller
             ->with(['submissions' => fn($q) => $q->where('user_id', Auth::id())])
             ->get();
 
-        $projects = $workspace->projects()
-            ->whereHas('assignedUsers', fn($q) => $q->where('user_id', Auth::id()))
-            ->get();
-
-        return view('work.show', compact('workspace', 'tasks', 'projects'));
+        return view('work.show', compact('workspace', 'tasks'));
     }
 
     /**
