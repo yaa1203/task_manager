@@ -21,22 +21,6 @@ class NotificationController extends Controller
         return view('notifikasi.index', compact('notifications'));
     }
     
-    public function show(DatabaseNotification $notification)
-    {
-        // Pastikan notifikasi milik user yang sedang login
-        if ($notification->notifiable_id != Auth::id() || $notification->notifiable_type != get_class(Auth::user())) {
-            abort(403);
-        }
-        
-        // Tandai notifikasi sebagai sudah dibaca
-        if (is_null($notification->read_at)) {
-            $notification->markAsRead();
-        }
-        
-        // Tampilkan notifikasi
-        return view('notifikasi.show', compact('notification'));
-    }
-    
     public function markAsRead(DatabaseNotification $notification)
     {
         // Pastikan notifikasi milik user yang sedang login

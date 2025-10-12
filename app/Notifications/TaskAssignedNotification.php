@@ -5,51 +5,36 @@ namespace App\Notifications;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 
 class TaskAssignedNotification extends Notification
 {
     use Queueable;
 
     protected $task;
-    protected $adminName;
 
-    /**
-     * Create a new notification instance.
-     *
-     * @return void
-     */
-    public function __construct($task, $adminName)
+    public function __construct($task)
     {
         $this->task = $task;
-        $this->adminName = $adminName;
     }
 
-    /**
-     * Get the notification's delivery channels.
-     *
-     * @param  mixed  $notifiable
-     * @return array
-     */
     public function via($notifiable)
     {
-        return ['database', 'broadcast'];
+        return ['database'];
     }
 
-    /**
-     * Get the array representation of the notification.
-     *
-     * @param  mixed  $notifiable
-     * @return array
-     */
-    public function toArray($notifiable)
+    public function toDatabase($notifiable)
     {
+        // Pastikan workspace ada
+        $workspaceName = $this->task->workspace ? $this->task->workspace->name : 'Workspace Tidak Ditemukan';
+        
         return [
+            'title' => 'Tugas',
+            'message' => 'Anda memiliki tugas baru: ' . $this->task->title,
             'task_id' => $this->task->id,
-            'title' => $this->task->title,
-            'message' => "You have been assigned a new task by {$this->adminName}",
-            'url' => route('tasks.show', $this->task),
-            'created_at' => now(),
+            'workspace_id' => $this->task->workspace_id,
+            'task_name' => $this->task->title,
+            'workspace_name' => $workspaceName,
+            'type' => 'task_assigned',
         ];
     }
 }

@@ -23,8 +23,8 @@
                 $cards = [
                     ['color' => 'blue', 'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2', 'label' => 'Total Tasks', 'id' => 'total-tasks'],
                     ['color' => 'green', 'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', 'label' => 'Completed', 'id' => 'completed-tasks'],
-                    ['color' => 'yellow', 'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', 'label' => 'In Progress', 'id' => 'progress-tasks'],
-                    ['color' => 'purple', 'icon' => 'M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z', 'label' => 'Projects', 'id' => 'total-projects']
+                    ['color' => 'gray', 'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', 'label' => 'Unfinished', 'id' => 'unfinished-tasks'],
+                    ['color' => 'red', 'icon' => 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z', 'label' => 'Overdue', 'id' => 'overdue-tasks']
                 ];
                 @endphp
 
@@ -56,7 +56,11 @@
                         <canvas id="taskChart"></canvas>
                     </div>
                     <div class="mt-4 grid grid-cols-3 gap-2 text-center">
-                        @foreach([['id' => 'pending-count', 'label' => 'Pending', 'color' => 'red'], ['id' => 'inprogress-count', 'label' => 'Progress', 'color' => 'yellow'], ['id' => 'done-count', 'label' => 'Done', 'color' => 'green']] as $stat)
+                        @foreach([
+                            ['id' => 'done-count', 'label' => 'Done', 'color' => 'green'], 
+                            ['id' => 'unfinished-count', 'label' => 'Unfinished', 'color' => 'gray'], 
+                            ['id' => 'overdue-count', 'label' => 'Overdue', 'color' => 'red']
+                        ] as $stat)
                         <div class="bg-{{ $stat['color'] }}-50 rounded-lg p-2">
                             <p class="text-xs text-gray-600">{{ $stat['label'] }}</p>
                             <p id="{{ $stat['id'] }}" class="text-lg font-bold text-{{ $stat['color'] }}-600">-</p>
@@ -65,23 +69,19 @@
                     </div>
                 </div>
 
-                <!-- Project Overview -->
+                <!-- Workspace Overview -->
                 <div class="bg-white shadow-lg rounded-lg p-4 sm:p-6">
                     <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-base sm:text-lg font-semibold text-gray-800">Project Overview</h3>
+                        <h3 class="text-base sm:text-lg font-semibold text-gray-800">Workspace Overview</h3>
                         <span class="text-xs text-gray-500">Updated now</span>
                     </div>
                     <div class="h-48 sm:h-64">
-                        <canvas id="projectChart"></canvas>
+                        <canvas id="workspaceChart"></canvas>
                     </div>
-                    <div class="mt-4 grid grid-cols-2 gap-2 text-center">
-                        <div class="bg-blue-50 rounded-lg p-2">
-                            <p class="text-xs text-gray-600">Active</p>
-                            <p id="active-projects" class="text-lg font-bold text-blue-600">-</p>
-                        </div>
-                        <div class="bg-purple-50 rounded-lg p-2">
-                            <p class="text-xs text-gray-600">Finished</p>
-                            <p id="finished-projects" class="text-lg font-bold text-purple-600">-</p>
+                    <div class="mt-4 flex justify-center">
+                        <div class="bg-purple-50 rounded-lg p-3 text-center min-w-[120px]">
+                            <p class="text-xs text-gray-600">Total Workspaces</p>
+                            <p id="total-workspaces" class="text-2xl font-bold text-purple-600">-</p>
                         </div>
                     </div>
                 </div>
@@ -92,8 +92,8 @@
                 @php
                 $metrics = [
                     ['title' => 'Completion Rate', 'color' => 'green', 'icon' => 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6', 'id' => 'completion', 'type' => 'progress', 'desc' => 'Tasks completed'],
-                    ['title' => 'Active Tasks', 'color' => 'yellow', 'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', 'id' => 'active-tasks', 'type' => 'count', 'desc' => 'Currently in progress'],
-                    ['title' => 'Pending Tasks', 'color' => 'red', 'icon' => 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z', 'id' => 'pending-tasks', 'type' => 'count', 'desc' => 'Yet to be started']
+                    ['title' => 'Average Tasks', 'color' => 'blue', 'icon' => 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', 'id' => 'avg-tasks', 'type' => 'decimal', 'desc' => 'Per workspace'],
+                    ['title' => 'Overdue Rate', 'color' => 'red', 'icon' => 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z', 'id' => 'overdue-rate', 'type' => 'progress', 'desc' => 'Tasks overdue']
                 ];
                 @endphp
 
@@ -109,10 +109,15 @@
                     </div>
                     @if($metric['type'] === 'progress')
                     <div>
-                        <span id="completion-percentage" class="text-2xl sm:text-3xl font-bold text-green-600">0%</span>
-                        <div class="mt-2 overflow-hidden h-2 rounded-full bg-green-100">
-                            <div id="completion-bar" style="width:0%" class="h-full bg-gradient-to-r from-green-500 to-green-600 transition-all duration-500"></div>
+                        <span id="{{ $metric['id'] }}-percentage" class="text-2xl sm:text-3xl font-bold text-{{ $metric['color'] }}-600">0%</span>
+                        <div class="mt-2 overflow-hidden h-2 rounded-full bg-{{ $metric['color'] }}-100">
+                            <div id="{{ $metric['id'] }}-bar" style="width:0%" class="h-full bg-gradient-to-r from-{{ $metric['color'] }}-500 to-{{ $metric['color'] }}-600 transition-all duration-500"></div>
                         </div>
+                    </div>
+                    @elseif($metric['type'] === 'decimal')
+                    <div class="flex items-baseline gap-2">
+                        <span id="{{ $metric['id'] }}" class="text-2xl sm:text-3xl font-bold text-gray-800">-</span>
+                        <span class="text-sm text-gray-500">tasks</span>
                     </div>
                     @else
                     <div class="flex items-baseline gap-2">
@@ -140,7 +145,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        let charts = { task: null, project: null };
+        let charts = { task: null, workspace: null, trend: null };
 
         document.addEventListener("DOMContentLoaded", loadAnalytics);
 
@@ -163,26 +168,28 @@
         }
 
         function updateUI(data) {
-            const { tasks, projects } = data;
-            const pending = tasks.pending || 0;
-            const inProgress = tasks.in_progress || 0;
+            const { tasks, workspaces, weekly_trend, summary } = data;
             const done = tasks.done || 0;
-            const total = pending + inProgress + done;
-            const completionRate = total > 0 ? Math.round((done / total) * 100) : 0;
+            const unfinished = tasks.unfinished || 0;
+            const overdue = tasks.overdue || 0;
+            const total = done + unfinished + overdue;
+            
+            const completionRate = summary.completion_rate || 0;
+            const overdueRate = total > 0 ? Math.round((overdue / total) * 100) : 0;
+            const avgTasks = workspaces.total > 0 ? (total / workspaces.total).toFixed(1) : 0;
             
             const updates = {
                 'total-tasks': total,
                 'completed-tasks': done,
-                'progress-tasks': inProgress,
-                'total-projects': (projects.active || 0) + (projects.finished || 0),
-                'pending-count': pending,
-                'inprogress-count': inProgress,
+                'unfinished-tasks': unfinished,
+                'overdue-tasks': overdue,
                 'done-count': done,
-                'active-projects': projects.active || 0,
-                'finished-projects': projects.finished || 0,
+                'unfinished-count': unfinished,
+                'overdue-count': overdue,
+                'total-workspaces': workspaces.total || 0,
                 'completion-percentage': completionRate + '%',
-                'active-tasks': inProgress,
-                'pending-tasks': pending
+                'overdue-rate-percentage': overdueRate + '%',
+                'avg-tasks': avgTasks
             };
 
             Object.entries(updates).forEach(([id, value]) => {
@@ -191,21 +198,24 @@
             });
 
             document.getElementById('completion-bar').style.width = completionRate + '%';
+            document.getElementById('overdue-rate-bar').style.width = overdueRate + '%';
+            
             updateCharts(data);
         }
 
         function updateCharts(data) {
-            const taskData = [data.tasks.pending || 0, data.tasks.in_progress || 0, data.tasks.done || 0];
-            const projectData = [data.projects.active || 0, data.projects.finished || 0];
+            const taskData = [data.tasks.done || 0, data.tasks.unfinished || 0, data.tasks.overdue || 0];
+            const workspaceData = data.workspaces.breakdown || [];
 
+            // Task Distribution Chart
             if (charts.task) charts.task.destroy();
             charts.task = new Chart(document.getElementById('taskChart'), {
                 type: 'doughnut',
                 data: {
-                    labels: ['Pending', 'In Progress', 'Done'],
+                    labels: ['Done', 'Unfinished', 'Overdue'],
                     datasets: [{
                         data: taskData,
-                        backgroundColor: ['#ef4444', '#f59e0b', '#10b981'],
+                        backgroundColor: ['#10b981', '#6b7280', '#ef4444'],
                         borderWidth: 2,
                         borderColor: '#ffffff'
                     }]
@@ -228,34 +238,45 @@
                 }
             });
 
-            if (charts.project) charts.project.destroy();
-            charts.project = new Chart(document.getElementById('projectChart'), {
-                type: 'bar',
-                data: {
-                    labels: ['Active', 'Finished'],
-                    datasets: [{
-                        data: projectData,
-                        backgroundColor: ['#3b82f6', '#8b5cf6'],
-                        borderRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { 
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: function(ctx) { return `${ctx.parsed.y} projects`; }
-                            }
-                        }
+            // Workspace Chart
+            if (charts.workspace) charts.workspace.destroy();
+            if (workspaceData.length > 0) {
+                charts.workspace = new Chart(document.getElementById('workspaceChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: workspaceData.map(w => w.name.length > 15 ? w.name.substring(0, 15) + '...' : w.name),
+                        datasets: [{
+                            label: 'Tasks',
+                            data: workspaceData.map(w => w.tasks),
+                            backgroundColor: '#8b5cf6',
+                            borderRadius: 8
+                        }]
                     },
-                    scales: {
-                        y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#f3f4f6' } },
-                        x: { grid: { display: false } }
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { 
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(ctx) { return `${ctx.parsed.y} tasks`; }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#f3f4f6' } },
+                            x: { grid: { display: false } }
+                        }
                     }
-                }
-            });
+                });
+            } else {
+                // Show empty state
+                const ctx = document.getElementById('workspaceChart').getContext('2d');
+                ctx.font = '14px sans-serif';
+                ctx.fillStyle = '#9ca3af';
+                ctx.textAlign = 'center';
+                ctx.fillText('No workspace data', ctx.canvas.width / 2, ctx.canvas.height / 2);
+            }
         }
 
         function refreshData() { loadAnalytics(); }

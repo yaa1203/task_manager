@@ -28,15 +28,14 @@
         <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 space-y-4 sm:space-y-6">
             
             {{-- Summary Cards --}}
-            <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 @php
-                $cards = [
-                    ['color' => 'blue', 'icon' => 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z', 'label' => 'Total Users', 'id' => 'total-users', 'sub' => 'active-users'],
-                    ['color' => 'indigo', 'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2', 'label' => 'Total Tasks', 'id' => 'total-tasks'],
-                    ['color' => 'green', 'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', 'label' => 'Completed', 'id' => 'completed-tasks', 'sub' => 'completion-rate'],
-                    ['color' => 'yellow', 'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', 'label' => 'In Progress', 'id' => 'progress-tasks'],
-                    ['color' => 'purple', 'icon' => 'M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z', 'label' => 'Projects', 'id' => 'total-projects', 'sub' => 'active-projects-count']
-                ];
+                    $cards = [
+                        ['color' => 'blue', 'icon' => 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z', 'label' => 'Total Users', 'id' => 'total-users'],
+                        ['color' => 'indigo', 'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2', 'label' => 'Total Tasks', 'id' => 'total-tasks'],
+                        ['color' => 'green', 'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', 'label' => 'Completed', 'id' => 'completed-tasks', 'sub' => 'completion-rate'],
+                        ['color' => 'gray', 'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', 'label' => 'Unfinished', 'id' => 'unfinished-tasks']
+                    ];
                 @endphp
 
                 @foreach($cards as $card)
@@ -52,7 +51,7 @@
                     <p id="{{ $card['id'] }}" class="text-2xl sm:text-3xl font-bold mt-1">-</p>
                     @if(isset($card['sub']))
                     <p class="text-xs opacity-75 mt-1">
-                        <span id="{{ $card['sub'] }}">-</span> {{ $card['sub'] === 'completion-rate' ? '% rate' : 'active' }}
+                        <span id="{{ $card['sub'] }}">-</span>% rate
                     </p>
                     @endif
                 </div>
@@ -72,7 +71,7 @@
                         <canvas id="taskChart"></canvas>
                     </div>
                     <div class="mt-4 grid grid-cols-3 gap-2 text-center">
-                        @foreach([['id' => 'pending-count', 'label' => 'Pending', 'color' => 'red'], ['id' => 'inprogress-count', 'label' => 'Progress', 'color' => 'yellow'], ['id' => 'done-count', 'label' => 'Done', 'color' => 'green']] as $stat)
+                        @foreach([['id' => 'overdue-count', 'label' => 'Overdue', 'color' => 'red'], ['id' => 'unfinished-count', 'label' => 'Unfinished', 'color' => 'gray'], ['id' => 'done-count', 'label' => 'Done', 'color' => 'green']] as $stat)
                         <div class="bg-{{ $stat['color'] }}-50 rounded-lg p-2">
                             <p class="text-xs text-gray-600">{{ $stat['label'] }}</p>
                             <p id="{{ $stat['id'] }}" class="text-lg font-bold text-{{ $stat['color'] }}-600">-</p>
@@ -81,36 +80,77 @@
                     </div>
                 </div>
 
-                <!-- Project Status -->
+                <!-- Task Status Overview -->
                 <div class="bg-white shadow-lg rounded-lg p-4 sm:p-6">
                     <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-base sm:text-lg font-semibold text-gray-800">Projects Status</h3>
+                        <h3 class="text-base sm:text-lg font-semibold text-gray-800">Task Status Overview</h3>
                         <span class="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">All Users</span>
                     </div>
-                    <div class="h-48 sm:h-64">
-                        <canvas id="projectChart"></canvas>
+                    <div class="h-48 sm:h-64 flex items-center justify-center">
+                        <div class="grid grid-cols-3 gap-6 w-full max-w-md">
+                            <!-- Overdue -->
+                            <div class="text-center">
+                                <div class="relative inline-flex items-center justify-center w-20 h-20 mb-2">
+                                    <svg class="w-20 h-20">
+                                        <circle cx="40" cy="40" r="36" fill="#fef2f2" />
+                                    </svg>
+                                    <div class="absolute">
+                                        <svg class="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <p id="overdue-overview" class="text-2xl font-bold text-red-600">-</p>
+                                <p class="text-xs text-gray-600 mt-1">Overdue</p>
+                            </div>
+                            
+                            <!-- Unfinished -->
+                            <div class="text-center">
+                                <div class="relative inline-flex items-center justify-center w-20 h-20 mb-2">
+                                    <svg class="w-20 h-20">
+                                        <circle cx="40" cy="40" r="36" fill="#f9fafb" />
+                                    </svg>
+                                    <div class="absolute">
+                                        <svg class="w-10 h-10 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <p id="unfinished-overview" class="text-2xl font-bold text-gray-600">-</p>
+                                <p class="text-xs text-gray-600 mt-1">Unfinished</p>
+                            </div>
+                            
+                            <!-- Done -->
+                            <div class="text-center">
+                                <div class="relative inline-flex items-center justify-center w-20 h-20 mb-2">
+                                    <svg class="w-20 h-20">
+                                        <circle cx="40" cy="40" r="36" fill="#f0fdf4" />
+                                    </svg>
+                                    <div class="absolute">
+                                        <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <p id="done-overview" class="text-2xl font-bold text-green-600">-</p>
+                                <p class="text-xs text-gray-600 mt-1">Done</p>
+                            </div>
+                        </div>
                     </div>
-                    <div class="mt-4 grid grid-cols-2 gap-2 text-center">
-                        <div class="bg-blue-50 rounded-lg p-2">
-                            <p class="text-xs text-gray-600">Active</p>
-                            <p id="active-projects" class="text-lg font-bold text-blue-600">-</p>
-                        </div>
-                        <div class="bg-purple-50 rounded-lg p-2">
-                            <p class="text-xs text-gray-600">Finished</p>
-                            <p id="finished-projects" class="text-lg font-bold text-purple-600">-</p>
-                        </div>
+                    <div class="mt-4 bg-gray-50 rounded-lg p-3 text-center">
+                        <p class="text-xs text-gray-600">Total Tasks</p>
+                        <p id="total-tasks-overview" class="text-2xl font-bold text-gray-800">-</p>
                     </div>
                 </div>
             </div>
 
             {{-- Performance Metrics --}}
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 @php
-                $metrics = [
-                    ['title' => 'Completion Rate', 'color' => 'green', 'icon' => 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6', 'id' => 'system-completion', 'desc' => 'Across all users'],
-                    ['title' => 'User Activity', 'color' => 'blue', 'icon' => 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z', 'id' => 'user-activity', 'desc' => 'Active in last 7 days'],
-                    ['title' => 'Pending Work', 'color' => 'orange', 'icon' => 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z', 'id' => 'pending-workload', 'desc' => 'Awaiting completion']
-                ];
+                    $metrics = [
+                        ['title' => 'Completion Rate', 'color' => 'green', 'icon' => 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6', 'id' => 'system-completion', 'desc' => 'Across all users'],
+                        ['title' => 'Overdue Tasks', 'color' => 'red', 'icon' => 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z', 'id' => 'overdue-workload', 'desc' => 'Need attention']
+                    ];
                 @endphp
 
                 @foreach($metrics as $metric)
@@ -132,8 +172,8 @@
                     </div>
                     @else
                     <div class="flex items-baseline gap-2">
-                        <span id="{{ $metric['id'] }}-percentage" class="text-2xl sm:text-3xl font-bold text-gray-800">-</span>
-                        <span class="text-sm text-gray-500">{{ $metric['id'] === 'user-activity' ? '% active' : 'tasks' }}</span>
+                        <span id="{{ $metric['id'] }}-value" class="text-2xl sm:text-3xl font-bold text-{{ $metric['color'] }}-600">-</span>
+                        <span class="text-sm text-gray-500">tasks</span>
                     </div>
                     @endif
                     <p class="text-xs text-gray-500 mt-2">{{ $metric['desc'] }}</p>
@@ -156,7 +196,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        let charts = { task: null, project: null };
+        let charts = { task: null };
 
         document.addEventListener("DOMContentLoaded", loadAnalytics);
 
@@ -179,27 +219,25 @@
         }
 
         function updateUI(data) {
-            const { tasks, projects, users, summary } = data;
-            const total = (tasks.pending || 0) + (tasks.in_progress || 0) + (tasks.done || 0);
+            const { tasks, users, summary } = data;
+            const total = (tasks.overdue || 0) + (tasks.unfinished || 0) + (tasks.done || 0);
             
             // Update cards
             const updates = {
                 'total-users': users?.total || 0,
-                'active-users': users?.active || 0,
                 'total-tasks': total,
                 'completed-tasks': tasks.done || 0,
-                'progress-tasks': tasks.in_progress || 0,
-                'total-projects': (projects.active || 0) + (projects.finished || 0),
-                'active-projects-count': projects.active || 0,
-                'pending-count': tasks.pending || 0,
-                'inprogress-count': tasks.in_progress || 0,
+                'unfinished-tasks': tasks.unfinished || 0,
+                'overdue-count': tasks.overdue || 0,
+                'unfinished-count': tasks.unfinished || 0,
                 'done-count': tasks.done || 0,
-                'active-projects': projects.active || 0,
-                'finished-projects': projects.finished || 0,
                 'completion-rate': summary?.completion_rate || 0,
                 'system-completion-percentage': (summary?.completion_rate || 0) + '%',
-                'user-activity-percentage': users?.total > 0 ? Math.round((users.active / users.total) * 100) : 0,
-                'pending-workload-percentage': (tasks.pending || 0) + (tasks.in_progress || 0)
+                'overdue-workload-value': summary?.overdue_workload || 0,
+                'overdue-overview': tasks.overdue || 0,
+                'unfinished-overview': tasks.unfinished || 0,
+                'done-overview': tasks.done || 0,
+                'total-tasks-overview': total
             };
 
             Object.entries(updates).forEach(([id, value]) => {
@@ -207,23 +245,23 @@
                 if (el) el.textContent = value;
             });
 
+            // Update progress bars
             document.getElementById('system-completion-bar').style.width = (summary?.completion_rate || 0) + '%';
 
             updateCharts(data);
         }
 
         function updateCharts(data) {
-            const taskData = [data.tasks.pending || 0, data.tasks.in_progress || 0, data.tasks.done || 0];
-            const projectData = [data.projects.active || 0, data.projects.finished || 0];
+            const taskData = [data.tasks.overdue || 0, data.tasks.unfinished || 0, data.tasks.done || 0];
 
             if (charts.task) charts.task.destroy();
             charts.task = new Chart(document.getElementById('taskChart'), {
                 type: 'doughnut',
                 data: {
-                    labels: ['Pending', 'In Progress', 'Done'],
+                    labels: ['Overdue', 'Unfinished', 'Done'],
                     datasets: [{
                         data: taskData,
-                        backgroundColor: ['#ef4444', '#f59e0b', '#10b981'],
+                        backgroundColor: ['#ef4444', '#6b7280', '#10b981'],
                         borderWidth: 2,
                         borderColor: '#ffffff'
                     }]
@@ -233,28 +271,6 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: { position: 'bottom', labels: { padding: 10, font: { size: 11 } } }
-                    }
-                }
-            });
-
-            if (charts.project) charts.project.destroy();
-            charts.project = new Chart(document.getElementById('projectChart'), {
-                type: 'bar',
-                data: {
-                    labels: ['Active', 'Finished'],
-                    datasets: [{
-                        data: projectData,
-                        backgroundColor: ['#3b82f6', '#8b5cf6'],
-                        borderRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#f3f4f6' } },
-                        x: { grid: { display: false } }
                     }
                 }
             });

@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\UserTaskSubmission;
 use App\Notifications\TaskAssignedNotification;
+use App\Notifications\TaskSubmittedNotification;
 
 class WorkspaceController extends Controller
 {
@@ -206,17 +207,17 @@ class WorkspaceController extends Controller
         $this->authorize('update', $workspace);
 
         $validated = $request->validate([
-            'user_ids' => 'required|array|min:1',
+            'assign_to_all' => 'nullable|boolean',
+            'user_ids' => 'required_without:assign_to_all|array|min:1',
             'user_ids.*' => 'exists:users,id',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'status' => 'required|in:todo,in_progress,done',
             'priority' => 'required|in:low,medium,high,urgent',
             'due_date' => 'nullable|date',
-            'assign_to_all' => 'nullable|boolean',
         ]);
 
-        // Get user IDs
+        // Determine user IDs based on assign_to_all flag
         if ($request->assign_to_all) {
             $userIds = User::where('role', 'user')->pluck('id')->toArray();
         } else {
@@ -241,10 +242,7 @@ class WorkspaceController extends Controller
         foreach ($userIds as $userId) {
             $assignedUser = User::find($userId);
             if ($assignedUser) {
-                $assignedUser->notify(new TaskAssignedNotification(
-                    $task,
-                    auth()->user()->name
-                ));
+                $assignedUser->notify(new TaskAssignedNotification($task));
             }
         }
 
@@ -374,11 +372,45 @@ class WorkspaceController extends Controller
     }
 
     /**
+     * User view task detail
+     */
+    public function userShowTask(Workspace $workspace, Task $task)
+    {
+        $isAccessible = $task->assignedUsers()
+            ->where('user_id', Auth::id())
+            ->exists();
+
+        abort_unless($isAccessible, 403);
+
+        if ($task->workspace_id !== $workspace->id) {
+            abort(404);
+        }
+
+        $submissions = $task->submissions()
+            ->where('user_id', Auth::id())
+            ->latest()
+            ->get();
+
+        $hasSubmitted = $submissions->isNotEmpty();
+
+        return view('work.tasks.show', compact('workspace', 'task', 'submissions', 'hasSubmitted'));
+    }
+
+    /**
      * User submit task
      */
-    public function submitTask(Request $request, Workspace $workspace, $taskId)
+    public function submitTask(Request $request, Workspace $workspace, Task $task)
     {
-        $task = $workspace->tasks()->findOrFail($taskId);
+        // Check if user has access to this task
+        $isAccessible = $task->assignedUsers()
+            ->where('user_id', Auth::id())
+            ->exists();
+
+        abort_unless($isAccessible, 403);
+
+        if ($task->workspace_id !== $workspace->id) {
+            abort(404);
+        }
 
         $request->validate([
             'file' => 'nullable|file|max:10240',
@@ -390,13 +422,30 @@ class WorkspaceController extends Controller
             ? $request->file('file')->store('submissions', 'public')
             : null;
 
-        UserTaskSubmission::create([
-            'task_id' => $task->id,
-            'user_id' => Auth::id(),
-            'file_path' => $filePath,
-            'link' => $request->link,
-            'notes' => $request->notes,
-        ]);
+        // Update or Create submission
+        $submission = UserTaskSubmission::updateOrCreate(
+            [
+                'task_id' => $task->id,
+                'user_id' => Auth::id(),
+            ],
+            [
+                'file_path' => $filePath,
+                'link' => $request->link,
+                'notes' => $request->notes,
+                'status' => 'pending',
+                'submitted_at' => now(),
+            ]
+        );
+
+        // Send notification to workspace owner (admin)
+        $workspaceOwner = User::find($workspace->user_id);
+        if ($workspaceOwner) {
+            $workspaceOwner->notify(new \App\Notifications\TaskSubmittedNotification(
+                $task,
+                Auth::user(),
+                $submission
+            ));
+        }
 
         return back()->with('success', 'Submission sent successfully!');
     }

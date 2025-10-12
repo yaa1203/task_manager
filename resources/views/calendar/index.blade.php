@@ -3,15 +3,8 @@
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div>
                 <h2 class="font-semibold text-xl text-gray-800">📅 Calendar</h2>
-                <p class="text-sm text-gray-600 mt-1">Manage your tasks and projects</p>
+                <p class="text-sm text-gray-600 mt-1">View your tasks schedule</p>
             </div>
-            <button onclick="openQuickAddModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition text-sm sm:text-base font-medium shadow-sm">
-                <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                </svg>
-                <span class="hidden sm:inline">Quick Add Task</span>
-                <span class="sm:hidden">Add Task</span>
-            </button>
         </div>
     </x-slot>
 
@@ -24,8 +17,8 @@
                 $statCards = [
                     ['label' => 'Total Tasks', 'value' => $stats['total_tasks'], 'color' => 'blue', 'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2'],
                     ['label' => 'Completed', 'value' => $stats['completed_tasks'], 'color' => 'green', 'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'],
-                    ['label' => 'Overdue', 'value' => $stats['overdue_tasks'], 'color' => 'red', 'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'],
-                    ['label' => 'Projects', 'value' => $stats['total_projects'], 'color' => 'purple', 'icon' => 'M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z']
+                    ['label' => 'Overdue', 'value' => $stats['overdue_tasks'], 'color' => 'red', 'icon' => 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
+                    ['label' => 'Unfinished', 'value' => $stats['unfinished_tasks'], 'color' => 'gray', 'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z']
                 ];
                 @endphp
 
@@ -53,9 +46,8 @@
                     
                     <div class="flex flex-wrap gap-3">
                         @foreach([
-                            ['id' => 'filter-tasks', 'label' => 'Tasks', 'color' => 'blue'],
-                            ['id' => 'filter-projects', 'label' => 'Projects', 'color' => 'purple'],
-                            ['id' => 'filter-completed', 'label' => 'Completed', 'color' => 'green'],
+                            ['id' => 'filter-done', 'label' => 'Completed', 'color' => 'green'],
+                            ['id' => 'filter-unfinished', 'label' => 'Unfinished', 'color' => 'gray'],
                             ['id' => 'filter-overdue', 'label' => 'Overdue', 'color' => 'red']
                         ] as $filter)
                         <label class="flex items-center gap-2 cursor-pointer">
@@ -110,10 +102,8 @@
                 <div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 sm:gap-4">
                     @foreach([
                         ['color' => 'green', 'label' => 'Completed'],
-                        ['color' => 'blue', 'label' => 'In Progress'],
-                        ['color' => 'yellow', 'label' => 'Pending'],
-                        ['color' => 'red', 'label' => 'Overdue'],
-                        ['color' => 'purple', 'label' => 'Project']
+                        ['color' => 'gray', 'label' => 'Unfinished'],
+                        ['color' => 'red', 'label' => 'Overdue']
                     ] as $legend)
                     <div class="flex items-center gap-2">
                         <div class="w-3 h-3 sm:w-4 sm:h-4 bg-{{ $legend['color'] }}-500 rounded"></div>
@@ -122,52 +112,6 @@
                     @endforeach
                 </div>
             </div>
-        </div>
-    </div>
-
-    {{-- Quick Add Task Modal --}}
-    <div id="quickAddModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 p-4">
-        <div class="relative top-10 sm:top-20 mx-auto p-4 sm:p-5 border w-full max-w-md shadow-lg rounded-lg bg-white">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-base sm:text-lg font-semibold text-gray-900">Quick Add Task</h3>
-                <button onclick="closeQuickAddModal()" class="text-gray-400 hover:text-gray-600">
-                    <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                </button>
-            </div>
-            
-            <form id="quickAddForm" onsubmit="submitQuickAdd(event)">
-                @foreach([
-                    ['id' => 'quick-title', 'label' => 'Task Title', 'type' => 'text', 'placeholder' => 'Enter task title...'],
-                    ['id' => 'quick-date', 'label' => 'Due Date', 'type' => 'date']
-                ] as $field)
-                <div class="mb-4">
-                    <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-2">{{ $field['label'] }}</label>
-                    <input type="{{ $field['type'] }}" id="{{ $field['id'] }}" required 
-                           class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                           @if(isset($field['placeholder'])) placeholder="{{ $field['placeholder'] }}" @endif>
-                </div>
-                @endforeach
-
-                <div class="mb-4">
-                    <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-2">Priority</label>
-                    <select id="quick-priority" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
-                        @foreach(['low' => 'Low', 'medium' => 'Medium', 'high' => 'High'] as $val => $label)
-                        <option value="{{ $val }}" {{ $val === 'medium' ? 'selected' : '' }}>{{ $label }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="flex gap-2 sm:gap-3">
-                    <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-lg transition text-sm">
-                        Add Task
-                    </button>
-                    <button type="button" onclick="closeQuickAddModal()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 px-4 rounded-lg transition text-sm">
-                        Cancel
-                    </button>
-                </div>
-            </form>
         </div>
     </div>
 
@@ -294,8 +238,8 @@
                 },
                 height: 'auto',
                 navLinks: true,
-                editable: true,
-                selectable: true,
+                editable: false,
+                selectable: false,
                 dayMaxEvents: 3,
                 
                 events: function(info, successCallback, failureCallback) {
@@ -305,7 +249,10 @@
                             allEvents = data;
                             applyFilters();
                         })
-                        .catch(err => failureCallback(err));
+                        .catch(err => {
+                            console.error('Failed to load events:', err);
+                            failureCallback(err);
+                        });
                 },
 
                 eventClick: function(info) {
@@ -313,21 +260,16 @@
                     showEventModal(info.event);
                 },
 
-                select: function(info) {
-                    document.getElementById('quick-date').value = info.startStr;
-                    openQuickAddModal();
-                },
-
-                eventDrop: function(info) { updateEventDate(info.event); },
-                eventResize: function(info) { updateEventDate(info.event); },
-
                 eventContent: function(arg) {
                     const props = arg.event.extendedProps;
                     let icon = '';
-                    if (props.type === 'task') {
-                        if (props.isOverdue) icon = '⚠️ ';
-                        else if (props.status === 'done') icon = '✓ ';
+                    
+                    if (props.isDone) {
+                        icon = '✓ ';
+                    } else if (props.isOverdue) {
+                        icon = '⚠️ ';
                     }
+                    
                     return { html: `<div class="fc-event-title">${icon}${arg.event.title}</div>` };
                 }
             });
@@ -365,20 +307,18 @@
 
         function applyFilters() {
             const filters = {
-                tasks: document.getElementById('filter-tasks').checked,
-                projects: document.getElementById('filter-projects').checked,
-                completed: document.getElementById('filter-completed').checked,
+                done: document.getElementById('filter-done').checked,
+                unfinished: document.getElementById('filter-unfinished').checked,
                 overdue: document.getElementById('filter-overdue').checked
             };
 
             const filtered = allEvents.filter(e => {
                 const p = e.extendedProps;
-                if (p.type === 'task' && !filters.tasks) return false;
-                if (p.type === 'project' && !filters.projects) return false;
-                if (p.type === 'task') {
-                    if (p.status === 'done' && !filters.completed) return false;
-                    if (p.isOverdue && !filters.overdue) return false;
-                }
+                
+                if (p.isDone && !filters.done) return false;
+                if (p.isOverdue && !filters.overdue) return false;
+                if (!p.isDone && !p.isOverdue && !filters.unfinished) return false;
+                
                 return true;
             });
 
@@ -387,94 +327,67 @@
         }
 
         function setupFilters() {
-            ['filter-tasks', 'filter-projects', 'filter-completed', 'filter-overdue'].forEach(id => {
+            ['filter-done', 'filter-unfinished', 'filter-overdue'].forEach(id => {
                 document.getElementById(id).addEventListener('change', applyFilters);
             });
         }
 
-        function openQuickAddModal() {
-            document.getElementById('quickAddModal').classList.remove('hidden');
-            document.getElementById('quick-title').focus();
-        }
-
-        function closeQuickAddModal() {
-            document.getElementById('quickAddModal').classList.add('hidden');
-            document.getElementById('quickAddForm').reset();
-        }
-
-        function submitQuickAdd(e) {
-            e.preventDefault();
-            
-            fetch('{{ route("calendar.quick-create") }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({
-                    title: document.getElementById('quick-title').value,
-                    due_date: document.getElementById('quick-date').value,
-                    priority: document.getElementById('quick-priority').value
-                })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    showToast(data.message);
-                    closeQuickAddModal();
-                    calendar.refetchEvents();
-                }
-            })
-            .catch(() => showToast('Failed to create task', 'error'));
-        }
-
         function showEventModal(event) {
             const p = event.extendedProps;
-            const statusColors = {
-                done: 'bg-green-100 text-green-800',
-                in_progress: 'bg-blue-100 text-blue-800',
-                pending: 'bg-yellow-100 text-yellow-800'
-            };
             
             document.getElementById('eventModalTitle').textContent = event.title;
             document.getElementById('eventModalLink').href = event.url;
             
-            let content = p.type === 'task' ? `
+            const priorityColors = {
+                urgent: 'bg-red-100 text-red-800',
+                high: 'bg-orange-100 text-orange-800',
+                medium: 'bg-yellow-100 text-yellow-800',
+                low: 'bg-green-100 text-green-800'
+            };
+            
+            let content = `
                 <div class="space-y-3">
                     <div class="flex items-center gap-2">
-                        <span class="font-medium text-gray-700">Status:</span>
-                        <span class="px-2 py-1 rounded text-xs font-medium ${statusColors[p.status] || 'bg-gray-100 text-gray-800'}">
-                            ${p.status.replace('_', ' ').toUpperCase()}
-                        </span>
+                        <span class="font-medium text-gray-700">Workspace:</span>
+                        <span class="text-gray-800">${p.workspaceName || 'N/A'}</span>
                     </div>
                     <div class="flex items-center gap-2">
-                        <span class="font-medium text-gray-700">Due:</span>
-                        <span class="text-gray-800">${event.startStr}</span>
+                        <span class="font-medium text-gray-700">Status:</span>
+                        ${p.isDone ? 
+                            '<span class="px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">✓ DONE</span>' : 
+                            p.isOverdue ? 
+                                '<span class="px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800">⚠️ OVERDUE</span>' :
+                                '<span class="px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800">UNFINISHED</span>'
+                        }
                     </div>
+                    ${p.dueDate ? `
+                    <div class="flex items-center gap-2">
+                        <span class="font-medium text-gray-700">Due Date:</span>
+                        <span class="text-gray-800">${p.dueDate}</span>
+                    </div>
+                    ` : ''}
+                    ${p.priority ? `
                     <div class="flex items-center gap-2">
                         <span class="font-medium text-gray-700">Priority:</span>
-                        <span class="px-2 py-1 rounded text-xs font-medium ${
-                            p.priority === 'high' ? 'bg-red-100 text-red-800' : 
-                            p.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' : 
-                            'bg-green-100 text-green-800'
-                        }">
+                        <span class="px-2 py-1 rounded text-xs font-medium ${priorityColors[p.priority] || 'bg-gray-100 text-gray-800'}">
                             ${p.priority.toUpperCase()}
                         </span>
                     </div>
-                    ${p.isOverdue ? '<div class="mt-2 p-3 bg-red-50 text-red-700 rounded-lg flex items-center gap-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> <span class="font-medium">Overdue</span></div>' : ''}
-                    ${p.description ? `<div class="mt-3"><h4 class="font-medium text-gray-700 mb-1">Description</h4><p class="text-gray-600">${p.description}</p></div>` : ''}
-                </div>
-            ` : `
-                <div class="space-y-3">
-                    <div>
-                        <span class="font-medium text-gray-700">Start:</span>
-                        <span class="text-gray-800">${event.startStr}</span>
+                    ` : ''}
+                    ${p.isOverdue ? `
+                    <div class="mt-2 p-3 bg-red-50 text-red-700 rounded-lg flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                        <span class="font-medium">This task is overdue!</span>
                     </div>
-                    <div>
-                        <span class="font-medium text-gray-700">End:</span>
-                        <span class="text-gray-800">${event.endStr}</span>
+                    ` : ''}
+                    ${p.description ? `
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-700 mb-1">Description</h4>
+                        <p class="text-gray-600 text-sm">${p.description}</p>
                     </div>
-                    ${p.description ? `<div class="mt-3"><h4 class="font-medium text-gray-700 mb-1">Description</h4><p class="text-gray-600">${p.description}</p></div>` : ''}
+                    ` : ''}
                 </div>
             `;
             
@@ -484,28 +397,6 @@
 
         function closeEventModal() {
             document.getElementById('eventModal').classList.add('hidden');
-        }
-
-        function updateEventDate(event) {
-            const p = event.extendedProps;
-            const id = event.id.split('-')[1];
-            const url = p.type === 'task' ? `/calendar/tasks/${id}/update-date` : `/calendar/projects/${id}/update-date`;
-            const data = p.type === 'task' ? { due_date: event.startStr } : { start_date: event.startStr, end_date: event.endStr };
-            
-            fetch(url, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify(data)
-            })
-            .then(res => res.json())
-            .then(data => data.success && showToast(data.message))
-            .catch(() => {
-                showToast('Failed to update date', 'error');
-                event.revert();
-            });
         }
 
         function showToast(msg, type = 'success') {
@@ -520,7 +411,6 @@
 
         document.addEventListener('keydown', e => {
             if (e.key === 'Escape') {
-                closeQuickAddModal();
                 closeEventModal();
             }
         });
