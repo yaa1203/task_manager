@@ -50,41 +50,32 @@
                             @enderror
                         </div>
 
-                        <!-- Workspace Type -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-900 mb-3">
-                                Workspace Type <span class="text-red-500">*</span>
-                            </label>
-                            <div class="grid grid-cols-1 gap-3">
-                                <label class="relative cursor-pointer">
-                                    <input type="radio" name="type" value="task" 
-                                           class="peer sr-only" 
-                                           checked>
-                                    <div class="p-4 border-2 border-gray-300 rounded-lg peer-checked:border-indigo-600 peer-checked:bg-indigo-50 hover:border-gray-400 transition">
-                                        <div class="text-2xl mb-2">✅</div>
-                                        <div class="font-semibold text-gray-900">Tasks</div>
-                                        <div class="text-xs text-gray-600 mt-1">Tasks only</div>
-                                    </div>
-                                </label>
-                            </div>
-                            @error('type')
-                                <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
+                        <!-- Workspace Type (Hidden - Default to Task) -->
+                        <input type="hidden" name="type" value="task">
 
-                        <!-- Icon Selection -->
+                        <!-- Icon Selection - Professional SVG Icons -->
                         <div>
                             <label class="block text-sm font-semibold text-gray-900 mb-3">
-                                Choose Icon <span class="text-red-500">*</span>
+                                Icon <span class="text-red-500">*</span>
                             </label>
-                            <div class="grid grid-cols-8 sm:grid-cols-12 gap-2">
-                                @foreach($icons as $icon)
-                                <label class="relative cursor-pointer">
-                                    <input type="radio" name="icon" value="{{ $icon }}" 
+                            <div class="grid grid-cols-4 sm:grid-cols-6 gap-3 max-w-md">
+                                @php
+                                $icons = [
+                                    'folder' => '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>',
+                                    'briefcase' => '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>',
+                                    'chart' => '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>',
+                                    'target' => '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+                                    'cog' => '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>',
+                                    'clipboard' => '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>',
+                                ];
+                                @endphp
+                                @foreach($icons as $iconName => $iconSvg)
+                                <label class="relative cursor-pointer group">
+                                    <input type="radio" name="icon" value="{{ $iconName }}" 
                                            class="peer sr-only icon-radio"
-                                           {{ old('icon', '📁') === $icon ? 'checked' : '' }}>
-                                    <div class="w-full aspect-square flex items-center justify-center text-2xl border-2 border-gray-300 rounded-lg peer-checked:border-indigo-600 peer-checked:bg-indigo-50 hover:border-gray-400 transition">
-                                        {{ $icon }}
+                                           {{ old('icon', 'folder') === $iconName ? 'checked' : '' }}>
+                                    <div class="w-full aspect-square flex items-center justify-center border-2 border-gray-300 rounded-lg peer-checked:border-indigo-600 peer-checked:bg-indigo-50 hover:border-gray-400 transition bg-white p-3 text-gray-600 peer-checked:text-indigo-600">
+                                        {!! $iconSvg !!}
                                     </div>
                                 </label>
                                 @endforeach
@@ -94,21 +85,35 @@
                             @enderror
                         </div>
 
-                        <!-- Color Selection -->
+                        <!-- Color Selection - Professional Palette -->
                         <div>
                             <label class="block text-sm font-semibold text-gray-900 mb-3">
-                                Choose Color <span class="text-red-500">*</span>
+                                Theme Color <span class="text-red-500">*</span>
                             </label>
-                            <div class="grid grid-cols-5 sm:grid-cols-10 lg:grid-cols-15 gap-3">
-                                @foreach($colors as $colorValue => $colorName)
+                            <div class="flex flex-wrap gap-3 max-w-md">
+                                @php
+                                $professionalColors = [
+                                    '#6366f1' => 'Indigo',
+                                    '#3b82f6' => 'Blue',
+                                    '#8b5cf6' => 'Purple',
+                                    '#ec4899' => 'Pink',
+                                    '#ef4444' => 'Red',
+                                    '#f59e0b' => 'Amber',
+                                    '#10b981' => 'Green',
+                                    '#06b6d4' => 'Cyan',
+                                    '#64748b' => 'Slate',
+                                    '#78716c' => 'Stone'
+                                ];
+                                @endphp
+                                @foreach($professionalColors as $colorValue => $colorName)
                                 <label class="relative cursor-pointer group">
                                     <input type="radio" name="color" value="{{ $colorValue }}" 
                                            class="peer sr-only color-radio"
                                            {{ old('color', '#6366f1') === $colorValue ? 'checked' : '' }}>
-                                    <div class="w-full aspect-square rounded-lg transition-all peer-checked:ring-4 peer-checked:ring-offset-2 peer-checked:scale-110"
-                                         style="background-color: {{ $colorValue }}; ring-color: {{ $colorValue }}40;">
+                                    <div class="w-12 h-12 rounded-lg transition-all peer-checked:ring-2 peer-checked:ring-offset-2 border-2 border-transparent peer-checked:border-white"
+                                         style="background-color: {{ $colorValue }}; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
                                     </div>
-                                    <div class="absolute -bottom-6 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                    <div class="absolute -bottom-7 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
                                         <span class="text-xs bg-gray-900 text-white px-2 py-1 rounded">{{ $colorName }}</span>
                                     </div>
                                 </label>
@@ -124,31 +129,23 @@
                             <label class="block text-sm font-semibold text-gray-900 mb-3">
                                 Preview
                             </label>
-                            <div class="bg-white rounded-xl border-2 border-gray-200 overflow-hidden max-w-sm">
-                                <div id="previewCard" class="p-5" style="background: linear-gradient(135deg, #6366f115 0%, #6366f105 100%);">
-                                    <div class="flex items-center gap-3 mb-3">
-                                        <div id="previewIcon" class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-sm" 
-                                             style="background-color: #6366f120;">
-                                            📁
+                            <div class="bg-white rounded-lg border border-gray-300 overflow-hidden max-w-sm">
+                                <div id="previewCard" class="p-5 border-l-4" style="border-color: #6366f1; background-color: #f8f9fa;">
+                                    <div class="flex items-start gap-3">
+                                        <div id="previewIcon" class="w-10 h-10 flex items-center justify-center text-gray-600">
+                                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                                            </svg>
                                         </div>
                                         <div class="flex-1 min-w-0">
-                                            <h4 id="previewName" class="font-semibold text-gray-900 truncate">
+                                            <h4 id="previewName" class="font-semibold text-gray-900 mb-1">
                                                 Workspace Name
                                             </h4>
-                                            <p id="previewType" class="text-xs text-gray-500 mt-0.5 capitalize">
-                                                Task Workspace
+                                            <p id="previewDesc" class="text-sm text-gray-600 line-clamp-2">
+                                                Your workspace description will appear here
                                             </p>
                                         </div>
                                     </div>
-                                    <p id="previewDesc" class="text-sm text-gray-600 line-clamp-2">
-                                        Your workspace description will appear here
-                                    </p>
-                                </div>
-                                <div class="px-5 py-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
-                                    <span class="text-xs text-gray-500">Preview</span>
-                                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                                    </svg>
                                 </div>
                             </div>
                         </div>
@@ -176,18 +173,25 @@
         document.addEventListener('DOMContentLoaded', function() {
             const nameInput = document.getElementById('name');
             const descInput = document.getElementById('description');
-            const typeRadios = document.querySelectorAll('input[name="type"]');
             const iconRadios = document.querySelectorAll('.icon-radio');
             const colorRadios = document.querySelectorAll('.color-radio');
             
             const previewCard = document.getElementById('previewCard');
             const previewIcon = document.getElementById('previewIcon');
             const previewName = document.getElementById('previewName');
-            const previewType = document.getElementById('previewType');
             const previewDesc = document.getElementById('previewDesc');
 
             let selectedColor = '#6366f1';
-            let selectedIcon = '📁';
+            let selectedIcon = 'folder';
+
+            const iconSvgs = {
+                'folder': '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>',
+                'briefcase': '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>',
+                'chart': '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>',
+                'target': '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+                'cog': '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>',
+                'clipboard': '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>'
+            };
 
             // Update preview name
             nameInput.addEventListener('input', function() {
@@ -199,18 +203,11 @@
                 previewDesc.textContent = this.value || 'Your workspace description will appear here';
             });
 
-            // Update preview type - always show "Task Workspace"
-            typeRadios.forEach(radio => {
-                radio.addEventListener('change', function() {
-                    previewType.textContent = 'Task Workspace';
-                });
-            });
-
             // Update preview icon
             iconRadios.forEach(radio => {
                 radio.addEventListener('change', function() {
                     selectedIcon = this.value;
-                    previewIcon.textContent = selectedIcon;
+                    previewIcon.innerHTML = iconSvgs[selectedIcon];
                 });
             });
 
@@ -223,8 +220,8 @@
             });
 
             function updatePreviewColor() {
-                previewCard.style.background = `linear-gradient(135deg, ${selectedColor}15 0%, ${selectedColor}05 100%)`;
-                previewIcon.style.backgroundColor = `${selectedColor}20`;
+                previewCard.style.borderColor = selectedColor;
+                previewCard.style.backgroundColor = selectedColor + '08';
             }
 
             // Initialize preview with selected values
@@ -237,11 +234,8 @@
             const selectedIconRadio = document.querySelector('.icon-radio:checked');
             if (selectedIconRadio) {
                 selectedIcon = selectedIconRadio.value;
-                previewIcon.textContent = selectedIcon;
+                previewIcon.innerHTML = iconSvgs[selectedIcon];
             }
-
-            // Set type to "Task Workspace" as it's the only option
-            previewType.textContent = 'Task Workspace';
 
             if (nameInput.value) {
                 previewName.textContent = nameInput.value;

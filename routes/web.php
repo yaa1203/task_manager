@@ -14,8 +14,20 @@ use App\Http\Controllers\WorkspaceController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
+    if (auth()->check()) {
+        // Kalau user admin, bisa arahkan ke admin dashboard
+        if (auth()->user()->role === 'admin') {
+            return redirect()->route('admin.dashboard');
+        }
+
+        // Kalau user biasa, ke dashboard biasa
+        return redirect()->route('dashboard');
+    }
+
+    // Kalau belum login, tampilkan halaman welcome
     return view('welcome');
 });
+
 
 Route::middleware(['auth'])->group(function () {
     Route::view('/offline', 'offline')->name('offline');

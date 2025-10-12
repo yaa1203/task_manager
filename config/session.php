@@ -32,10 +32,9 @@ return [
     |
     */
 
-    'lifetime' => env('SESSION_LIFETIME', 120),
-
-    'expire_on_close' => env('SESSION_EXPIRE_ON_CLOSE', false),
-
+    'lifetime' => 525600, // 1 tahun (365 hari * 24 jam * 60 menit)
+    
+    'expire_on_close' => false,
     /*
     |--------------------------------------------------------------------------
     | Session Encryption
