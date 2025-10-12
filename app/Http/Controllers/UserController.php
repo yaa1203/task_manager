@@ -9,12 +9,14 @@ use Illuminate\Http\Request;
 class UserController extends Controller
 {
     /**
-     * Tampilkan semua user untuk monitoring
+     * Tampilkan semua user untuk monitoring (hanya role 'user')
      */
     public function index()
     {
-        // Ambil semua user terbaru, 15 per halaman
-        $users = User::orderBy('created_at', 'desc')->paginate(15);
+        // Ambil hanya user dengan role 'user', tidak termasuk admin
+        $users = User::where('role', 'user')
+            ->orderBy('created_at', 'desc')
+            ->paginate(15);
 
         return view('admin.users.index', compact('users'));
     }
@@ -26,8 +28,14 @@ class UserController extends Controller
     {
         // Jangan izinkan admin menghapus diri sendiri
         if (auth()->id() === $user->id) {
-            return redirect()->route('admin.users.index')
+            return redirect()->route('users.index')
                 ->with('error', 'Anda tidak bisa menghapus akun sendiri.');
+        }
+
+        // Jangan izinkan menghapus user dengan role admin
+        if ($user->role === 'admin') {
+            return redirect()->route('users.index')
+                ->with('error', 'Tidak diizinkan menghapus admin dari halaman ini.');
         }
 
         $user->delete();
@@ -36,13 +44,31 @@ class UserController extends Controller
             ->with('success', 'User berhasil dihapus.');
     }
 
+    /**
+     * Tampilkan detail user
+     */
     public function show(User $user)
     {
-        // Pastikan relasi user dengan project dan task sudah ada di model
-        // Contoh: User hasMany Projects, User hasMany Tasks
-        $projects = $user->projects()->latest()->get();
-        $tasks = $user->tasks()->latest()->get();
+        // Cek apakah user yang akan ditampilkan adalah admin
+        // Jika ya, redirect dengan pesan error (opsional, untuk keamanan tambahan)
+        if ($user->role === 'admin' && auth()->user()->role !== 'admin') {
+            return redirect()->route('users.index')
+                ->with('error', 'Akses ditolak.');
+        }
 
-        return view('admin.users.show', compact('user', 'projects', 'tasks'));
+        // Ambil semua task yang di-assign ke user ini
+        // dengan relasi workspace dan submissions
+        $tasks = $user->assignedTasks()
+            ->with([
+                'workspace',
+                'submissions' => function($query) use ($user) {
+                    $query->where('user_id', $user->id);
+                },
+                'assignedUsers'
+            ])
+            ->latest()
+            ->get();
+
+        return view('admin.users.show', compact('user', 'tasks'));
     }
 }

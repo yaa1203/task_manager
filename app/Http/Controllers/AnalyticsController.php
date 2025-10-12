@@ -130,24 +130,9 @@ class AnalyticsController extends Controller
      */
     public function adminData()
     {
-        // Ambil semua workspaces dengan tasks dan submissions
-        $allWorkspaces = Workspace::with(['tasks.submissions', 'tasks.assignedUsers'])->get();
+        // Ambil semua tasks dengan submissions
+        $allTasks = Task::with(['submissions', 'assignedUsers'])->get();
         
-        $allTasks = collect();
-        $workspaceStats = [];
-        
-        foreach ($allWorkspaces as $workspace) {
-            $taskCount = $workspace->tasks->count();
-            if ($taskCount > 0) {
-                $workspaceStats[] = [
-                    'name' => $workspace->name,
-                    'tasks' => $taskCount,
-                    'icon' => $workspace->icon,
-                ];
-            }
-            $allTasks = $allTasks->merge($workspace->tasks);
-        }
-
         // Hitung statistik tasks
         $totalTasks = $allTasks->count();
         
@@ -156,19 +141,29 @@ class AnalyticsController extends Controller
         })->count();
         
         $overdueTasks = $allTasks->filter(function($task) {
-            $hasAnySubmission = $task->submissions->isNotEmpty();
-            if (!$hasAnySubmission && $task->due_date) {
+            $hasSubmission = $task->submissions->isNotEmpty();
+            if (!$hasSubmission && $task->due_date) {
                 return Carbon::parse($task->due_date)->isPast();
             }
             return false;
         })->count();
         
-        $unfinishedTasks = $totalTasks - $doneTasks - $overdueTasks;
+        $unfinishedTasks = $allTasks->filter(function($task) {
+            // Tasks yang belum selesai dan belum overdue
+            $hasSubmission = $task->submissions->isNotEmpty();
+            $isOverdue = false;
+            
+            if (!$hasSubmission && $task->due_date) {
+                $isOverdue = Carbon::parse($task->due_date)->isPast();
+            }
+            
+            return !$hasSubmission && !$isOverdue;
+        })->count();
 
         $taskStats = [
-            'done' => $doneTasks,
-            'unfinished' => $unfinishedTasks,
             'overdue' => $overdueTasks,
+            'unfinished' => $unfinishedTasks,
+            'done' => $doneTasks,
         ];
 
         // User statistics
@@ -187,42 +182,25 @@ class AnalyticsController extends Controller
         }
         $activeUsers = $activeUserIds->unique()->count();
 
-        // Weekly trend data (last 7 days)
-        $weeklyTrend = [];
-        for ($i = 6; $i >= 0; $i--) {
-            $date = Carbon::now()->subDays($i);
-            
-            $count = $allTasks->filter(function($task) use ($date) {
-                return $task->submissions->filter(function($submission) use ($date) {
-                    return $submission->submitted_at && 
-                           Carbon::parse($submission->submitted_at)->isSameDay($date);
-                })->isNotEmpty();
-            })->count();
-            
-            $weeklyTrend[] = [
-                'date' => $date->format('D'),
-                'count' => $count
-            ];
-        }
-
+        // Calculate completion rate
         $completionRate = $totalTasks > 0 
             ? round(($doneTasks / $totalTasks) * 100, 1)
             : 0;
+        
+        // Calculate unfinished workload
+        $unfinishedWorkload = $unfinishedTasks;
 
         return response()->json([
             'tasks' => $taskStats,
-            'workspaces' => [
-                'total' => $allWorkspaces->count(),
-                'breakdown' => $workspaceStats,
-            ],
             'users' => [
                 'total' => $totalUsers,
                 'active' => $activeUsers,
             ],
-            'weekly_trend' => $weeklyTrend,
             'summary' => [
                 'total_tasks' => $totalTasks,
                 'completion_rate' => $completionRate,
+                'unfinished_workload' => $unfinishedWorkload,
+                'overdue_workload' => $overdueTasks,
             ]
         ]);
     }

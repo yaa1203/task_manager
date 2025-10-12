@@ -20,7 +20,7 @@
         {{-- Logo Header --}}
         <div class="p-4 flex items-center justify-between border-b">
             <a href="{{ route('admin.dashboard') }}" class="flex items-center space-x-2">
-                <x-application-logo class="h-8 w-8 text-indigo-600" />
+                <img src="{{ asset('icons/logo72x72.png') }}" alt="Logo" class="h-8 w-8 rounded-full" />
                 <span class="text-lg font-bold">Admin Panel</span>
             </a>
             <button id="close-sidebar" class="lg:hidden text-gray-500 hover:text-gray-700">

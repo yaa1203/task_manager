@@ -86,9 +86,12 @@ class User extends Authenticatable
         return $this->hasMany(Workspace::class);
     }
 
+    /**
+     * Get the tasks assigned to the user
+     */
     public function assignedTasks()
     {
-        return $this->belongsToMany(Task::class, 'task_user')
+        return $this->belongsToMany(Task::class, 'task_user', 'user_id', 'task_id')
             ->withTimestamps();
     }
 

@@ -40,7 +40,7 @@
         </div>
         @endif
         
-        <form action="{{ route('workspace.tasks.store', $workspace) }}" method="POST">
+        <form action="{{ route('workspace.tasks.store', $workspace) }}" method="POST" id="taskForm">
             @csrf
 
             <!-- Task Title -->
@@ -179,12 +179,14 @@ function toggleUserSelection(checkbox) {
     const userSelection = document.getElementById('user-selection');
     
     if (checkbox.checked) {
+        // Check all user checkboxes
         userCheckboxes.forEach(cb => {
             cb.checked = true;
             cb.disabled = true;
         });
         userSelection.classList.add('opacity-50', 'pointer-events-none');
     } else {
+        // Uncheck all user checkboxes
         userCheckboxes.forEach(cb => {
             cb.checked = false;
             cb.disabled = false;
@@ -192,5 +194,20 @@ function toggleUserSelection(checkbox) {
         userSelection.classList.remove('opacity-50', 'pointer-events-none');
     }
 }
+
+// Handle form submission
+document.getElementById('taskForm').addEventListener('submit', function(e) {
+    const assignToAllCheckbox = document.getElementById('assign_to_all');
+    const userCheckboxes = document.querySelectorAll('.user-checkbox');
+    
+    // If "Assign to all" is checked, we don't need to send individual user_ids
+    if (assignToAllCheckbox.checked) {
+        // Remove all user checkboxes from the form data
+        userCheckboxes.forEach(cb => {
+            cb.disabled = true;
+            cb.checked = false;
+        });
+    }
+});
 </script>
 @endsection

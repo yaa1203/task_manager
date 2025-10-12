@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\UserTaskSubmission;
 use App\Notifications\TaskAssignedNotification;
+use App\Notifications\TaskSubmittedNotification;
 
 class WorkspaceController extends Controller
 {
@@ -206,17 +207,17 @@ class WorkspaceController extends Controller
         $this->authorize('update', $workspace);
 
         $validated = $request->validate([
-            'user_ids' => 'required|array|min:1',
+            'assign_to_all' => 'nullable|boolean',
+            'user_ids' => 'required_without:assign_to_all|array|min:1',
             'user_ids.*' => 'exists:users,id',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'status' => 'required|in:todo,in_progress,done',
             'priority' => 'required|in:low,medium,high,urgent',
             'due_date' => 'nullable|date',
-            'assign_to_all' => 'nullable|boolean',
         ]);
 
-        // Get user IDs
+        // Determine user IDs based on assign_to_all flag
         if ($request->assign_to_all) {
             $userIds = User::where('role', 'user')->pluck('id')->toArray();
         } else {
@@ -241,7 +242,6 @@ class WorkspaceController extends Controller
         foreach ($userIds as $userId) {
             $assignedUser = User::find($userId);
             if ($assignedUser) {
-                // Pastikan TaskAssignedNotification sudah disesuaikan dengan parameter yang benar
                 $assignedUser->notify(new TaskAssignedNotification($task));
             }
         }
@@ -423,7 +423,7 @@ class WorkspaceController extends Controller
             : null;
 
         // Update or Create submission
-        UserTaskSubmission::updateOrCreate(
+        $submission = UserTaskSubmission::updateOrCreate(
             [
                 'task_id' => $task->id,
                 'user_id' => Auth::id(),
@@ -436,6 +436,16 @@ class WorkspaceController extends Controller
                 'submitted_at' => now(),
             ]
         );
+
+        // Send notification to workspace owner (admin)
+        $workspaceOwner = User::find($workspace->user_id);
+        if ($workspaceOwner) {
+            $workspaceOwner->notify(new \App\Notifications\TaskSubmittedNotification(
+                $task,
+                Auth::user(),
+                $submission
+            ));
+        }
 
         return back()->with('success', 'Submission sent successfully!');
     }

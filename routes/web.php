@@ -56,6 +56,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
     Route::get('/analytict', [AnalyticsController::class, 'adminIndex'])->name('analytict.index');
     Route::get('/analytict/data', [AnalyticsController::class, 'adminData'])->name('analytict.data');
+    Route::post('/analytics/export', [AnalyticsController::class, 'exportReport'])->name('analytics.export');
 
     Route::get('/notifications', [AdminNotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/{id}/read', [AdminNotificationController::class, 'markAsRead'])->name('notifications.read');

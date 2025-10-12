@@ -6,8 +6,10 @@
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('dashboard') }}" 
-                       class="focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded">
-                        <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
+                    class="focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-full">
+                        <img src="{{ asset('icons/logo72x72.png') }}" 
+                            alt="Logo" 
+                            class="h-9 w-auto rounded-full" />
                     </a>
                 </div>
 
