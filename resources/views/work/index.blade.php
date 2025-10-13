@@ -1,170 +1,259 @@
 <x-app-layout>
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
-    <!-- Header -->
-    <div class="mb-6 sm:mb-8">
-        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Workspace Saya</h1>
-        <p class="text-sm sm:text-base text-gray-600">Kelola dan pantau semua tugas Anda di sini</p>
-    </div>
-
-    @if($workspaces->count() > 0)
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            @foreach($workspaces as $workspace)
-                @php
-                    // Hitung statistik task untuk user ini
-                    $myTasks = $workspace->tasks->filter(function($task) {
-                        return $task->assignedUsers->contains(auth()->id());
-                    });
-                    
-                    $totalTasks = $myTasks->count();
-                    $doneTasks = $myTasks->filter(function($task) {
-                        return $task->submissions->where('user_id', auth()->id())->isNotEmpty();
-                    })->count();
-                    
-                    $overdueTasks = $myTasks->filter(function($task) {
-                        $hasSubmission = $task->submissions->where('user_id', auth()->id())->isNotEmpty();
-                        if (!$hasSubmission && $task->due_date) {
-                            return \Carbon\Carbon::parse($task->due_date)->isPast();
-                        }
-                        return false;
-                    })->count();
-                    
-                    $unfinishedTasks = $totalTasks - $doneTasks - $overdueTasks;
-                    $progress = $totalTasks > 0 ? round(($doneTasks / $totalTasks) * 100) : 0;
-                @endphp
-                
-                <a href="{{ route('my-workspaces.show', $workspace) }}" 
-                   class="group block bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-all duration-200 hover:-translate-y-1">
-                    
-                    <!-- Header Card dengan Icon -->
-                    <div class="p-4 sm:p-6 border-b border-gray-100" style="background: linear-gradient(135deg, {{ $workspace->color }}15 0%, {{ $workspace->color }}05 100%);">
-                        <div class="flex items-start justify-between mb-3">
-                            <div class="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-                                <div class="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center text-xl sm:text-2xl rounded-xl shadow-sm flex-shrink-0" 
-                                     style="background-color: {{ $workspace->color }};">
-                                    {{ $workspace->icon }}
-                                </div>
-                                <div class="min-w-0 flex-1">
-                                    <h3 class="font-semibold text-gray-900 text-base sm:text-lg truncate">{{ $workspace->name }}</h3>
-                                    <span class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-white text-gray-600 shadow-sm mt-1">
-                                        {{ ucfirst($workspace->type) }}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        @if($workspace->description)
-                            <p class="text-xs sm:text-sm text-gray-600 line-clamp-2">{{ $workspace->description }}</p>
-                        @endif
-                    </div>
-
-                    <!-- Progress Section -->
-                    <div class="p-4 sm:p-6">
-                        <!-- Progress Bar -->
-                        <div class="mb-3 sm:mb-4">
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="text-xs font-medium text-gray-700">Progress</span>
-                                <span class="text-xs font-bold text-gray-900">{{ $progress }}%</span>
-                            </div>
-                            <div class="w-full bg-gray-200 rounded-full h-2">
-                                <div class="h-2 rounded-full transition-all duration-500" 
-                                     style="width: {{ $progress }}%; background-color: {{ $workspace->color }};">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Task Statistics -->
-                        <div class="grid grid-cols-3 gap-2 sm:gap-3">
-                            <!-- Done -->
-                            <div class="text-center p-2 sm:p-3 bg-green-50 rounded-lg">
-                                <div class="flex items-center justify-center gap-0.5 sm:gap-1 mb-1">
-                                    <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                                    </svg>
-                                    <span class="text-base sm:text-lg font-bold text-green-700">{{ $doneTasks }}</span>
-                                </div>
-                                <p class="text-xs text-green-600 font-medium">Done</p>
-                            </div>
-
-                            <!-- Unfinished -->
-                            <div class="text-center p-2 sm:p-3 bg-gray-50 rounded-lg">
-                                <div class="flex items-center justify-center gap-0.5 sm:gap-1 mb-1">
-                                    <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                    <span class="text-base sm:text-lg font-bold text-gray-700">{{ $unfinishedTasks }}</span>
-                                </div>
-                                <p class="text-xs text-gray-600 font-medium">Todo</p>
-                            </div>
-
-                            <!-- Overdue -->
-                            <div class="text-center p-2 sm:p-3 bg-red-50 rounded-lg">
-                                <div class="flex items-center justify-center gap-0.5 sm:gap-1 mb-1">
-                                    <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                    <span class="text-base sm:text-lg font-bold text-red-700">{{ $overdueTasks }}</span>
-                                </div>
-                                <p class="text-xs text-red-600 font-medium">Late</p>
-                            </div>
-                        </div>
-
-                        <!-- Total Tasks -->
-                        <div class="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-100">
-                            <div class="flex items-center justify-between text-xs sm:text-sm">
-                                <span class="text-gray-600">Total Tasks</span>
-                                <span class="font-semibold text-gray-900">{{ $totalTasks }} task{{ $totalTasks !== 1 ? 's' : '' }}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Footer dengan CTA -->
-                    <div class="px-4 sm:px-6 pb-4 sm:pb-6">
-                        <div class="flex items-center justify-center gap-2 text-xs sm:text-sm font-medium text-gray-700 group-hover:text-indigo-600 transition-colors">
-                            <span>Lihat Detail</span>
-                            <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                            </svg>
-                        </div>
-                    </div>
-                </a>
-            @endforeach
-        </div>
-    @else
-        <!-- Empty State -->
-        <div class="text-center bg-white border-2 border-dashed border-gray-300 rounded-xl py-12 sm:py-16 px-4">
-            <div class="max-w-md mx-auto">
-                <svg class="mx-auto h-12 w-12 sm:h-16 sm:w-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
-                </svg>
-                <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-2">Belum Ada Workspace</h3>
-                <p class="text-xs sm:text-sm text-gray-500">Anda belum memiliki workspace yang berisi tugas. Hubungi admin untuk menambahkan Anda ke workspace.</p>
+    <x-slot name="header">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div>
+                <h2 class="font-semibold text-xl text-gray-800">📂 My Workspaces</h2>
+                <p class="text-sm text-gray-600 mt-1">Manage and track all your tasks across workspaces</p>
             </div>
         </div>
-    @endif
-</div>
+    </x-slot>
 
-<style>
-.line-clamp-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
+    <div class="py-4 sm:py-6">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 space-y-4 sm:space-y-6">
 
-/* Smooth transitions for hover effects */
-.group:hover .group-hover\:translate-x-1 {
-    transform: translateX(0.25rem);
-}
+            @if($workspaces->count() > 0)
+                @php
+                    // Hitung total statistik dari semua workspace
+                    $totalTasks = 0;
+                    $totalDone = 0;
+                    $totalOverdue = 0;
+                    $totalUnfinished = 0;
+                    
+                    foreach($workspaces as $workspace) {
+                        $myTasks = $workspace->tasks->filter(function($task) {
+                            return $task->assignedUsers->contains(auth()->id());
+                        });
+                        
+                        $totalTasks += $myTasks->count();
+                        
+                        $doneTasks = $myTasks->filter(function($task) {
+                            return $task->submissions->where('user_id', auth()->id())->isNotEmpty();
+                        })->count();
+                        $totalDone += $doneTasks;
+                        
+                        $overdueTasks = $myTasks->filter(function($task) {
+                            $hasSubmission = $task->submissions->where('user_id', auth()->id())->isNotEmpty();
+                            if (!$hasSubmission && $task->due_date) {
+                                return \Carbon\Carbon::parse($task->due_date)->isPast();
+                            }
+                            return false;
+                        })->count();
+                        $totalOverdue += $overdueTasks;
+                    }
+                    
+                    $totalUnfinished = $totalTasks - $totalDone - $totalOverdue;
+                @endphp
 
-.group:hover .group-hover\:text-indigo-600 {
-    color: #4f46e5;
-}
+                {{-- Statistics Cards --}}
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                    @php
+                    $statCards = [
+                        ['label' => 'Total Tasks', 'value' => $totalTasks, 'color' => 'blue', 'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2'],
+                        ['label' => 'Completed', 'value' => $totalDone, 'color' => 'green', 'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'],
+                        ['label' => 'Overdue', 'value' => $totalOverdue, 'color' => 'red', 'icon' => 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
+                        ['label' => 'Unfinished', 'value' => $totalUnfinished, 'color' => 'gray', 'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z']
+                    ];
+                    @endphp
 
-/* Ensure proper spacing on mobile */
-@media (max-width: 640px) {
-    .truncate {
-        max-width: 100%;
+                    @foreach($statCards as $card)
+                    <div class="bg-white rounded-lg shadow p-3 sm:p-4 border-l-4 border-{{ $card['color'] }}-500 transition-all hover:shadow-md">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs sm:text-sm text-gray-600 font-medium">{{ $card['label'] }}</p>
+                                <p class="text-xl sm:text-2xl font-bold text-gray-800 mt-1">{{ $card['value'] }}</p>
+                            </div>
+                            <div class="bg-{{ $card['color'] }}-100 p-2 sm:p-3 rounded-full">
+                                <svg class="w-5 h-5 sm:w-6 sm:h-6 text-{{ $card['color'] }}-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $card['icon'] }}"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+
+                {{-- Workspace Grid --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                    @foreach($workspaces as $workspace)
+                        @php
+                            // Hitung statistik task untuk user ini
+                            $myTasks = $workspace->tasks->filter(function($task) {
+                                return $task->assignedUsers->contains(auth()->id());
+                            });
+                            
+                            $totalTasks = $myTasks->count();
+                            $doneTasks = $myTasks->filter(function($task) {
+                                return $task->submissions->where('user_id', auth()->id())->isNotEmpty();
+                            })->count();
+                            
+                            $overdueTasks = $myTasks->filter(function($task) {
+                                $hasSubmission = $task->submissions->where('user_id', auth()->id())->isNotEmpty();
+                                if (!$hasSubmission && $task->due_date) {
+                                    return \Carbon\Carbon::parse($task->due_date)->isPast();
+                                }
+                                return false;
+                            })->count();
+                            
+                            $unfinishedTasks = $totalTasks - $doneTasks - $overdueTasks;
+                            $progress = $totalTasks > 0 ? round(($doneTasks / $totalTasks) * 100) : 0;
+
+                            // Icon mapping dengan SVG lengkap
+                            $iconSvgs = [
+                                'folder' => '<svg class="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>',
+                                'briefcase' => '<svg class="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>',
+                                'chart' => '<svg class="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>',
+                                'target' => '<svg class="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+                                'cog' => '<svg class="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>',
+                                'clipboard' => '<svg class="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>',
+                            ];
+                        @endphp
+                        
+                        <a href="{{ route('my-workspaces.show', $workspace) }}" 
+                           class="block bg-white rounded-lg shadow hover:shadow-lg transition group">
+                            
+                            {{-- Header with Icon and Type Badge --}}
+                            <div class="p-4 sm:p-5 border-b border-gray-100" 
+                                 style="background: linear-gradient(135deg, {{ $workspace->color }}15 0%, {{ $workspace->color }}05 100%);">
+                                <div class="flex items-start gap-3 mb-3">
+                                    <div class="w-12 h-12 flex items-center justify-center rounded-xl shadow-sm flex-shrink-0 text-white" 
+                                         style="background-color: {{ $workspace->color }};">
+                                        {!! $iconSvgs[$workspace->icon] ?? $iconSvgs['folder'] !!}
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <h3 class="font-bold text-gray-900 text-base sm:text-lg mb-1 truncate">{{ $workspace->name }}</h3>
+                                        <span class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-white shadow-sm"
+                                              style="color: {{ $workspace->color }};">
+                                            {{ ucfirst($workspace->type) }}
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                @if($workspace->description)
+                                    <p class="text-xs sm:text-sm text-gray-600 line-clamp-2">{{ $workspace->description }}</p>
+                                @endif
+                            </div>
+
+                            {{-- Stats Section --}}
+                            <div class="p-4 sm:p-5">
+                                {{-- Progress Bar --}}
+                                <div class="mb-4">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="text-xs font-semibold text-gray-700">Progress</span>
+                                        <span class="text-sm font-bold" style="color: {{ $workspace->color }};">{{ $progress }}%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                        <div class="h-2.5 rounded-full transition-all duration-500" 
+                                             style="width: {{ $progress }}%; background-color: {{ $workspace->color }};">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Task Statistics Grid --}}
+                                <div class="grid grid-cols-3 gap-2 mb-4">
+                                    {{-- Done Tasks --}}
+                                    <div class="text-center p-2.5 bg-green-50 rounded-lg border border-green-100">
+                                        <div class="flex items-center justify-center gap-1 mb-1">
+                                            <svg class="w-3.5 h-3.5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                            </svg>
+                                        </div>
+                                        <p class="text-lg font-bold text-green-700">{{ $doneTasks }}</p>
+                                        <p class="text-xs text-green-600 font-medium">Done</p>
+                                    </div>
+
+                                    {{-- Todo Tasks --}}
+                                    <div class="text-center p-2.5 bg-gray-50 rounded-lg border border-gray-100">
+                                        <div class="flex items-center justify-center gap-1 mb-1">
+                                            <svg class="w-3.5 h-3.5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                        </div>
+                                        <p class="text-lg font-bold text-gray-700">{{ $unfinishedTasks }}</p>
+                                        <p class="text-xs text-gray-600 font-medium">Todo</p>
+                                    </div>
+
+                                    {{-- Overdue Tasks --}}
+                                    <div class="text-center p-2.5 {{ $overdueTasks > 0 ? 'bg-red-50 border border-red-100' : 'bg-gray-50 border border-gray-100' }} rounded-lg">
+                                        <div class="flex items-center justify-center gap-1 mb-1">
+                                            <svg class="w-3.5 h-3.5 {{ $overdueTasks > 0 ? 'text-red-600' : 'text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                        </div>
+                                        <p class="text-lg font-bold {{ $overdueTasks > 0 ? 'text-red-700' : 'text-gray-400' }}">{{ $overdueTasks }}</p>
+                                        <p class="text-xs {{ $overdueTasks > 0 ? 'text-red-600' : 'text-gray-400' }} font-medium">Late</p>
+                                    </div>
+                                </div>
+
+                                {{-- Total Tasks --}}
+                                <div class="pt-3 border-t border-gray-100">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-gray-600">Total Tasks</span>
+                                        <span class="text-sm font-bold text-gray-900">{{ $totalTasks }} task{{ $totalTasks !== 1 ? 's' : '' }}</span>
+                                    </div>
+                                </div>
+
+                                {{-- View Details Button --}}
+                                <div class="mt-4 pt-3 border-t border-gray-100">
+                                    <div class="flex items-center justify-center gap-2 text-sm font-semibold group-hover:gap-3 transition-all"
+                                         style="color: {{ $workspace->color }};">
+                                        <span>View Details</span>
+                                        <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    @endforeach
+                </div>
+            @else
+                {{-- Empty State --}}
+                <div class="bg-white rounded-lg shadow p-8 sm:p-12 text-center">
+                    <div class="max-w-md mx-auto">
+                        <div class="bg-gray-100 w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-10 h-10 sm:w-12 sm:h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg sm:text-xl font-bold text-gray-900 mb-2">No Workspaces Yet</h3>
+                        <p class="text-sm sm:text-base text-gray-500 mb-4">You haven't been assigned to any workspaces yet. Contact your administrator to get started.</p>
+                        <div class="flex items-center justify-center gap-2 text-sm text-gray-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span>Check back later for updates</span>
+                        </div>
+                    </div>
+                </div>
+            @endif
+        </div>
+    </div>
+
+    <style>
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
-}
-</style>
+
+    /* Smooth hover transitions */
+    .group:hover {
+        transform: translateY(-2px);
+    }
+
+    /* Ensure text truncation works properly */
+    .truncate {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* Mobile optimization */
+    @media (max-width: 640px) {
+        .truncate {
+            max-width: 100%;
+        }
+    }
+    </style>
 </x-app-layout>

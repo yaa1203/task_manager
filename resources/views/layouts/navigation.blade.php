@@ -97,7 +97,7 @@
                                 @if ($unreadNotifications->count() > 0)
                                     <div class="max-h-60 overflow-y-auto">
                                         @foreach ($unreadNotifications as $notification)
-                                            <a href="@if (isset($notification->data['task_id']) && isset($notification->data['workspace_id'])){{ route('my-workspaces.task.show', ['workspace' => $notification->data['workspace_id'], 'task' => $notification->data['task_id']]) }}@else{{ route('notifikasi.show', $notification) }}@endif" 
+                                            <a href="@if (isset($notification->data['task_id']) && isset($notification->data['workspace_id'])){{ route('my-workspaces.task.show', ['workspace' => $notification->data['workspace_id'], 'task' => $notification->data['task_id']]) }}@else#@endif"
                                                class="block px-4 py-3 hover:bg-gray-50 border-b border-gray-100 relative">
                                                 <div class="flex items-start">
                                                     <div class="flex-shrink-0">
@@ -150,7 +150,7 @@
                                     </div>
                                     <div class="max-h-40 overflow-y-auto">
                                         @foreach ($readNotifications as $notification)
-                                            <a href="@if (isset($notification->data['task_id']) && isset($notification->data['workspace_id'])){{ route('my-workspaces.task.show', ['workspace' => $notification->data['workspace_id'], 'task' => $notification->data['task_id']]) }}@else{{ route('notifikasi.show', $notification) }}@endif" 
+                                            <a href="@if (isset($notification->data['task_id']) && isset($notification->data['workspace_id'])){{ route('my-workspaces.task.show', ['workspace' => $notification->data['workspace_id'], 'task' => $notification->data['task_id']]) }}@else#@endif"
                                                class="block px-4 py-3 hover:bg-gray-50 border-b border-gray-100 opacity-75">
                                                 <div class="flex items-start">
                                                     <div class="flex-shrink-0">
