@@ -120,11 +120,7 @@
                                         {!! $iconSvgs[$workspace->icon] ?? $iconSvgs['folder'] !!}
                                     </div>
                                     <div class="flex-1 min-w-0">
-                                        <h3 class="font-bold text-gray-900 text-base sm:text-lg mb-1 truncate">{{ $workspace->name }}</h3>
-                                        <span class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-white shadow-sm"
-                                              style="color: {{ $workspace->color }};">
-                                            {{ ucfirst($workspace->type) }}
-                                        </span>
+                                        <h3 class="font-bold text-gray-900 text-base sm:text-lg mt-3 mb-1 truncate">{{ $workspace->name }}</h3>
                                     </div>
                                 </div>
                                 

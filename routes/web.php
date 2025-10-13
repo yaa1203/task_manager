@@ -13,21 +13,20 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\WorkspaceController;
 use Illuminate\Support\Facades\Route;
 
+// Root route - redirect berdasarkan status login dan role
 Route::get('/', function () {
     if (auth()->check()) {
-        // Kalau user admin, bisa arahkan ke admin dashboard
+        // Jika user admin, arahkan ke admin dashboard
         if (auth()->user()->role === 'admin') {
             return redirect()->route('admin.dashboard');
         }
-
-        // Kalau user biasa, ke dashboard biasa
+        // Jika user biasa, ke dashboard biasa
         return redirect()->route('dashboard');
     }
-
-    // Kalau belum login, tampilkan halaman welcome
+    
+    // Jika belum login, tampilkan halaman welcome
     return view('welcome');
-});
-
+})->name('home');
 
 Route::middleware(['auth'])->group(function () {
     Route::view('/offline', 'offline')->name('offline');
@@ -61,7 +60,7 @@ Route::post('/register/admin', [AdminRegisterController::class, 'store'])
     ->middleware('guest');
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
-       // User Management
+    // User Management
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
     Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
@@ -96,7 +95,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         ->name('workspace.tasks.destroy');
     Route::get('/workspaces/{workspace}/tasks/{task}', [WorkspaceController::class, 'showTask'])
         ->name('workspace.tasks.show');
-    });
+});
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/dashboard', [DashboardController::class, 'AdminIndex'])

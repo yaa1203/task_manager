@@ -1,12 +1,12 @@
 // Service Worker Version - update this when you want to force cache refresh
-const CACHE_VERSION = 'v1.0.3';
+const CACHE_VERSION = 'v1.0.4';
 const CACHE_NAME = `taskapp-cache-${CACHE_VERSION}`;
 const DATA_CACHE_NAME = `taskapp-data-cache-${CACHE_VERSION}`;
 
 // Files to cache for offline access
 const urlsToCache = [
-  '/',
   '/dashboard',
+  '/admin/dashboard',
   '/tasks',
   '/projects',
   '/calendar',
@@ -25,7 +25,6 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME)
       .then((cache) => {
         console.log('[ServiceWorker] Caching app shell');
-        // Cache files one by one to handle failures gracefully
         return Promise.allSettled(
           urlsToCache.map(url => 
             cache.add(url).catch(err => {
@@ -87,6 +86,20 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Handle root path redirect
+  if (url.pathname === '/') {
+    event.respondWith(
+      fetch(request)
+        .then(response => response)
+        .catch(() => {
+          // If offline, redirect to dashboard
+          return caches.match('/dashboard')
+            .then(cachedResponse => cachedResponse || caches.match('/offline'));
+        })
+    );
+    return;
+  }
+
   // Handle API requests (network first)
   if (request.url.includes('/api/') || 
       request.url.includes('/admin/') || 
@@ -97,11 +110,9 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request.clone())
         .then((response) => {
-          // Don't cache analytics and count endpoints
           if (!request.url.includes('/analytics/') && 
               !request.url.includes('/count')) {
             
-            // Only cache successful responses
             if (response && response.status === 200) {
               const responseToCache = response.clone();
               caches.open(DATA_CACHE_NAME)
@@ -114,14 +125,12 @@ self.addEventListener('fetch', (event) => {
           return response;
         })
         .catch(() => {
-          // Return cached version if network fails
           return caches.match(request)
             .then(cachedResponse => {
               if (cachedResponse) {
                 return cachedResponse;
               }
               
-              // Return empty JSON for analytics if offline
               if (request.url.includes('/analytics/')) {
                 return new Response(
                   JSON.stringify({
@@ -136,7 +145,6 @@ self.addEventListener('fetch', (event) => {
                 );
               }
               
-              // Return 503 for other failed API requests
               return new Response('Service Unavailable', { status: 503 });
             });
         })
@@ -162,8 +170,15 @@ self.addEventListener('fetch', (event) => {
         .catch(() => {
           return caches.match(request)
             .then((response) => {
-              return response || caches.match('/offline') || 
-                     new Response('Offline', { status: 503 });
+              if (response) {
+                return response;
+              }
+              // Try to serve dashboard if offline
+              return caches.match('/dashboard')
+                .then(dashResponse => {
+                  return dashResponse || caches.match('/offline') || 
+                         new Response('Offline', { status: 503 });
+                });
             });
         })
     );
@@ -175,7 +190,6 @@ self.addEventListener('fetch', (event) => {
     caches.match(request)
       .then((response) => {
         if (response) {
-          // Update cache in background
           event.waitUntil(
             fetch(request.clone())
               .then((fetchResponse) => {
@@ -187,12 +201,11 @@ self.addEventListener('fetch', (event) => {
                     .catch(err => console.warn('Background cache update failed:', err));
                 }
               })
-              .catch(() => {}) // Silently fail background update
+              .catch(() => {})
           );
           return response;
         }
 
-        // Not in cache, fetch from network
         return fetch(request.clone())
           .then((response) => {
             if (!response || response.status !== 200) {
@@ -211,7 +224,6 @@ self.addEventListener('fetch', (event) => {
       })
       .catch((error) => {
         console.error('Fetch failed:', error);
-        // Return offline page for document requests
         if (request.destination === 'document') {
           return caches.match('/offline') || 
                  new Response('Offline', { status: 503 });
@@ -233,10 +245,8 @@ self.addEventListener('sync', (event) => {
 // Function to sync tasks when back online
 async function syncTasks() {
   try {
-    // Get all clients
     const clients = await self.clients.matchAll();
     
-    // Clear analytics cache
     const cache = await caches.open(DATA_CACHE_NAME);
     const requests = await cache.keys();
     
@@ -248,7 +258,6 @@ async function syncTasks() {
       }
     }
     
-    // Notify clients
     clients.forEach(client => {
       client.postMessage({
         type: 'SYNC_COMPLETE',
@@ -292,7 +301,7 @@ self.addEventListener('push', (event) => {
     requireInteraction: false,
     data: {
       dateOfArrival: Date.now(),
-      url: data.url || '/'
+      url: data.url || '/dashboard'
     },
     actions: [
       {
@@ -321,18 +330,16 @@ self.addEventListener('notificationclick', (event) => {
     return;
   }
   
-  const url = event.notification.data?.url || '/';
+  const url = event.notification.data?.url || '/dashboard';
   
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true })
       .then((clientList) => {
-        // Check if there's already a window/tab open
         for (const client of clientList) {
-          if (client.url === url && 'focus' in client) {
+          if (client.url.includes('/dashboard') && 'focus' in client) {
             return client.focus();
           }
         }
-        // Open new window if not found
         if (clients.openWindow) {
           return clients.openWindow(url);
         }
@@ -393,7 +400,6 @@ self.addEventListener('message', (event) => {
           })
         );
       }).then(() => {
-        // Send confirmation
         if (event.ports && event.ports[0]) {
           event.ports[0].postMessage({ 
             type: 'CACHE_CLEARED',
