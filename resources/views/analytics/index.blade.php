@@ -17,6 +17,24 @@
     <div class="py-4 sm:py-6">
         <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 space-y-4 sm:space-y-6">
             
+            {{-- Error Alert --}}
+            <div id="error-alert" class="hidden bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+                <div class="flex items-start">
+                    <svg class="w-5 h-5 text-red-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <div class="ml-3">
+                        <p class="text-sm text-red-700 font-medium">Failed to load analytics</p>
+                        <p id="error-message" class="text-xs text-red-600 mt-1"></p>
+                    </div>
+                    <button onclick="hideError()" class="ml-auto text-red-500 hover:text-red-700">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
             {{-- Summary Cards --}}
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
                 @php
@@ -38,7 +56,9 @@
                         </div>
                     </div>
                     <p class="text-[10px] sm:text-xs opacity-90">{{ $card['label'] }}</p>
-                    <p id="{{ $card['id'] }}" class="text-xl sm:text-2xl lg:text-3xl font-bold mt-1">-</p>
+                    <p id="{{ $card['id'] }}" class="text-xl sm:text-2xl lg:text-3xl font-bold mt-1">
+                        <span class="animate-pulse">-</span>
+                    </p>
                 </div>
                 @endforeach
             </div>
@@ -50,10 +70,13 @@
                 <div class="bg-white shadow-lg rounded-lg p-3 sm:p-6">
                     <div class="flex items-center justify-between mb-3 sm:mb-4">
                         <h3 class="text-sm sm:text-base lg:text-lg font-semibold text-gray-800">Task Distribution</h3>
-                        <span class="text-[10px] sm:text-xs text-gray-500">Updated now</span>
+                        <span id="chart-update-time" class="text-[10px] sm:text-xs text-gray-500">Loading...</span>
                     </div>
-                    <div class="h-40 sm:h-48 lg:h-64 mb-3">
+                    <div class="h-40 sm:h-48 lg:h-64 mb-3 relative">
                         <canvas id="taskChart"></canvas>
+                        <div id="task-chart-loading" class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75">
+                            <div class="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full"></div>
+                        </div>
                     </div>
                     <div class="grid grid-cols-3 gap-1.5 sm:gap-2 text-center">
                         @foreach([
@@ -75,8 +98,11 @@
                         <h3 class="text-sm sm:text-base lg:text-lg font-semibold text-gray-800">Workspace Overview</h3>
                         <span class="text-[10px] sm:text-xs text-gray-500">Updated now</span>
                     </div>
-                    <div class="h-40 sm:h-48 lg:h-64 mb-3">
+                    <div class="h-40 sm:h-48 lg:h-64 mb-3 relative">
                         <canvas id="workspaceChart"></canvas>
+                        <div id="workspace-chart-loading" class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75">
+                            <div class="animate-spin h-8 w-8 border-4 border-purple-600 border-t-transparent rounded-full"></div>
+                        </div>
                     </div>
                     <div class="flex justify-center">
                         <div class="bg-purple-50 rounded-lg p-2 sm:p-3 text-center min-w-[100px] sm:min-w-[120px]">
@@ -146,200 +172,321 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         let charts = { task: null, workspace: null };
+        let retryCount = 0;
+        const MAX_RETRIES = 3;
 
-        document.addEventListener("DOMContentLoaded", loadAnalytics);
+        document.addEventListener("DOMContentLoaded", function() {
+            console.log('Analytics page loaded');
+            loadAnalytics();
+        });
 
         function toggleLoading(show = true) {
-            document.getElementById('loading').classList.toggle('hidden', !show);
+            const loading = document.getElementById('loading');
+            if (loading) {
+                loading.classList.toggle('hidden', !show);
+            }
         }
 
-        function loadAnalytics() {
+        function showError(message) {
+            const errorAlert = document.getElementById('error-alert');
+            const errorMessage = document.getElementById('error-message');
+            if (errorAlert && errorMessage) {
+                errorMessage.textContent = message;
+                errorAlert.classList.remove('hidden');
+            }
+            console.error('Analytics Error:', message);
+        }
+
+        function hideError() {
+            const errorAlert = document.getElementById('error-alert');
+            if (errorAlert) {
+                errorAlert.classList.add('hidden');
+            }
+        }
+
+        async function loadAnalytics() {
             toggleLoading(true);
-            fetch("{{ route('analytics.data') }}")
-                .then(res => {
-                    if (!res.ok) throw new Error('Network response was not ok');
-                    return res.json();
-                })
-                .then(data => {
-                    console.log('Analytics data loaded:', data);
-                    updateUI(data);
-                    toggleLoading(false);
-                })
-                .catch(error => {
-                    console.error('Error loading analytics:', error);
-                    toggleLoading(false);
-                    // Show error message to user
-                    alert('Failed to load analytics data. Please refresh the page.');
+            hideError();
+            
+            const url = "{{ route('analytics.data') }}";
+            console.log('Fetching analytics from:', url);
+
+            try {
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin',
+                    cache: 'no-cache' // Force fresh data
                 });
+
+                console.log('Response status:', response.status);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    throw new Error('Response is not JSON');
+                }
+
+                const data = await response.json();
+                console.log('Analytics data received:', data);
+
+                // Validate data structure
+                if (!data || typeof data !== 'object') {
+                    throw new Error('Invalid data structure');
+                }
+
+                updateUI(data);
+                retryCount = 0; // Reset retry count on success
+                toggleLoading(false);
+
+            } catch (error) {
+                console.error('Error loading analytics:', error);
+                toggleLoading(false);
+                
+                if (retryCount < MAX_RETRIES) {
+                    retryCount++;
+                    showError(`Failed to load data. Retrying... (${retryCount}/${MAX_RETRIES})`);
+                    setTimeout(() => loadAnalytics(), 2000 * retryCount);
+                } else {
+                    showError('Failed to load analytics data. Please check your connection and try again.');
+                    // Show default/empty state
+                    updateUI(getDefaultData());
+                }
+            }
+        }
+
+        function getDefaultData() {
+            return {
+                tasks: { done: 0, unfinished: 0, overdue: 0 },
+                workspaces: { total: 0, breakdown: [] },
+                weekly_trend: [],
+                summary: { total_tasks: 0, completion_rate: 0 }
+            };
         }
 
         function updateUI(data) {
-            const { tasks, workspaces, weekly_trend, summary } = data;
-            const done = tasks.done || 0;
-            const unfinished = tasks.unfinished || 0;
-            const overdue = tasks.overdue || 0;
-            const total = done + unfinished + overdue;
-            
-            const completionRate = summary.completion_rate || 0;
-            const overdueRate = total > 0 ? Math.round((overdue / total) * 100) : 0;
-            const avgTasks = workspaces.total > 0 ? (total / workspaces.total).toFixed(1) : '0.0';
-            
-            const updates = {
-                'total-tasks': total,
-                'completed-tasks': done,
-                'unfinished-tasks': unfinished,
-                'overdue-tasks': overdue,
-                'done-count': done,
-                'unfinished-count': unfinished,
-                'overdue-count': overdue,
-                'total-workspaces': workspaces.total || 0,
-                'completion-percentage': completionRate + '%',
-                'overdue-rate-percentage': overdueRate + '%',
-                'avg-tasks': avgTasks
-            };
+            try {
+                const { tasks, workspaces, weekly_trend, summary } = data;
+                
+                // Safely get task counts
+                const done = parseInt(tasks?.done) || 0;
+                const unfinished = parseInt(tasks?.unfinished) || 0;
+                const overdue = parseInt(tasks?.overdue) || 0;
+                const total = done + unfinished + overdue;
+                
+                // Calculate rates
+                const completionRate = parseFloat(summary?.completion_rate) || 0;
+                const overdueRate = total > 0 ? Math.round((overdue / total) * 100) : 0;
+                const totalWorkspaces = parseInt(workspaces?.total) || 0;
+                const avgTasks = totalWorkspaces > 0 ? (total / totalWorkspaces).toFixed(1) : '0.0';
+                
+                // Update all elements safely
+                const updates = {
+                    'total-tasks': total,
+                    'completed-tasks': done,
+                    'unfinished-tasks': unfinished,
+                    'overdue-tasks': overdue,
+                    'done-count': done,
+                    'unfinished-count': unfinished,
+                    'overdue-count': overdue,
+                    'total-workspaces': totalWorkspaces,
+                    'completion-percentage': completionRate + '%',
+                    'overdue-rate-percentage': overdueRate + '%',
+                    'avg-tasks': avgTasks
+                };
 
-            Object.entries(updates).forEach(([id, value]) => {
-                const el = document.getElementById(id);
-                if (el) {
-                    el.textContent = value;
-                    console.log(`Updated ${id} to ${value}`);
+                Object.entries(updates).forEach(([id, value]) => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        el.textContent = value;
+                    }
+                });
+
+                // Update progress bars
+                const completionBar = document.getElementById('completion-bar');
+                const overdueBar = document.getElementById('overdue-rate-bar');
+                
+                if (completionBar) completionBar.style.width = completionRate + '%';
+                if (overdueBar) overdueBar.style.width = overdueRate + '%';
+                
+                // Update timestamp
+                const timestamp = document.getElementById('chart-update-time');
+                if (timestamp) {
+                    timestamp.textContent = 'Updated ' + new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
                 }
-            });
-
-            const completionBar = document.getElementById('completion-bar');
-            const overdueBar = document.getElementById('overdue-rate-bar');
-            
-            if (completionBar) completionBar.style.width = completionRate + '%';
-            if (overdueBar) overdueBar.style.width = overdueRate + '%';
-            
-            updateCharts(data);
+                
+                // Update charts
+                updateCharts(data);
+                
+                console.log('UI updated successfully');
+            } catch (error) {
+                console.error('Error updating UI:', error);
+                showError('Error displaying data: ' + error.message);
+            }
         }
 
         function updateCharts(data) {
-            const taskData = [data.tasks.done || 0, data.tasks.unfinished || 0, data.tasks.overdue || 0];
-            const workspaceData = data.workspaces.breakdown || [];
+            try {
+                const taskData = [
+                    parseInt(data.tasks?.done) || 0, 
+                    parseInt(data.tasks?.unfinished) || 0, 
+                    parseInt(data.tasks?.overdue) || 0
+                ];
+                const workspaceData = Array.isArray(data.workspaces?.breakdown) ? data.workspaces.breakdown : [];
 
-            // Responsive font size based on screen width
-            const isMobile = window.innerWidth < 640;
-            const fontSize = isMobile ? 9 : 11;
-            const legendPadding = isMobile ? 5 : 10;
+                // Responsive settings
+                const isMobile = window.innerWidth < 640;
+                const fontSize = isMobile ? 9 : 11;
+                const legendPadding = isMobile ? 5 : 10;
 
-            // Task Distribution Chart
-            const taskCanvas = document.getElementById('taskChart');
-            if (taskCanvas) {
-                if (charts.task) charts.task.destroy();
-                charts.task = new Chart(taskCanvas, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Done', 'Unfinished', 'Overdue'],
-                        datasets: [{
-                            data: taskData,
-                            backgroundColor: ['#10b981', '#6b7280', '#ef4444'],
-                            borderWidth: isMobile ? 1 : 2,
-                            borderColor: '#ffffff'
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { 
-                                position: 'bottom', 
-                                labels: { 
-                                    padding: legendPadding, 
-                                    font: { size: fontSize },
-                                    boxWidth: isMobile ? 10 : 12
-                                } 
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(ctx) {
-                                        const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
-                                        const pct = total > 0 ? Math.round((ctx.parsed / total) * 100) : 0;
-                                        return `${ctx.label}: ${ctx.parsed} (${pct}%)`;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                });
-            }
+                // Hide loading spinners
+                const taskLoading = document.getElementById('task-chart-loading');
+                const workspaceLoading = document.getElementById('workspace-chart-loading');
+                if (taskLoading) taskLoading.style.display = 'none';
+                if (workspaceLoading) workspaceLoading.style.display = 'none';
 
-            // Workspace Chart
-            const workspaceCanvas = document.getElementById('workspaceChart');
-            if (workspaceCanvas) {
-                if (charts.workspace) charts.workspace.destroy();
-                if (workspaceData.length > 0) {
-                    charts.workspace = new Chart(workspaceCanvas, {
-                        type: 'bar',
+                // Task Distribution Chart
+                const taskCanvas = document.getElementById('taskChart');
+                if (taskCanvas) {
+                    if (charts.task) charts.task.destroy();
+                    
+                    const ctx = taskCanvas.getContext('2d');
+                    charts.task = new Chart(ctx, {
+                        type: 'doughnut',
                         data: {
-                            labels: workspaceData.map(w => {
-                                const maxLen = isMobile ? 10 : 15;
-                                return w.name.length > maxLen ? w.name.substring(0, maxLen) + '...' : w.name;
-                            }),
+                            labels: ['Done', 'Unfinished', 'Overdue'],
                             datasets: [{
-                                label: 'Tasks',
-                                data: workspaceData.map(w => w.tasks),
-                                backgroundColor: '#8b5cf6',
-                                borderRadius: isMobile ? 4 : 8
+                                data: taskData,
+                                backgroundColor: ['#10b981', '#6b7280', '#ef4444'],
+                                borderWidth: isMobile ? 1 : 2,
+                                borderColor: '#ffffff'
                             }]
                         },
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
-                            plugins: { 
-                                legend: { display: false },
+                            plugins: {
+                                legend: { 
+                                    position: 'bottom', 
+                                    labels: { 
+                                        padding: legendPadding, 
+                                        font: { size: fontSize },
+                                        boxWidth: isMobile ? 10 : 12
+                                    } 
+                                },
                                 tooltip: {
                                     callbacks: {
-                                        label: function(ctx) { return `${ctx.parsed.y} tasks`; }
-                                    }
-                                }
-                            },
-                            scales: {
-                                y: { 
-                                    beginAtZero: true, 
-                                    ticks: { 
-                                        stepSize: 1,
-                                        font: { size: fontSize }
-                                    }, 
-                                    grid: { color: '#f3f4f6' } 
-                                },
-                                x: { 
-                                    grid: { display: false },
-                                    ticks: {
-                                        font: { size: fontSize }
+                                        label: function(ctx) {
+                                            const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                            const pct = total > 0 ? Math.round((ctx.parsed / total) * 100) : 0;
+                                            return `${ctx.label}: ${ctx.parsed} (${pct}%)`;
+                                        }
                                     }
                                 }
                             }
                         }
                     });
-                } else {
-                    // Show empty state
-                    const ctx = workspaceCanvas.getContext('2d');
-                    ctx.clearRect(0, 0, workspaceCanvas.width, workspaceCanvas.height);
-                    ctx.font = `${isMobile ? 12 : 14}px sans-serif`;
-                    ctx.fillStyle = '#9ca3af';
-                    ctx.textAlign = 'center';
-                    ctx.fillText('No workspace data', workspaceCanvas.width / 2, workspaceCanvas.height / 2);
                 }
+
+                // Workspace Chart
+                const workspaceCanvas = document.getElementById('workspaceChart');
+                if (workspaceCanvas) {
+                    if (charts.workspace) charts.workspace.destroy();
+                    
+                    const ctx = workspaceCanvas.getContext('2d');
+                    
+                    if (workspaceData.length > 0) {
+                        charts.workspace = new Chart(ctx, {
+                            type: 'bar',
+                            data: {
+                                labels: workspaceData.map(w => {
+                                    const name = w.name || 'Unknown';
+                                    const maxLen = isMobile ? 10 : 15;
+                                    return name.length > maxLen ? name.substring(0, maxLen) + '...' : name;
+                                }),
+                                datasets: [{
+                                    label: 'Tasks',
+                                    data: workspaceData.map(w => parseInt(w.tasks) || 0),
+                                    backgroundColor: '#8b5cf6',
+                                    borderRadius: isMobile ? 4 : 8
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: { 
+                                    legend: { display: false },
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function(ctx) { return `${ctx.parsed.y} tasks`; }
+                                        }
+                                    }
+                                },
+                                scales: {
+                                    y: { 
+                                        beginAtZero: true, 
+                                        ticks: { 
+                                            stepSize: 1,
+                                            font: { size: fontSize }
+                                        }, 
+                                        grid: { color: '#f3f4f6' } 
+                                    },
+                                    x: { 
+                                        grid: { display: false },
+                                        ticks: {
+                                            font: { size: fontSize }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    } else {
+                        // Show empty state
+                        ctx.clearRect(0, 0, workspaceCanvas.width, workspaceCanvas.height);
+                        ctx.font = `${isMobile ? 12 : 14}px sans-serif`;
+                        ctx.fillStyle = '#9ca3af';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('No workspace data', workspaceCanvas.width / 2, workspaceCanvas.height / 2);
+                    }
+                }
+                
+                console.log('Charts updated successfully');
+            } catch (error) {
+                console.error('Error updating charts:', error);
             }
         }
 
         function refreshData() { 
+            console.log('Manual refresh triggered');
+            retryCount = 0;
             loadAnalytics(); 
         }
 
-        // Re-render charts on window resize for better mobile experience
+        // Re-render charts on window resize
         let resizeTimer;
         window.addEventListener('resize', function() {
             clearTimeout(resizeTimer);
             resizeTimer = setTimeout(function() {
                 if (charts.task || charts.workspace) {
-                    // Reload to re-render charts with new dimensions
-                    const event = new Event('DOMContentLoaded');
-                    document.dispatchEvent(event);
+                    console.log('Window resized, re-rendering charts');
+                    loadAnalytics();
                 }
             }, 250);
+        });
+
+        // Handle visibility change (when user returns to tab)
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                console.log('Page became visible, refreshing data');
+                loadAnalytics();
+            }
         });
     </script>
 
@@ -355,10 +502,18 @@
         }
         .animate-fade-in { animation: fadeInUp 0.5s ease-out; }
 
-        /* Ensure canvas responsiveness */
         canvas {
             max-width: 100%;
             height: auto !important;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
     </style>
 </x-app-layout>
