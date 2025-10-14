@@ -171,13 +171,24 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        // Add this script to your analytics index.blade.php, replace the existing loadAnalytics function
+
         let charts = { task: null, workspace: null };
         let retryCount = 0;
         const MAX_RETRIES = 3;
 
         document.addEventListener("DOMContentLoaded", function() {
             console.log('Analytics page loaded');
-            loadAnalytics();
+            
+            // Clear any cached analytics data on page load
+            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({ 
+                    type: 'CLEAR_ANALYTICS_CACHE' 
+                });
+            }
+            
+            // Small delay to ensure service worker is ready
+            setTimeout(() => loadAnalytics(), 100);
         });
 
         function toggleLoading(show = true) {
@@ -212,20 +223,30 @@
             console.log('Fetching analytics from:', url);
 
             try {
-                const response = await fetch(url, {
+                // Add timestamp to prevent caching
+                const timestamp = new Date().getTime();
+                const fetchUrl = `${url}?t=${timestamp}`;
+                
+                const response = await fetch(fetchUrl, {
                     method: 'GET',
                     headers: {
                         'Accept': 'application/json',
                         'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
                     },
                     credentials: 'same-origin',
-                    cache: 'no-cache' // Force fresh data
+                    cache: 'no-store' // Force fresh data
                 });
 
                 console.log('Response status:', response.status);
+                console.log('Response headers:', [...response.headers.entries()]);
 
                 if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Response error:', errorText);
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
@@ -319,7 +340,10 @@
                 // Update timestamp
                 const timestamp = document.getElementById('chart-update-time');
                 if (timestamp) {
-                    timestamp.textContent = 'Updated ' + new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                    timestamp.textContent = 'Updated ' + new Date().toLocaleTimeString('id-ID', { 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                    });
                 }
                 
                 // Update charts
@@ -466,7 +490,15 @@
         function refreshData() { 
             console.log('Manual refresh triggered');
             retryCount = 0;
-            loadAnalytics(); 
+            
+            // Clear service worker cache for analytics
+            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({ 
+                    type: 'CLEAR_ANALYTICS_CACHE' 
+                });
+            }
+            
+            setTimeout(() => loadAnalytics(), 100);
         }
 
         // Re-render charts on window resize
@@ -485,8 +517,30 @@
         document.addEventListener('visibilitychange', function() {
             if (!document.hidden) {
                 console.log('Page became visible, refreshing data');
-                loadAnalytics();
+                
+                // Clear cache and reload
+                if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                    navigator.serviceWorker.controller.postMessage({ 
+                        type: 'CLEAR_ANALYTICS_CACHE' 
+                    });
+                }
+                
+                setTimeout(() => loadAnalytics(), 100);
             }
+        });
+
+        // Handle online event
+        window.addEventListener('online', function() {
+            console.log('Connection restored, refreshing analytics');
+            
+            // Clear cache and reload
+            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({ 
+                    type: 'CLEAR_ANALYTICS_CACHE' 
+                });
+            }
+            
+            setTimeout(() => loadAnalytics(), 100);
         });
     </script>
 
