@@ -34,7 +34,10 @@ class AnalyticsController extends Controller
                 return response()->json([
                     'error' => 'Unauthorized',
                     'message' => 'User not authenticated'
-                ], 401);
+                ], 401)
+                ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', 'Sat, 01 Jan 2000 00:00:00 GMT');
             }
 
             Log::info('Fetching analytics for user: ' . $userId);
@@ -141,7 +144,8 @@ class AnalyticsController extends Controller
                 'summary' => [
                     'total_tasks' => (int) $totalTasks,
                     'completion_rate' => (float) $completionRate,
-                ]
+                ],
+                'timestamp' => time(), // Add timestamp for debugging
             ];
 
             Log::info('Analytics data prepared successfully', [
@@ -151,9 +155,12 @@ class AnalyticsController extends Controller
             ]);
 
             return response()->json($response)
+                ->header('Content-Type', 'application/json; charset=utf-8')
                 ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
                 ->header('Pragma', 'no-cache')
-                ->header('Expires', 'Sat, 01 Jan 2000 00:00:00 GMT');
+                ->header('Expires', 'Sat, 01 Jan 2000 00:00:00 GMT')
+                ->header('X-Content-Type-Options', 'nosniff')
+                ->header('X-Frame-Options', 'DENY');
 
         } catch (\Exception $e) {
             Log::error('Analytics data error: ' . $e->getMessage(), [
@@ -177,7 +184,10 @@ class AnalyticsController extends Controller
                     'total_tasks' => 0,
                     'completion_rate' => 0
                 ]
-            ], 500);
+            ], 500)
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', 'Sat, 01 Jan 2000 00:00:00 GMT');
         }
     }
 
@@ -285,7 +295,8 @@ class AnalyticsController extends Controller
                     'completion_rate' => (float) $completionRate,
                     'unfinished_workload' => (int) $unfinishedWorkload,
                     'overdue_workload' => (int) $overdueTasks,
-                ]
+                ],
+                'timestamp' => time(),
             ];
 
             Log::info('Admin analytics data prepared successfully', [
@@ -294,9 +305,12 @@ class AnalyticsController extends Controller
             ]);
 
             return response()->json($response)
+                ->header('Content-Type', 'application/json; charset=utf-8')
                 ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
                 ->header('Pragma', 'no-cache')
-                ->header('Expires', 'Sat, 01 Jan 2000 00:00:00 GMT');
+                ->header('Expires', 'Sat, 01 Jan 2000 00:00:00 GMT')
+                ->header('X-Content-Type-Options', 'nosniff')
+                ->header('X-Frame-Options', 'DENY');
 
         } catch (\Exception $e) {
             Log::error('Admin analytics data error: ' . $e->getMessage(), [
@@ -321,7 +335,10 @@ class AnalyticsController extends Controller
                     'unfinished_workload' => 0,
                     'overdue_workload' => 0
                 ]
-            ], 500);
+            ], 500)
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', 'Sat, 01 Jan 2000 00:00:00 GMT');
         }
     }
 }

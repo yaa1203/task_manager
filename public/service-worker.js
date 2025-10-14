@@ -1,5 +1,5 @@
 // Service Worker Version - update this when you want to force cache refresh
-const CACHE_VERSION = 'v1.0.5';
+const CACHE_VERSION = 'v1.0.6';
 const CACHE_NAME = `taskapp-cache-${CACHE_VERSION}`;
 const DATA_CACHE_NAME = `taskapp-data-cache-${CACHE_VERSION}`;
 
@@ -20,8 +20,10 @@ const urlsToCache = [
 // URLs that should NEVER be cached (always fetch fresh)
 const noCacheUrls = [
   '/analytics/data',
+  '/admin/analytics/data',
   '/api/',
-  '/admin/analytics/data'
+  '/logout',
+  '/login'
 ];
 
 // Install Event - Cache essential files
@@ -69,6 +71,11 @@ function shouldNeverCache(url) {
   return noCacheUrls.some(pattern => url.includes(pattern));
 }
 
+// Helper function to check if request is for analytics data
+function isAnalyticsRequest(url) {
+  return url.includes('/analytics/data') || url.includes('/admin/analytics/data');
+}
+
 // Fetch Event - Serve from cache when possible
 self.addEventListener('fetch', (event) => {
   const { request } = event;
@@ -88,47 +95,59 @@ self.addEventListener('fetch', (event) => {
 
   // Skip cross-origin requests except for allowed CDNs
   const allowedOrigins = [
-    location.origin,
+    self.location.origin,
     'https://fonts.bunny.net',
     'https://cdn.jsdelivr.net',
     'https://cdn.tailwindcss.com'
   ];
   
-  if (!allowedOrigins.includes(url.origin)) {
+  if (!allowedOrigins.some(origin => url.origin === origin)) {
     return;
   }
 
-  // CRITICAL: Never cache analytics data - always fetch fresh
+  // CRITICAL FIX: Never cache analytics data - always fetch fresh with proper headers
   if (shouldNeverCache(request.url)) {
-    console.log('[ServiceWorker] Force fresh fetch for:', request.url);
+    console.log('[ServiceWorker] Force fresh fetch (no-cache) for:', request.url);
+    
     event.respondWith(
-      fetch(request.clone(), {
+      fetch(request, {
         cache: 'no-store',
+        credentials: 'same-origin',
         headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
           'Cache-Control': 'no-cache, no-store, must-revalidate',
           'Pragma': 'no-cache',
           'Expires': '0'
         }
       })
       .then(response => {
-        // Don't cache the response
-        return response;
+        // Make sure we got a valid response
+        if (!response || !response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        // Clone and return the response
+        return response.clone();
       })
       .catch(error => {
         console.error('[ServiceWorker] Fetch failed for:', request.url, error);
         
-        // Return empty data for analytics instead of cached data
-        if (request.url.includes('/analytics/data')) {
+        // Return proper error response for analytics
+        if (isAnalyticsRequest(request.url)) {
           return new Response(
             JSON.stringify({
+              error: 'Failed to load data',
+              message: 'Please check your connection and try again',
               tasks: { done: 0, unfinished: 0, overdue: 0 },
               workspaces: { total: 0, breakdown: [] },
               weekly_trend: [],
               summary: { total_tasks: 0, completion_rate: 0 }
             }),
             {
-              status: 200,
-              statusText: 'OK (Offline)',
+              status: 503,
+              statusText: 'Service Unavailable',
               headers: { 
                 'Content-Type': 'application/json',
                 'X-Offline': 'true'
@@ -137,7 +156,10 @@ self.addEventListener('fetch', (event) => {
           );
         }
         
-        return new Response('Service Unavailable', { status: 503 });
+        return new Response('Service Unavailable', { 
+          status: 503,
+          statusText: 'Network Error'
+        });
       })
     );
     return;
@@ -163,7 +185,7 @@ self.addEventListener('fetch', (event) => {
       request.url.includes('/projects/count')) {
     
     event.respondWith(
-      fetch(request.clone())
+      fetch(request)
         .then((response) => {
           // Only cache successful responses
           if (response && response.status === 200) {
@@ -193,7 +215,7 @@ self.addEventListener('fetch', (event) => {
   // For navigation requests (HTML pages)
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request.clone())
+      fetch(request)
         .then((response) => {
           if (response && response.status === 200) {
             const responseToCache = response.clone();
@@ -229,7 +251,7 @@ self.addEventListener('fetch', (event) => {
         if (response) {
           // Return cached version and update in background
           event.waitUntil(
-            fetch(request.clone())
+            fetch(request)
               .then((fetchResponse) => {
                 if (fetchResponse && fetchResponse.status === 200) {
                   caches.open(CACHE_NAME)
@@ -245,7 +267,7 @@ self.addEventListener('fetch', (event) => {
         }
 
         // Not in cache, fetch from network
-        return fetch(request.clone())
+        return fetch(request)
           .then((response) => {
             if (!response || response.status !== 200) {
               return response;
@@ -387,43 +409,6 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-// Periodic Background Sync (if supported)
-self.addEventListener('periodicsync', (event) => {
-  if (event.tag === 'update-data') {
-    console.log('[ServiceWorker] Periodic sync:', event.tag);
-    event.waitUntil(updateData());
-  }
-});
-
-async function updateData() {
-  try {
-    const response = await fetch('/api/sync-data', { 
-      cache: 'no-cache',
-      credentials: 'same-origin'
-    });
-    
-    if (!response.ok) {
-      throw new Error('Sync failed');
-    }
-    
-    const data = await response.json();
-    
-    if (data.hasUpdates) {
-      await self.registration.showNotification('Data Updated', {
-        body: 'Your data has been synchronized',
-        icon: '/icons/logo72x72.png',
-        badge: '/icons/logo72x72.png',
-        tag: 'sync-update',
-        renotify: false
-      });
-    }
-    
-    console.log('[ServiceWorker] Data updated successfully');
-  } catch (error) {
-    console.error('[ServiceWorker] Update data failed:', error);
-  }
-}
-
 // Message handler for cache management
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
@@ -481,6 +466,15 @@ self.addEventListener('message', (event) => {
           });
         }
       })
+    );
+  }
+  
+  // Handle check for updates
+  if (event.data && event.data.type === 'CHECK_UPDATE') {
+    event.waitUntil(
+      self.registration.update()
+        .then(() => console.log('[ServiceWorker] Update check completed'))
+        .catch(err => console.error('[ServiceWorker] Update check failed:', err))
     );
   }
 });

@@ -752,6 +752,204 @@
                     });
                 }
             };
+
+            // Add this script to your app.blade.php layout, after the service worker registration
+
+            // PWA Cache Management for Analytics
+            (function() {
+                'use strict';
+                
+                // Check if we're in standalone/PWA mode
+                const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
+                            window.navigator.standalone === true;
+                
+                console.log('App Mode:', isPWA ? 'PWA/Standalone' : 'Browser');
+                
+                // Function to clear analytics cache
+                async function clearAnalyticsCache() {
+                    if (!('serviceWorker' in navigator)) {
+                        console.log('Service Worker not supported');
+                        return;
+                    }
+                    
+                    try {
+                        const controller = navigator.serviceWorker.controller;
+                        if (!controller) {
+                            console.log('No active service worker controller');
+                            return;
+                        }
+                        
+                        // Send message to service worker to clear analytics cache
+                        controller.postMessage({ 
+                            type: 'CLEAR_ANALYTICS_CACHE' 
+                        });
+                        
+                        console.log('Analytics cache clear request sent');
+                        
+                        // Also try to clear via Cache API directly
+                        if ('caches' in window) {
+                            const cacheNames = await caches.keys();
+                            for (const cacheName of cacheNames) {
+                                if (cacheName.includes('data')) {
+                                    const cache = await caches.open(cacheName);
+                                    const requests = await cache.keys();
+                                    
+                                    for (const request of requests) {
+                                        if (request.url.includes('/analytics/data') || 
+                                            request.url.includes('/admin/analytics/data')) {
+                                            await cache.delete(request);
+                                            console.log('Cleared cached analytics:', request.url);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error clearing analytics cache:', error);
+                    }
+                }
+                
+                // Function to force reload analytics page
+                function forceReloadAnalytics() {
+                    if (window.location.pathname.includes('/analytics')) {
+                        console.log('Analytics page detected, forcing data reload');
+                        
+                        // Clear cache first
+                        clearAnalyticsCache().then(() => {
+                            // Wait a bit for cache to clear
+                            setTimeout(() => {
+                                if (typeof loadAnalytics === 'function') {
+                                    loadAnalytics();
+                                } else if (typeof refreshData === 'function') {
+                                    refreshData();
+                                } else {
+                                    // Force page reload as last resort
+                                    window.location.reload();
+                                }
+                            }, 200);
+                        });
+                    }
+                }
+                
+                // Clear cache when service worker is ready
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.ready.then(() => {
+                        console.log('Service Worker ready, clearing analytics cache');
+                        clearAnalyticsCache();
+                    });
+                    
+                    // Listen for service worker controller change
+                    navigator.serviceWorker.addEventListener('controllerchange', () => {
+                        console.log('Service Worker controller changed');
+                        clearAnalyticsCache();
+                    });
+                    
+                    // Listen for messages from service worker
+                    navigator.serviceWorker.addEventListener('message', (event) => {
+                        if (event.data && event.data.type === 'ANALYTICS_CACHE_CLEARED') {
+                            console.log('Analytics cache cleared confirmation received');
+                            
+                            // Reload analytics if we're on that page
+                            if (window.location.pathname.includes('/analytics')) {
+                                if (typeof loadAnalytics === 'function') {
+                                    setTimeout(() => loadAnalytics(), 100);
+                                }
+                            }
+                        }
+                    });
+                }
+                
+                // Clear cache on page load
+                window.addEventListener('load', () => {
+                    console.log('Page loaded, clearing analytics cache');
+                    clearAnalyticsCache();
+                });
+                
+                // Clear cache when navigating to analytics page
+                if (window.location.pathname.includes('/analytics')) {
+                    forceReloadAnalytics();
+                }
+                
+                // Clear cache when coming back online
+                window.addEventListener('online', () => {
+                    console.log('Network connection restored');
+                    clearAnalyticsCache();
+                    
+                    if (window.location.pathname.includes('/analytics')) {
+                        setTimeout(() => forceReloadAnalytics(), 500);
+                    }
+                });
+                
+                // Clear cache when page becomes visible (user switches back to tab)
+                document.addEventListener('visibilitychange', () => {
+                    if (!document.hidden && window.location.pathname.includes('/analytics')) {
+                        console.log('Page became visible, refreshing analytics');
+                        clearAnalyticsCache();
+                        setTimeout(() => forceReloadAnalytics(), 200);
+                    }
+                });
+                
+                // For PWA mode, clear cache more aggressively
+                if (isPWA) {
+                    console.log('PWA mode detected, enabling aggressive cache clearing');
+                    
+                    // Clear cache every time user navigates
+                    let lastPathname = window.location.pathname;
+                    setInterval(() => {
+                        if (window.location.pathname !== lastPathname) {
+                            lastPathname = window.location.pathname;
+                            
+                            if (lastPathname.includes('/analytics')) {
+                                console.log('Navigated to analytics, clearing cache');
+                                clearAnalyticsCache();
+                                setTimeout(() => forceReloadAnalytics(), 300);
+                            }
+                        }
+                    }, 500);
+                    
+                    // Also clear cache periodically on analytics page
+                    if (window.location.pathname.includes('/analytics')) {
+                        setInterval(() => {
+                            clearAnalyticsCache();
+                        }, 30000); // Every 30 seconds
+                    }
+                }
+                
+                // Expose function globally for manual use
+                window.clearAnalyticsCache = clearAnalyticsCache;
+                
+                // Debug helper
+                window.debugPWA = function() {
+                    console.log('=== PWA Debug Info ===');
+                    console.log('Mode:', isPWA ? 'PWA/Standalone' : 'Browser');
+                    console.log('Service Worker:', 'serviceWorker' in navigator ? 'Supported' : 'Not supported');
+                    console.log('Controller:', navigator.serviceWorker?.controller ? 'Active' : 'None');
+                    console.log('Online:', navigator.onLine);
+                    console.log('Current URL:', window.location.href);
+                    
+                    if ('caches' in window) {
+                        caches.keys().then(names => {
+                            console.log('Cache names:', names);
+                            return Promise.all(
+                                names.map(name => 
+                                    caches.open(name).then(cache => 
+                                        cache.keys().then(keys => ({
+                                            name,
+                                            count: keys.length,
+                                            urls: keys.slice(0, 5).map(k => k.url)
+                                        }))
+                                    )
+                                )
+                            );
+                        }).then(details => {
+                            console.log('Cache details:', details);
+                        });
+                    }
+                };
+                
+                console.log('PWA Cache Management initialized');
+                console.log('Run window.debugPWA() for debug information');
+            })();
             
             // Prevent double-tap zoom on mobile
             let lastTouchEnd = 0;
