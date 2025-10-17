@@ -255,7 +255,7 @@
 
     function loadAnalytics() {
         toggleLoading(true);
-        fetch("{{ route('analytict.data') }}")
+        fetch(`${window.location.origin}/analytict/data`)
             .then(res => res.json())
             .then(data => {
                 updateUI(data);
