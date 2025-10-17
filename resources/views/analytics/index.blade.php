@@ -219,7 +219,7 @@
             toggleLoading(true);
             hideError();
             
-            const url = "{{ route('analytics.data') }}";
+            const url = `${window.location.origin}/analytics/data`;
             console.log('Fetching analytics from:', url);
 
             try {

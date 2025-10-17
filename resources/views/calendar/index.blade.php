@@ -243,7 +243,7 @@
                 dayMaxEvents: 3,
                 
                 events: function(info, successCallback, failureCallback) {
-                    fetch('{{ route("calendar.events") }}')
+                    fetch(`${window.location.origin}/calendar/events`)
                         .then(res => res.json())
                         .then(data => {
                             allEvents = data;
