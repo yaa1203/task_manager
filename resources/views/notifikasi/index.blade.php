@@ -42,6 +42,7 @@
                             @php
                                 $data = $notification->data;
                                 $isUnread = is_null($notification->read_at);
+                                $isOverdue = isset($data['type']) && $data['type'] === 'task_overdue';
                                 
                                 // Tentukan URL redirect
                                 $redirectUrl = '#';
@@ -51,9 +52,20 @@
                                         'task' => $data['task_id']
                                     ]);
                                 }
+
+                                // Tentukan warna berdasarkan tipe notifikasi
+                                $bgColor = $isUnread ? 'bg-indigo-50' : 'bg-white';
+                                $iconBgColor = $isUnread ? 'bg-indigo-100' : 'bg-gray-100';
+                                $iconColor = $isUnread ? 'text-indigo-600' : 'text-gray-500';
+                                
+                                if ($isOverdue) {
+                                    $bgColor = $isUnread ? 'bg-red-50' : 'bg-white';
+                                    $iconBgColor = $isUnread ? 'bg-red-100' : 'bg-gray-100';
+                                    $iconColor = $isUnread ? 'text-red-600' : 'text-gray-500';
+                                }
                             @endphp
                             
-                            <li class="{{ $isUnread ? 'bg-indigo-50' : 'bg-white' }} hover:bg-gray-50 transition-colors">
+                            <li class="{{ $bgColor }} hover:bg-gray-50 transition-colors">
                                 <a href="{{ $redirectUrl }}" 
                                    onclick="event.preventDefault(); markAsReadAndRedirect('{{ route('notifikasi.read', $notification) }}', '{{ $redirectUrl }}')"
                                    class="block px-4 sm:px-6 py-4">
@@ -61,7 +73,7 @@
                                         <!-- Status Indicator -->
                                         <div class="flex-shrink-0 mt-1">
                                             @if ($isUnread)
-                                                <div class="w-2.5 h-2.5 rounded-full bg-indigo-600 animate-pulse"></div>
+                                                <div class="w-2.5 h-2.5 rounded-full {{ $isOverdue ? 'bg-red-600' : 'bg-indigo-600' }} animate-pulse"></div>
                                             @else
                                                 <div class="w-2.5 h-2.5 rounded-full bg-gray-300"></div>
                                             @endif
@@ -69,10 +81,16 @@
 
                                         <!-- Icon -->
                                         <div class="flex-shrink-0">
-                                            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full {{ $isUnread ? 'bg-indigo-100' : 'bg-gray-100' }} flex items-center justify-center">
-                                                <svg class="w-5 h-5 sm:w-6 sm:h-6 {{ $isUnread ? 'text-indigo-600' : 'text-gray-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                                                </svg>
+                                            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full {{ $iconBgColor }} flex items-center justify-center">
+                                                @if($isOverdue)
+                                                    <svg class="w-5 h-5 sm:w-6 sm:h-6 {{ $iconColor }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                    </svg>
+                                                @else
+                                                    <svg class="w-5 h-5 sm:w-6 sm:h-6 {{ $iconColor }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                                    </svg>
+                                                @endif
                                             </div>
                                         </div>
 
@@ -82,11 +100,17 @@
                                                 <h3 class="text-sm sm:text-base font-semibold {{ $isUnread ? 'text-gray-900' : 'text-gray-700' }}">
                                                     {{ $data['title'] ?? 'Notification' }}
                                                 </h3>
-                                                @if ($isUnread)
-                                                <span class="flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800">
-                                                    New
-                                                </span>
-                                                @endif
+                                                <div class="flex-shrink-0 flex items-center gap-1">
+                                                    @if ($isOverdue && $isUnread)
+                                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                                                            ⚠️ Overdue
+                                                        </span>
+                                                    @elseif ($isUnread)
+                                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800">
+                                                            New
+                                                        </span>
+                                                    @endif
+                                                </div>
                                             </div>
                                             
                                             <p class="text-sm text-gray-600 mb-2 line-clamp-2">
@@ -107,6 +131,22 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                                                     </svg>
                                                     {{ Str::limit($data['task_title'], 30) }}
+                                                </span>
+                                                @endif
+
+                                                @if(isset($data['priority']))
+                                                <span class="flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium
+                                                    {{ $data['priority'] == 'urgent' ? 'bg-red-100 text-red-700' : '' }}
+                                                    {{ $data['priority'] == 'high' ? 'bg-orange-100 text-orange-700' : '' }}
+                                                    {{ $data['priority'] == 'medium' ? 'bg-yellow-100 text-yellow-700' : '' }}
+                                                    {{ $data['priority'] == 'low' ? 'bg-green-100 text-green-700' : '' }}">
+                                                    {{ ucfirst($data['priority']) }}
+                                                </span>
+                                                @endif
+
+                                                @if(isset($data['days_overdue']) && $data['days_overdue'] < 0)
+                                                <span class="flex items-center gap-1 text-red-600 font-medium">
+                                                    {{ abs($data['days_overdue']) }} day(s) overdue
                                                 </span>
                                                 @endif
                                             </div>
@@ -199,12 +239,10 @@
                 },
             })
             .then(() => {
-                // Redirect to task page
                 window.location.href = redirectUrl;
             })
             .catch(error => {
                 console.error('Error:', error);
-                // Redirect anyway
                 window.location.href = redirectUrl;
             });
         }
