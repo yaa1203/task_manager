@@ -42,6 +42,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/notifikasi', [NotificationController::class, 'index'])->name('notifikasi.index');
     Route::post('/notifikasi/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifikasi.read');
     Route::post('/notifikasi/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])->name('notifikasi.markAllAsRead');
+    // API endpoint untuk get unread count
+    Route::get('/api/notifikasi/unread-count', [NotificationController::class, 'getUnreadCount'])
+        ->name('notifikasi.unread-count');
     Route::get('/my-workspaces', [WorkspaceController::class, 'userIndex'])->name('my-workspaces.index');
     Route::get('/my-workspaces/{workspace}', [WorkspaceController::class, 'userShow'])->name('my-workspaces.show');
     Route::post('/my-workspaces/{workspace}/task/{task}/submit', [WorkspaceController::class, 'submitTask'])->name('my-workspaces.task.submit');

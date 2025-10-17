@@ -1,6 +1,5 @@
 <?php
 
-// app/Http/Controllers/NotificationController.php
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -38,5 +37,15 @@ class NotificationController extends Controller
         Auth::user()->unreadNotifications()->update(['read_at' => now()]);
         
         return back()->with('success', 'All notifications marked as read.');
+    }
+
+    /**
+     * Get unread notification count (for navbar badge)
+     */
+    public function getUnreadCount()
+    {
+        $count = Auth::user()->unreadNotifications()->count();
+        
+        return response()->json(['count' => $count]);
     }
 }
