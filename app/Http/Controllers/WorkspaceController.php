@@ -7,6 +7,7 @@ use App\Models\Task;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use App\Models\UserTaskSubmission;
 use App\Notifications\TaskAssignedNotification;
 use App\Notifications\TaskSubmittedNotification;
@@ -215,6 +216,8 @@ class WorkspaceController extends Controller
             'status' => 'required|in:todo,in_progress,done',
             'priority' => 'required|in:low,medium,high,urgent',
             'due_date' => 'nullable|date',
+            'file' => 'nullable|file|max:10240',
+            'link' => 'nullable|url',
         ]);
 
         // Determine user IDs based on assign_to_all flag
@@ -224,12 +227,21 @@ class WorkspaceController extends Controller
             $userIds = $validated['user_ids'];
         }
 
+        // Handle file upload
+        $filePath = null;
+        if ($request->hasFile('file')) {
+            $filePath = $request->file('file')->store('task_files', 'public');
+            \Log::info('File uploaded: ' . $filePath); // ← TAMBAHKAN INI
+        }
+
         // Create single task
         $task = Task::create([
             'workspace_id' => $workspace->id,
             'created_by' => auth()->id(),
             'title' => $validated['title'],
             'description' => $validated['description'] ?? null,
+            'file_path' => $filePath,
+            'link' => $validated['link'] ?? null,
             'status' => $validated['status'],
             'priority' => $validated['priority'],
             'due_date' => $validated['due_date'],
@@ -286,11 +298,34 @@ class WorkspaceController extends Controller
             'status' => 'required|in:todo,in_progress,done',
             'priority' => 'required|in:low,medium,high,urgent',
             'due_date' => 'nullable|date',
+            'file' => 'nullable|file|max:10240',
+            'link' => 'nullable|url',
+            'remove_file' => 'nullable|boolean',
         ]);
+
+        // Handle file upload
+        $filePath = $task->file_path;
+        
+        // Remove old file if requested
+        if ($request->remove_file && $task->file_path) {
+            Storage::disk('public')->delete($task->file_path);
+            $filePath = null;
+        }
+        
+        // Upload new file if provided
+        if ($request->hasFile('file')) {
+            // Delete old file if exists
+            if ($task->file_path) {
+                Storage::disk('public')->delete($task->file_path);
+            }
+            $filePath = $request->file('file')->store('task_files', 'public');
+        }
 
         $task->update([
             'title' => $validated['title'],
             'description' => $validated['description'] ?? null,
+            'file_path' => $filePath,
+            'link' => $validated['link'] ?? null,
             'status' => $validated['status'],
             'priority' => $validated['priority'],
             'due_date' => $validated['due_date'],
@@ -386,6 +421,9 @@ class WorkspaceController extends Controller
             abort(404);
         }
 
+        // Load task dengan data lengkap
+        $task->load(['assignedUsers', 'creator']);
+        
         $submissions = $task->submissions()
             ->where('user_id', Auth::id())
             ->latest()
@@ -401,7 +439,6 @@ class WorkspaceController extends Controller
      */
     public function submitTask(Request $request, Workspace $workspace, Task $task)
     {
-        // Check if user has access to this task
         $isAccessible = $task->assignedUsers()
             ->where('user_id', Auth::id())
             ->exists();
@@ -418,9 +455,10 @@ class WorkspaceController extends Controller
             'notes' => 'nullable|string|max:1000',
         ]);
 
-        $filePath = $request->hasFile('file')
-            ? $request->file('file')->store('submissions', 'public')
-            : null;
+        $filePath = null;
+        if ($request->hasFile('file')) {
+            $filePath = $request->file('file')->store('submissions', 'public');
+        }
 
         // Update or Create submission
         $submission = UserTaskSubmission::updateOrCreate(
@@ -437,7 +475,7 @@ class WorkspaceController extends Controller
             ]
         );
 
-        // Send notification to workspace owner (admin)
+        // Send notification to workspace owner
         $workspaceOwner = User::find($workspace->user_id);
         if ($workspaceOwner) {
             $workspaceOwner->notify(new \App\Notifications\TaskSubmittedNotification(
@@ -448,5 +486,89 @@ class WorkspaceController extends Controller
         }
 
         return back()->with('success', 'Submission sent successfully!');
+    }
+
+    // Tambahkan method ini ke WorkspaceController.php
+
+    /**
+     * View task file in browser
+     */
+    public function viewTaskFile(Workspace $workspace, Task $task)
+    {
+        $this->authorize('view', $workspace);
+        
+        if ($task->workspace_id !== $workspace->id) {
+            abort(404);
+        }
+
+        if (!$task->file_path || !Storage::disk('public')->exists($task->file_path)) {
+            abort(404, 'File not found');
+        }
+
+        $path = Storage::disk('public')->path($task->file_path);
+        $mimeType = Storage::disk('public')->mimeType($task->file_path);
+        
+        return response()->file($path, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="' . basename($task->file_path) . '"'
+        ]);
+    }
+
+    /**
+     * Download task file
+     */
+    public function downloadTaskFile(Workspace $workspace, Task $task)
+    {
+        $this->authorize('view', $workspace);
+        
+        if ($task->workspace_id !== $workspace->id) {
+            abort(404);
+        }
+
+        if (!$task->file_path || !Storage::disk('public')->exists($task->file_path)) {
+            abort(404, 'File not found');
+        }
+
+        return Storage::disk('public')->download($task->file_path);
+    }
+
+    /**
+     * View submission file in browser
+     */
+    public function viewSubmissionFile(Workspace $workspace, Task $task, UserTaskSubmission $submission)
+    {
+        // Check if user is admin or the submission owner
+        if (Auth::user()->role !== 'admin' && $submission->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        if (!$submission->file_path || !Storage::disk('public')->exists($submission->file_path)) {
+            abort(404, 'File not found');
+        }
+
+        $path = Storage::disk('public')->path($submission->file_path);
+        $mimeType = Storage::disk('public')->mimeType($submission->file_path);
+        
+        return response()->file($path, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="' . basename($submission->file_path) . '"'
+        ]);
+    }
+
+    /**
+     * Download submission file
+     */
+    public function downloadSubmissionFile(Workspace $workspace, Task $task, UserTaskSubmission $submission)
+    {
+        // Check if user is admin or the submission owner
+        if (Auth::user()->role !== 'admin' && $submission->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        if (!$submission->file_path || !Storage::disk('public')->exists($submission->file_path)) {
+            abort(404, 'File not found');
+        }
+
+        return Storage::disk('public')->download($submission->file_path);
     }
 }

@@ -46,6 +46,24 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/my-workspaces/{workspace}', [WorkspaceController::class, 'userShow'])->name('my-workspaces.show');
     Route::post('/my-workspaces/{workspace}/task/{task}/submit', [WorkspaceController::class, 'submitTask'])->name('my-workspaces.task.submit');
     Route::get('/my-workspaces/{workspace}/task/{task}', [WorkspaceController::class, 'userShowTask'])->name('my-workspaces.task.show');
+    // View task file
+    Route::get('{workspace}/tasks/{task}/view', [WorkspaceController::class, 'viewTaskFile'])
+        ->name('my-workspaces.task.view');
+    
+    // Download task file
+    Route::get('{workspace}/tasks/{task}/download', [WorkspaceController::class, 'downloadTaskFile'])
+        ->name('my-workspaces.task.download');
+    
+    // View submission file
+    Route::get('{workspace}/tasks/{task}/submissions/{submission}/view', 
+        [WorkspaceController::class, 'viewSubmissionFile'])
+        ->name('my-workspaces.submission.view');
+    
+    // Download submission file
+    Route::get('{workspace}/tasks/{task}/submissions/{submission}/download', 
+        [WorkspaceController::class, 'downloadSubmissionFile'])
+        ->name('my-workspaces.submission.download');
+
 });
 
 Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])
@@ -95,6 +113,23 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         ->name('workspace.tasks.destroy');
     Route::get('/workspaces/{workspace}/tasks/{task}', [WorkspaceController::class, 'showTask'])
         ->name('workspace.tasks.show');
+    /// View task file
+    Route::get('workspaces/{workspace}/tasks/{task}/view', [WorkspaceController::class, 'viewTaskFile'])
+        ->name('workspace.tasks.view');
+    
+    // Download task file
+    Route::get('workspaces/{workspace}/tasks/{task}/download', [WorkspaceController::class, 'downloadTaskFile'])
+        ->name('workspace.tasks.download');
+    
+    // View submission file
+    Route::get('workspaces/{workspace}/tasks/{task}/submissions/{submission}/view', 
+        [WorkspaceController::class, 'viewSubmissionFile'])
+        ->name('workspace.submissions.view');
+    
+    // Download submission file
+    Route::get('workspaces/{workspace}/tasks/{task}/submissions/{submission}/download', 
+        [WorkspaceController::class, 'downloadSubmissionFile'])
+        ->name('workspace.submissions.download');
 });
 
 Route::middleware(['auth', 'role:admin'])->group(function () {

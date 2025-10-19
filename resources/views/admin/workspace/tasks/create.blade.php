@@ -21,7 +21,6 @@
 
     <!-- Form Card -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <!-- Display All Errors -->
         @if ($errors->any())
         <div class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg">
             <div class="flex items-start gap-3">
@@ -40,7 +39,7 @@
         </div>
         @endif
         
-        <form action="{{ route('workspace.tasks.store', $workspace) }}" method="POST" id="taskForm">
+        <form action="{{ route('workspace.tasks.store', $workspace) }}" method="POST" enctype="multipart/form-data" id="taskForm">
             @csrf
 
             <!-- Task Title -->
@@ -53,11 +52,8 @@
                        id="title" 
                        required
                        value="{{ old('title') }}"
-                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 @error('title') border-red-500 @enderror"
+                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                        placeholder="Enter task title">
-                @error('title')
-                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                @enderror
             </div>
 
             <!-- Description -->
@@ -68,11 +64,41 @@
                 <textarea name="description" 
                           id="description" 
                           rows="4"
-                          class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 @error('description') border-red-500 @enderror"
+                          class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                           placeholder="Enter task description">{{ old('description') }}</textarea>
-                @error('description')
-                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                @enderror
+            </div>
+
+            <!-- File Upload -->
+            <div class="mb-5">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Attach File (Optional)
+                </label>
+                <div class="flex items-center justify-center w-full">
+                    <label for="file" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                        <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                            <svg class="w-8 h-8 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                            </svg>
+                            <p class="mb-2 text-sm text-gray-500"><span class="font-semibold">Click to upload</span> or drag and drop</p>
+                            <p class="text-xs text-gray-500">Max file size: 10MB</p>
+                        </div>
+                        <input id="file" name="file" type="file" class="hidden" onchange="displayFileName(this)" />
+                    </label>
+                </div>
+                <p id="file-name" class="mt-2 text-sm text-gray-600 hidden"></p>
+            </div>
+
+            <!-- Link -->
+            <div class="mb-5">
+                <label for="link" class="block text-sm font-medium text-gray-700 mb-2">
+                    Link (Optional)
+                </label>
+                <input type="url" 
+                       name="link" 
+                       id="link"
+                       value="{{ old('link') }}"
+                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                       placeholder="https://example.com">
             </div>
 
             <!-- Assign To -->
@@ -81,7 +107,6 @@
                     Assign To <span class="text-red-500">*</span>
                 </label>
                 
-                <!-- Assign to All Checkbox -->
                 <div class="mb-3">
                     <label class="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" 
@@ -94,7 +119,6 @@
                     </label>
                 </div>
 
-                <!-- User Selection -->
                 <div id="user-selection" class="border border-gray-300 rounded-lg p-4 max-h-60 overflow-y-auto">
                     @foreach($users as $user)
                     <label class="flex items-center gap-2 py-2 hover:bg-gray-50 px-2 rounded cursor-pointer">
@@ -116,12 +140,8 @@
                     </label>
                     @endforeach
                 </div>
-                @error('user_ids')
-                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                @enderror
             </div>
 
-            <!-- Status (Hidden - Fixed as todo) -->
             <input type="hidden" name="status" value="todo">
 
             <!-- Priority -->
@@ -132,15 +152,12 @@
                 <select name="priority" 
                         id="priority" 
                         required
-                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 @error('priority') border-red-500 @enderror">
-                    <option value="low" {{ old('priority') == 'low' ? 'selected' : '' }}>Low</option>
-                    <option value="medium" {{ old('priority') == 'medium' ? 'selected' : '' }}>Medium</option>
-                    <option value="high" {{ old('priority') == 'high' ? 'selected' : '' }}>High</option>
-                    <option value="urgent" {{ old('priority') == 'urgent' ? 'selected' : '' }}>Urgent</option>
+                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="low">Low</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="high">High</option>
+                    <option value="urgent">Urgent</option>
                 </select>
-                @error('priority')
-                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                @enderror
             </div>
 
             <!-- Due Date -->
@@ -152,10 +169,7 @@
                        name="due_date" 
                        id="due_date"
                        value="{{ old('due_date') }}"
-                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 @error('due_date') border-red-500 @enderror">
-                @error('due_date')
-                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                @enderror
+                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
             </div>
 
             <!-- Action Buttons -->
@@ -174,19 +188,27 @@
 </div>
 
 <script>
+function displayFileName(input) {
+    const fileNameDisplay = document.getElementById('file-name');
+    if (input.files && input.files[0]) {
+        fileNameDisplay.textContent = '📎 ' + input.files[0].name;
+        fileNameDisplay.classList.remove('hidden');
+    } else {
+        fileNameDisplay.classList.add('hidden');
+    }
+}
+
 function toggleUserSelection(checkbox) {
     const userCheckboxes = document.querySelectorAll('.user-checkbox');
     const userSelection = document.getElementById('user-selection');
     
     if (checkbox.checked) {
-        // Check all user checkboxes
         userCheckboxes.forEach(cb => {
             cb.checked = true;
             cb.disabled = true;
         });
         userSelection.classList.add('opacity-50', 'pointer-events-none');
     } else {
-        // Uncheck all user checkboxes
         userCheckboxes.forEach(cb => {
             cb.checked = false;
             cb.disabled = false;
@@ -195,14 +217,11 @@ function toggleUserSelection(checkbox) {
     }
 }
 
-// Handle form submission
 document.getElementById('taskForm').addEventListener('submit', function(e) {
     const assignToAllCheckbox = document.getElementById('assign_to_all');
     const userCheckboxes = document.querySelectorAll('.user-checkbox');
     
-    // If "Assign to all" is checked, we don't need to send individual user_ids
     if (assignToAllCheckbox.checked) {
-        // Remove all user checkboxes from the form data
         userCheckboxes.forEach(cb => {
             cb.disabled = true;
             cb.checked = false;

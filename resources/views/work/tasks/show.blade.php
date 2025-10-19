@@ -1,6 +1,6 @@
 <x-app-layout>
 <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
-    <!-- Back Button & Breadcrumb -->
+    <!-- Back Button -->
     <div class="mb-4 sm:mb-6">
         <a href="{{ route('my-workspaces.show', $workspace) }}" class="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors mb-3">
             <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -32,6 +32,51 @@
                         <p class="text-sm sm:text-base text-gray-600 whitespace-pre-wrap leading-relaxed">{{ $task->description }}</p>
                     </div>
                 @endif
+
+                <!-- Task Attachments from Admin - ALWAYS SHOW THIS SECTION -->
+                <div class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <h4 class="text-sm font-semibold text-blue-900 mb-3 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+                        </svg>
+                        Task Materials
+                    </h4>
+                    
+                    @if($task->file_path || $task->link)
+                        <div class="flex flex-col sm:flex-row flex-wrap gap-2">
+                            @if($task->file_path)
+                                <div class="flex gap-2">
+                                    <a href="{{ route('my-workspaces.task.download', [$workspace, $task]) }}" 
+                                       class="inline-flex items-center gap-2 px-3 py-2 text-xs sm:text-sm bg-white text-gray-700 rounded-lg hover:bg-gray-100 border border-gray-300 transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+                                        </svg>
+                                        View/Download File
+                                    </a>
+                                </div>
+                            @endif
+
+                            @if($task->link)
+                                <a href="{{ $task->link }}" 
+                                   target="_blank"
+                                   class="inline-flex items-center gap-2 px-3 py-2 text-xs sm:text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 border border-blue-600 transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                    </svg>
+                                    Open Link
+                                </a>
+                            @endif
+                        </div>
+                    @else
+                        <div class="text-center py-4">
+                            <svg class="mx-auto h-8 w-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            <p class="text-sm text-gray-600">No materials attached</p>
+                            <p class="text-xs text-gray-500">Admin hasn't uploaded any files or links yet</p>
+                        </div>
+                    @endif
+                </div>
 
                 <div class="grid grid-cols-2 gap-3 sm:gap-4 pt-4 border-t border-gray-200">
                     <div>
@@ -75,7 +120,7 @@
                 </div>
             </div>
 
-            <!-- Submit Task Card (Mobile - shows here) -->
+            <!-- Submit Task Card (Mobile) -->
             <div class="lg:hidden bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm">
                 <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-4">Submit Task</h3>
 
@@ -98,7 +143,6 @@
                       class="space-y-3 sm:space-y-4">
                     @csrf
 
-                    <!-- File Upload -->
                     <div>
                         <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                             Upload File
@@ -108,12 +152,8 @@
                                {{ $hasSubmitted ? 'disabled' : '' }}
                                class="block w-full text-xs sm:text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none {{ $hasSubmitted ? 'opacity-50' : '' }}">
                         <p class="mt-1 text-xs text-gray-500">Max 10MB</p>
-                        @error('file')
-                            <p class="mt-1 text-xs sm:text-sm text-red-600">{{ $message }}</p>
-                        @enderror
                     </div>
 
-                    <!-- Link -->
                     <div>
                         <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                             Link (Optional)
@@ -123,12 +163,8 @@
                                placeholder="https://example.com"
                                {{ $hasSubmitted ? 'disabled' : '' }}
                                class="block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 {{ $hasSubmitted ? 'opacity-50 bg-gray-100' : '' }}">
-                        @error('link')
-                            <p class="mt-1 text-xs sm:text-sm text-red-600">{{ $message }}</p>
-                        @enderror
                     </div>
 
-                    <!-- Notes -->
                     <div>
                         <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                             Notes
@@ -138,9 +174,6 @@
                                   placeholder="Add any additional notes..."
                                   {{ $hasSubmitted ? 'disabled' : '' }}
                                   class="block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 {{ $hasSubmitted ? 'opacity-50 bg-gray-100' : '' }}"></textarea>
-                        @error('notes')
-                            <p class="mt-1 text-xs sm:text-sm text-red-600">{{ $message }}</p>
-                        @enderror
                     </div>
 
                     <button type="submit" 
@@ -185,13 +218,12 @@
 
                                 <div class="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-3">
                                     @if($submission->file_path)
-                                        <a href="{{ asset('storage/' . $submission->file_path) }}" 
-                                           target="_blank"
+                                        <a href="{{ route('my-workspaces.submission.download', [$workspace, $task, $submission]) }}" 
                                            class="inline-flex items-center justify-center gap-2 px-3 py-2 text-xs sm:text-sm bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 border border-gray-200 transition-colors">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                                             </svg>
-                                            View File
+                                            Download File
                                         </a>
                                     @endif
 
@@ -200,9 +232,9 @@
                                            target="_blank"
                                            class="inline-flex items-center justify-center gap-2 px-3 py-2 text-xs sm:text-sm bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 border border-blue-200 transition-colors">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                                             </svg>
-                                            View Link
+                                            Open Link
                                         </a>
                                     @endif
                                 </div>
@@ -235,7 +267,6 @@
 
         <!-- Sidebar (Desktop only) -->
         <div class="hidden lg:block lg:col-span-1">
-            <!-- Submit Task Card -->
             <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm sticky top-6">
                 <h3 class="text-lg font-semibold text-gray-900 mb-4">Submit Task</h3>
 
@@ -258,7 +289,6 @@
                       class="space-y-4">
                     @csrf
 
-                    <!-- File Upload -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             Upload File
@@ -268,12 +298,8 @@
                                {{ $hasSubmitted ? 'disabled' : '' }}
                                class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none {{ $hasSubmitted ? 'opacity-50' : '' }}">
                         <p class="mt-1 text-xs text-gray-500">Max 10MB</p>
-                        @error('file')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
                     </div>
 
-                    <!-- Link -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             Link (Optional)
@@ -283,12 +309,8 @@
                                placeholder="https://example.com"
                                {{ $hasSubmitted ? 'disabled' : '' }}
                                class="block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 {{ $hasSubmitted ? 'opacity-50 bg-gray-100' : '' }}">
-                        @error('link')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
                     </div>
 
-                    <!-- Notes -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             Notes
@@ -298,9 +320,6 @@
                                   placeholder="Add any additional notes..."
                                   {{ $hasSubmitted ? 'disabled' : '' }}
                                   class="block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 {{ $hasSubmitted ? 'opacity-50 bg-gray-100' : '' }}"></textarea>
-                        @error('notes')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
                     </div>
 
                     <button type="submit" 
@@ -313,23 +332,4 @@
         </div>
     </div>
 </div>
-
-<style>
-/* Hide scrollbar for breadcrumb */
-.scrollbar-hide::-webkit-scrollbar {
-    display: none;
-}
-.scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-}
-
-/* Sticky sidebar with proper offset */
-@media (min-width: 1024px) {
-    .sticky {
-        position: sticky;
-        top: 1.5rem;
-    }
-}
-</style>
 </x-app-layout>

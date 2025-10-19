@@ -16,6 +16,8 @@ class Task extends Model
         'created_by',
         'title',
         'description',
+        'file_path',      // ← TAMBAHKAN INI
+        'link',           // ← TAMBAHKAN INI
         'status',
         'priority',
         'due_date',
@@ -125,5 +127,13 @@ class Task extends Model
     public function isCompleted(): bool
     {
         return $this->getProgressPercentage() === 100;
+    }
+
+    /**
+     * Check if task has attachments
+     */
+    public function hasAttachments(): bool
+    {
+        return !empty($this->file_path) || !empty($this->link);
     }
 }
