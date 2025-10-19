@@ -165,7 +165,7 @@
                                             </svg>
                                         </div>
                                         <p class="text-lg font-bold text-gray-700">{{ $unfinishedTasks }}</p>
-                                        <p class="text-xs text-gray-600 font-medium">Todo</p>
+                                        <p class="text-xs text-gray-600 font-medium">Unfinished</p>
                                     </div>
 
                                     {{-- Overdue Tasks --}}
@@ -176,7 +176,7 @@
                                             </svg>
                                         </div>
                                         <p class="text-lg font-bold {{ $overdueTasks > 0 ? 'text-red-700' : 'text-gray-400' }}">{{ $overdueTasks }}</p>
-                                        <p class="text-xs {{ $overdueTasks > 0 ? 'text-red-600' : 'text-gray-400' }} font-medium">Late</p>
+                                        <p class="text-xs {{ $overdueTasks > 0 ? 'text-red-600' : 'text-gray-400' }} font-medium">Overdue</p>
                                     </div>
                                 </div>
 
