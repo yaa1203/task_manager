@@ -72,7 +72,7 @@
                                             </div>
                                         </div>
                                         <div class="flex gap-2">
-                                            <a href="{{ route('workspace.tasks.view', [$workspace, $task]) }}" 
+                                            <a href="{{ route('workspace.tasks.view-file', [$workspace, $task]) }}" 
                                                target="_blank"
                                                class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all text-sm font-medium shadow-sm hover:shadow">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
