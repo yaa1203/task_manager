@@ -1,3 +1,7 @@
+@php
+use Illuminate\Support\Facades\Storage;
+@endphp
+
 <x-app-layout>
 <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
     <!-- Back Button -->
@@ -33,47 +37,119 @@
                     </div>
                 @endif
 
-                <!-- Task Attachments from Admin - ALWAYS SHOW THIS SECTION -->
+                <!-- Task Materials from Admin - ALWAYS SHOW THIS SECTION -->
                 <div class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <h4 class="text-sm font-semibold text-blue-900 mb-3 flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
-                        </svg>
-                        Task Materials
-                    </h4>
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="text-sm font-semibold text-blue-900 flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+                            </svg>
+                            Task Materials
+                        </h4>
+                        @if($task->file_path)
+                            <a href="{{ route('my-workspaces.task.download', [$workspace, $task]) }}" 
+                            class="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                            download>
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                </svg>
+                                Download
+                            </a>
+                        @endif
+                    </div>
                     
                     @if($task->file_path || $task->link)
-                        <div class="flex flex-col sm:flex-row flex-wrap gap-2">
+                        <div class="space-y-3">
                             @if($task->file_path)
-                                <div class="flex gap-2">
-                                    <a href="{{ route('my-workspaces.task.download', [$workspace, $task]) }}" 
-                                       class="inline-flex items-center gap-2 px-3 py-2 text-xs sm:text-sm bg-white text-gray-700 rounded-lg hover:bg-gray-100 border border-gray-300 transition-colors">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
-                                        </svg>
-                                        View/Download File
-                                    </a>
-                                </div>
+                                @php
+                                    $fileExtension = strtolower(pathinfo($task->file_path, PATHINFO_EXTENSION));
+                                    $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp'];
+                                    $isImage = in_array($fileExtension, $imageExtensions);
+                                    $storagePath = storage_path('app/public/' . $task->file_path);
+                                    $imageExists = file_exists($storagePath);
+                                @endphp
+                                
+                                @if($isImage)
+                                    <!-- Display image directly -->
+                                    @if($imageExists)
+                                        <div class="bg-white rounded-lg overflow-hidden border border-gray-200 shadow-sm">
+                                            <!-- Gunakan route view-file untuk menampilkan gambar -->
+                                            <a href="{{ route('my-workspaces.task.view-file', [$workspace, $task]) }}" 
+                                            target="_blank" 
+                                            class="block">
+                                                <img src="{{ asset('storage/' . $task->file_path) }}" 
+                                                    alt="Task attachment"
+                                                    class="w-full h-auto max-h-[500px] object-contain hover:opacity-95 transition-opacity"
+                                                    loading="lazy">
+                                            </a>
+                                        </div>
+                                        <p class="text-xs text-gray-600 text-center mt-2">
+                                            <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                            </svg>
+                                            Click image to view full size
+                                        </p>
+                                    @else
+                                        <div class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+                                            <svg class="w-12 h-12 text-red-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                            </svg>
+                                            <p class="text-sm font-medium text-red-800 mb-1">Image file not found in storage</p>
+                                            <p class="text-xs text-red-600 mb-2">{{ $task->file_path }}</p>
+                                            <p class="text-xs text-red-500">Please ensure: php artisan storage:link has been run</p>
+                                        </div>
+                                    @endif
+                                @else
+                                    <!-- Display file icon for non-images -->
+                                    <div class="bg-white rounded-lg p-4 border border-gray-200">
+                                        <div class="flex items-center gap-3">
+                                            <div class="flex-shrink-0">
+                                                <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                                                </svg>
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-sm font-medium text-gray-900 truncate">
+                                                    {{ basename($task->file_path) }}
+                                                </p>
+                                                <p class="text-xs text-gray-500 uppercase">{{ $fileExtension }} file</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
                             @endif
 
                             @if($task->link)
                                 <a href="{{ $task->link }}" 
-                                   target="_blank"
-                                   class="inline-flex items-center gap-2 px-3 py-2 text-xs sm:text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 border border-blue-600 transition-colors">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                                    </svg>
-                                    Open Link
+                                target="_blank"
+                                class="block bg-white rounded-lg p-4 border border-blue-200 hover:border-blue-400 transition-all group">
+                                    <div class="flex items-center gap-3">
+                                        <div class="flex-shrink-0">
+                                            <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                                            </svg>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm font-medium text-blue-900 group-hover:text-blue-700 truncate">
+                                                Reference Link
+                                            </p>
+                                            <p class="text-xs text-gray-600 truncate">{{ $task->link }}</p>
+                                        </div>
+                                        <svg class="w-5 h-5 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                        </svg>
+                                    </div>
                                 </a>
                             @endif
                         </div>
                     @else
-                        <div class="text-center py-4">
-                            <svg class="mx-auto h-8 w-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="text-center py-6">
+                            <svg class="mx-auto h-12 w-12 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                             </svg>
-                            <p class="text-sm text-gray-600">No materials attached</p>
-                            <p class="text-xs text-gray-500">Admin hasn't uploaded any files or links yet</p>
+                            <p class="text-sm text-gray-600 font-medium">No materials attached</p>
+                            <p class="text-xs text-gray-500 mt-1">Admin hasn't uploaded any files or links yet</p>
                         </div>
                     @endif
                 </div>
