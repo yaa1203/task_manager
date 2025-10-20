@@ -1,17 +1,17 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800">Dashboard</h2>
+        <h2 class="font-semibold text-xl text-gray-800">Dasbor</h2>
     </x-slot>
 
     <div class="py-4 sm:py-6">
         <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 space-y-4 sm:space-y-6">
 
-            {{-- ALERT: Critical Overdue Tasks --}}
+            {{-- ALERT: Tugas Terlambat Kritikal --}}
             @if($overdueTasks->count() > 0)
             <div class="bg-gradient-to-r from-red-50 to-red-100 border border-red-300 rounded-xl shadow-lg overflow-hidden">
                 <div class="p-3 sm:p-4 md:p-6">
                     <div class="flex items-start gap-3 sm:gap-4">
-                        <!-- Icon with pulse animation -->
+                        <!-- Ikon dengan animasi pulse -->
                         <div class="flex-shrink-0">
                             <div class="relative">
                                 <div class="absolute inset-0 bg-red-500 rounded-full animate-ping opacity-75"></div>
@@ -23,18 +23,18 @@
                             </div>
                         </div>
                         
-                        <!-- Content -->
+                        <!-- Konten -->
                         <div class="flex-1 min-w-0">
                             <div class="flex items-start justify-between gap-2 mb-2 sm:mb-3">
                                 <div class="flex-1 min-w-0">
-                                    <h3 class="text-base sm:text-lg md:text-xl font-bold text-red-900 mb-1 flex flex-wrap items-center gap-1.5 sm:gap-2">
-                                        <span>Critical Alert</span>
+                                    <h3 class="text-base sm:text-base md:text-xl font-bold text-red-900 mb-1 flex flex-wrap items-center gap-1.5 sm:gap-2">
+                                        <span>Peringatan Kritis</span>
                                         <span class="px-2 sm:px-2.5 py-0.5 bg-red-600 text-white text-xs font-bold rounded-full">
                                             {{ $overdueTasks->count() }}
                                         </span>
                                     </h3>
                                     <p class="text-xs sm:text-sm text-red-700 font-medium">
-                                        {{ $overdueTasks->count() }} {{ Str::plural('task', $overdueTasks->count()) }} overdue and require immediate attention
+                                        {{ $overdueTasks->count() }} {{ Str::plural('tugas', $overdueTasks->count()) }} terlambat dan memerlukan perhatian segera
                                     </p>
                                 </div>
                                 <button onclick="this.closest('.bg-gradient-to-r').remove()" 
@@ -45,7 +45,7 @@
                                 </button>
                             </div>
 
-                            <!-- Task List -->
+                            <!-- Daftar Tugas -->
                             <div class="space-y-2 sm:space-y-2.5">
                                 @foreach($overdueTasks->take(3) as $task)
                                 <div class="bg-white rounded-lg border border-red-200 p-2.5 sm:p-3 md:p-3.5 shadow-sm hover:shadow-md transition-shadow">
@@ -66,7 +66,7 @@
                                             </div>
                                             
                                             <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                                                <!-- Priority Badge -->
+                                                <!-- Badge Prioritas -->
                                                 <span class="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 text-xs font-bold rounded-full
                                                     @if($task->priority === 'urgent') bg-red-100 text-red-800 border border-red-300
                                                     @elseif($task->priority === 'high') bg-orange-100 text-orange-800 border border-orange-300
@@ -81,7 +81,7 @@
                                                     {{ ucfirst($task->priority) }}
                                                 </span>
 
-                                                <!-- Due Date -->
+                                                <!-- Tanggal Jatuh Tempo -->
                                                 <span class="inline-flex items-center gap-1 sm:gap-1.5 text-xs text-red-700 font-semibold">
                                                     <svg class="w-3 sm:w-3.5 h-3 sm:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -91,25 +91,25 @@
                                             </div>
                                         </div>
 
-                                        <!-- Action Button -->
+                                        <!-- Tombol Aksi -->
                                         <a href="{{ route('my-workspaces.task.show', [$task->workspace_id, $task->id]) }}" 
                                         class="flex-shrink-0 inline-flex items-center justify-center gap-1 sm:gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition-all shadow-sm hover:shadow w-full sm:w-auto">
                                             <svg class="w-3 sm:w-3.5 h-3 sm:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
                                             </svg>
-                                            <span>Submit Now</span>
+                                            <span>Kirim Sekarang</span>
                                         </a>
                                     </div>
                                 </div>
                                 @endforeach
                             </div>
 
-                            <!-- View All Link -->
+                            <!-- Tautan Lihat Semua -->
                             @if($overdueTasks->count() > 3)
                             <div class="mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-red-200">
                                 <a href="{{ route('my-workspaces.index') }}" 
                                 class="inline-flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-red-700 hover:text-red-900 font-semibold group">
-                                    <span>View all {{ $overdueTasks->count() }} overdue tasks</span>
+                                    <span>Lihat semua {{ $overdueTasks->count() }} tugas terlambat</span>
                                     <svg class="w-3.5 sm:w-4 h-3.5 sm:h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
                                     </svg>
@@ -122,12 +122,12 @@
             </div>
             @endif
 
-            {{-- ALERT: Upcoming Deadline Warning --}}
+            {{-- ALERT: Peringatan Batas Waktu Mendekati --}}
             @if($upcomingDeadlineTasks->count() > 0)
             <div class="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-300 rounded-xl shadow-md overflow-hidden">
                 <div class="p-3 sm:p-4 md:p-5">
                     <div class="flex items-start gap-3 sm:gap-4">
-                        <!-- Icon -->
+                        <!-- Ikon -->
                         <div class="flex-shrink-0">
                             <div class="bg-amber-500 rounded-full p-2 sm:p-2.5">
                                 <svg class="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -136,18 +136,18 @@
                             </div>
                         </div>
                         
-                        <!-- Content -->
+                        <!-- Konten -->
                         <div class="flex-1 min-w-0">
                             <div class="flex items-start justify-between gap-2 mb-2">
                                 <div class="flex-1 min-w-0">
                                     <h3 class="text-sm sm:text-base md:text-lg font-bold text-amber-900 mb-1 flex flex-wrap items-center gap-1.5 sm:gap-2">
-                                        <span>Upcoming Deadline</span>
+                                        <span>Batas Waktu Mendekati</span>
                                         <span class="px-1.5 sm:px-2 py-0.5 bg-amber-600 text-white text-xs font-bold rounded-full">
                                             {{ $upcomingDeadlineTasks->count() }}
                                         </span>
                                     </h3>
                                     <p class="text-xs sm:text-sm text-amber-700">
-                                        {{ $upcomingDeadlineTasks->count() }} {{ Str::plural('task', $upcomingDeadlineTasks->count()) }} due within 24 hours
+                                        {{ $upcomingDeadlineTasks->count() }} {{ Str::plural('tugas', $upcomingDeadlineTasks->count()) }} jatuh tempo dalam 24 jam
                                     </p>
                                 </div>
                                 <button onclick="this.closest('.bg-gradient-to-r').remove()" 
@@ -175,19 +175,19 @@
             </div>
             @endif
 
-            {{-- Welcome Section --}}
+            {{-- Bagian Selamat Datang --}}
             <div class="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl shadow-lg p-4 sm:p-6 text-white relative overflow-hidden">
                 <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full"></div>
                 <div class="absolute bottom-0 left-0 -mb-8 -ml-8 w-40 h-40 bg-white opacity-10 rounded-full"></div>
                 <div class="relative">
-                    <h3 class="text-lg sm:text-xl font-bold mb-1">Welcome back, {{ auth()->user()->name }}! 👋</h3>
-                    <p class="text-blue-100 text-sm">Here's an overview of your activity</p>
+                    <h3 class="text-lg sm:text-xl font-bold mb-1">Selamat datang kembali, {{ auth()->user()->name }}! 👋</h3>
+                    <p class="text-blue-100 text-sm">Berikut ringkasan aktivitas Anda</p>
                 </div>
             </div>
 
-            {{-- Stats Section --}}
+            {{-- Bagian Statistik --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                {{-- Total Workspaces --}}
+                {{-- Total Ruang Kerja --}}
                 <div class="bg-white rounded-xl shadow-md p-4 sm:p-6 hover:shadow-lg transition-shadow border border-gray-100">
                     <div class="flex items-center justify-between mb-3">
                         <div class="bg-gradient-to-br from-purple-500 to-purple-600 p-2.5 sm:p-3 rounded-xl shadow-md">
@@ -196,11 +196,11 @@
                             </svg>
                         </div>
                     </div>
-                    <h4 class="text-sm text-gray-600 mb-1 font-medium">My Workspaces</h4>
+                    <h4 class="text-sm text-gray-600 mb-1 font-medium">Ruang Kerja Saya</h4>
                     <p class="text-2xl sm:text-3xl font-bold text-purple-600">{{ $workspacesCount }}</p>
                 </div>
 
-                {{-- Total Tasks --}}
+                {{-- Total Tugas --}}
                 <div class="bg-white rounded-xl shadow-md p-4 sm:p-6 hover:shadow-lg transition-shadow border border-gray-100">
                     <div class="flex items-center justify-between mb-3">
                         <div class="bg-gradient-to-br from-indigo-500 to-indigo-600 p-2.5 sm:p-3 rounded-xl shadow-md">
@@ -209,7 +209,7 @@
                             </svg>
                         </div>
                     </div>
-                    <h4 class="text-sm text-gray-600 mb-1 font-medium">Total Tasks</h4>
+                    <h4 class="text-sm text-gray-600 mb-1 font-medium">Total Tugas</h4>
                     <p class="text-2xl sm:text-3xl font-bold text-indigo-600">{{ $totalTasks }}</p>
                     
                     <div class="mt-3 pt-3 border-t border-gray-100 flex flex-wrap gap-2 text-xs">
@@ -217,24 +217,24 @@
                             <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                             </svg>
-                            {{ $doneTasks }} Done
+                            {{ $doneTasks }} Selesai
                         </span>
                         <span class="inline-flex items-center gap-1 bg-gray-50 text-gray-700 px-2 py-1 rounded-md font-semibold">
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
-                            {{ $unfinishedTasks }} Todo
+                            {{ $unfinishedTasks }} Belum Selesai
                         </span>
                         <span class="inline-flex items-center gap-1 bg-red-50 text-red-700 px-2 py-1 rounded-md font-semibold">
                             <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
                             </svg>
-                            {{ $overdueCount }} Late
+                            {{ $overdueCount }} Terlambat
                         </span>
                     </div>
                 </div>
 
-                {{-- Completion Rate --}}
+                {{-- Tingkat Penyelesaian --}}
                 <div class="bg-white rounded-xl shadow-md p-4 sm:p-6 hover:shadow-lg transition-shadow border border-gray-100">
                     <div class="flex items-center justify-between mb-3">
                         <div class="bg-gradient-to-br from-green-500 to-green-600 p-2.5 sm:p-3 rounded-xl shadow-md">
@@ -243,7 +243,7 @@
                             </svg>
                         </div>
                     </div>
-                    <h4 class="text-sm text-gray-600 mb-1 font-medium">Completion Rate</h4>
+                    <h4 class="text-sm text-gray-600 mb-1 font-medium">Tingkat Penyelesaian</h4>
                     <p class="text-2xl sm:text-3xl font-bold text-green-600">{{ $completionRate }}%</p>
                     
                     <div class="mt-3">
@@ -255,7 +255,7 @@
                     </div>
                 </div>
 
-                {{-- Overdue Tasks Alert --}}
+                {{-- Alert Tugas Terlambat --}}
                 <div class="bg-white rounded-xl shadow-md p-4 sm:p-6 hover:shadow-lg transition-all border {{ $overdueCount > 0 ? 'border-red-300 ring-2 ring-red-100' : 'border-gray-100' }}">
                     <div class="flex items-center justify-between mb-3">
                         <div class="bg-gradient-to-br {{ $overdueCount > 0 ? 'from-red-500 to-red-600' : 'from-gray-400 to-gray-500' }} p-2.5 sm:p-3 rounded-xl shadow-md">
@@ -264,35 +264,35 @@
                             </svg>
                         </div>
                     </div>
-                    <h4 class="text-sm text-gray-600 mb-1 font-medium">Overdue Tasks</h4>
+                    <h4 class="text-sm text-gray-600 mb-1 font-medium">Tugas Terlambat</h4>
                     <p class="text-2xl sm:text-3xl font-bold {{ $overdueCount > 0 ? 'text-red-600' : 'text-gray-400' }}">{{ $overdueCount }}</p>
                     @if($overdueCount > 0)
                     <p class="text-xs text-red-600 mt-2 font-semibold flex items-center gap-1">
                         <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
                         </svg>
-                        Needs immediate attention!
+                        Memerlukan perhatian segera!
                     </p>
                     @else
                     <p class="text-xs text-gray-500 mt-2 font-medium flex items-center gap-1">
                         <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                         </svg>
-                        All tasks on track
+                        Semua tugas sesuai jadwal
                     </p>
                     @endif
                 </div>
             </div>
 
-            {{-- Quick Links --}}
+            {{-- Tautan Cepat --}}
             <div>
-                <h3 class="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">Quick Access</h3>
+                <h3 class="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">Akses Cepat</h3>
                 <div class="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                     @php
                     $quickLinks = [
-                        ['url' => route('my-workspaces.index'), 'label' => 'My Workspaces', 'icon' => 'M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4', 'color' => 'blue'],
-                        ['url' => route('notifikasi.index'), 'label' => 'Notifications', 'icon' => 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9', 'color' => 'purple'],
-                        ['url' => route('profile.edit'), 'label' => 'Profile', 'icon' => 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z', 'color' => 'green']
+                        ['url' => route('my-workspaces.index'), 'label' => 'Ruang Kerja Saya', 'icon' => 'M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4', 'color' => 'blue'],
+                        ['url' => route('notifikasi.index'), 'label' => 'Notifikasi', 'icon' => 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9', 'color' => 'purple'],
+                        ['url' => route('profile.edit'), 'label' => 'Profil', 'icon' => 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z', 'color' => 'green']
                     ];
                     @endphp
 
@@ -312,12 +312,12 @@
                 </div>
             </div>
 
-            {{-- Recent Activity Section --}}
+            {{-- Bagian Aktivitas Terbaru --}}
             <div class="bg-white rounded-xl shadow-md p-4 sm:p-6 border border-gray-100">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-base sm:text-lg font-semibold text-gray-800">Recent Activity</h3>
+                    <h3 class="text-base sm:text-lg font-semibold text-gray-800">Aktivitas Terbaru</h3>
                     <a href="{{ route('my-workspaces.index') }}" class="text-xs sm:text-sm text-blue-600 hover:text-blue-800 font-semibold group inline-flex items-center gap-1">
-                        View All
+                        Lihat Semua
                         <svg class="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                         </svg>
@@ -333,11 +333,11 @@
                                 </svg>
                             </div>
                             <div class="flex-1">
-                                <p class="text-sm font-semibold text-gray-900">{{ $unfinishedTasks }} Unfinished {{ Str::plural('Task', $unfinishedTasks) }}</p>
-                                <p class="text-xs text-gray-600">Keep up the good work!</p>
+                                <p class="text-sm font-semibold text-gray-900">{{ $unfinishedTasks }} Tugas {{ Str::plural('Belum Selesai', $unfinishedTasks) }}</p>
+                                <p class="text-xs text-gray-600">Terus berusaha baik!</p>
                             </div>
                             <a href="{{ route('my-workspaces.index') }}" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors">
-                                View
+                                Lihat
                             </a>
                         </div>
                         @endif
@@ -353,11 +353,11 @@
                                 </div>
                             </div>
                             <div class="flex-1">
-                                <p class="text-sm font-semibold text-red-900">{{ $overdueCount }} Overdue {{ Str::plural('Task', $overdueCount) }}</p>
-                                <p class="text-xs text-red-700 font-medium">Please complete as soon as possible</p>
+                                <p class="text-sm font-semibold text-red-900">{{ $overdueCount }} Tugas {{ Str::plural('Terlambat', $overdueCount) }}</p>
+                                <p class="text-xs text-red-700 font-medium">Harap selesaikan sesegera mungkin</p>
                             </div>
                             <a href="{{ route('my-workspaces.index') }}" class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg transition-colors">
-                                View
+                                Lihat
                             </a>
                         </div>
                         @endif
@@ -370,11 +370,11 @@
                                 </svg>
                             </div>
                             <div class="flex-1">
-                                <p class="text-sm font-semibold text-gray-900">{{ $doneTasks }} Completed {{ Str::plural('Task', $doneTasks) }}</p>
-                                <p class="text-xs text-gray-600">Great job! 🎉</p>
+                                <p class="text-sm font-semibold text-gray-900">{{ $doneTasks }} Tugas {{ Str::plural('Selesai', $doneTasks) }}</p>
+                                <p class="text-xs text-gray-600">Bagus kerja! 🎉</p>
                             </div>
                             <span class="px-3 py-1.5 bg-green-600 text-white text-xs font-semibold rounded-lg">
-                                ✓ Done
+                                ✓ Selesai
                             </span>
                         </div>
                         @endif
@@ -385,21 +385,21 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
                                 </svg>
                             </div>
-                            <h4 class="text-sm font-semibold text-gray-900 mb-1">No Tasks Yet</h4>
-                            <p class="text-xs text-gray-500 mb-4">You haven't been assigned any tasks yet</p>
-                            <p class="text-xs text-gray-400">Check back later for new assignments</p>
+                            <h4 class="text-sm font-semibold text-gray-900 mb-1">Belum Ada Tugas</h4>
+                            <p class="text-xs text-gray-500 mb-4">Anda belum ditugaskan tugas apa pun</p>
+                            <p class="text-xs text-gray-400">Periksa nanti untuk tugas baru</p>
                         </div>
                     @endif
                 </div>
             </div>
 
-            {{-- Workspace Overview --}}
+            {{-- Ringkasan Ruang Kerja --}}
             @if($workspacesCount > 0)
             <div class="bg-white rounded-xl shadow-md p-4 sm:p-6 border border-gray-100">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-base sm:text-lg font-semibold text-gray-800">Active Workspaces</h3>
+                    <h3 class="text-base sm:text-lg font-semibold text-gray-800">Ruang Kerja Aktif</h3>
                     <a href="{{ route('my-workspaces.index') }}" class="text-xs sm:text-sm text-blue-600 hover:text-blue-800 font-semibold group inline-flex items-center gap-1">
-                        View All
+                        Lihat Semua
                         <svg class="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                         </svg>
@@ -434,7 +434,7 @@
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <h4 class="font-bold text-gray-900 text-sm truncate group-hover:text-gray-700">{{ $workspace->name }}</h4>
-                                    <p class="text-xs text-gray-600 font-medium">{{ $wsTotalTasks }} {{ Str::plural('task', $wsTotalTasks) }}</p>
+                                    <p class="text-xs text-gray-600 font-medium">{{ $wsTotalTasks }} {{ Str::plural('tugas', $wsTotalTasks) }}</p>
                                 </div>
                             </div>
                             <div class="space-y-2">
@@ -444,7 +444,7 @@
                                     </div>
                                 </div>
                                 <div class="flex justify-between items-center text-xs">
-                                    <span class="text-gray-700 font-semibold">{{ $wsProgress }}% Complete</span>
+                                    <span class="text-gray-700 font-semibold">{{ $wsProgress }}% Selesai</span>
                                     <span class="text-gray-600 font-medium">{{ $wsDoneTasks }}/{{ $wsTotalTasks }}</span>
                                 </div>
                             </div>
@@ -457,7 +457,7 @@
     </div>
 
     <style>
-    /* Line clamp utility */
+    /* Utility line clamp */
     .line-clamp-1 {
         display: -webkit-box;
         -webkit-line-clamp: 1;
@@ -465,7 +465,7 @@
         overflow: hidden;
     }
 
-    /* Smooth animations */
+    /* Animasi halus */
     @keyframes fadeIn {
         from {
             opacity: 0;

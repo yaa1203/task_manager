@@ -8,7 +8,7 @@
         <!-- Primary Meta Tags -->
         <title>{{ config('app.name', 'Laravel') }}</title>
         <meta name="title" content="{{ config('app.name', 'Laravel') }}">
-        <meta name="description" content="A powerful task and project management application">
+        <meta name="description" content="Aplikasi yang kuat untuk manajemen tugas dan proyek">
         <meta name="author" content="{{ config('app.name') }}">
         
         <!-- PWA Meta Tags -->
@@ -384,14 +384,14 @@
     <body class="font-sans antialiased">
         <!-- Offline Banner -->
         <div id="offline-banner" class="offline-banner">
-            <span>⚠️ You are currently offline. Some features may be limited.</span>
+            <span>⚠️ Anda sedang offline. Beberapa fitur mungkin terbatas.</span>
         </div>
         
         <!-- Update Banner -->
         <div id="update-banner" class="update-banner">
-            <span>🎉 A new version is available!</span>
+            <span>🎉 Versi baru tersedia!</span>
             <button onclick="window.location.reload()" class="update-btn">
-                Update Now
+                Perbarui Sekarang
             </button>
         </div>
         
@@ -418,24 +418,24 @@
             <div class="flex items-center gap-3">
                 <img src="/icons/logo72x72.png" alt="App Icon" class="w-12 h-12 rounded-lg flex-shrink-0">
                 <div>
-                    <p class="font-semibold">Install Task App</p>
-                    <p class="text-sm text-gray-600">Install our app for a better experience</p>
+                    <p class="font-semibold">Instal Aplikasi Tugas</p>
+                    <p class="text-sm text-gray-600">Instal aplikasi kami untuk pengalaman yang lebih baik</p>
                 </div>
             </div>
             
             <!-- Buttons -->
             <div class="pwa-buttons">
                 <button id="pwa-install-btn" class="pwa-btn pwa-btn-primary">
-                    Install App
+                    Instal Aplikasi
                 </button>
                 <button id="pwa-later-btn" class="pwa-btn pwa-btn-secondary">
-                    Maybe Later
+                    Mungkin Nanti
                 </button>
             </div>
         </div>
         
         <!-- PWA Mini Prompt (Collapsed) -->
-        <div id="pwa-mini-prompt" class="pwa-mini-prompt" aria-label="Install App">
+        <div id="pwa-mini-prompt" class="pwa-mini-prompt" aria-label="Instal Aplikasi">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
                 <path d="M12 2L12 14M12 14L7 9M12 14L17 9" stroke-linecap="round" stroke-linejoin="round"/>
                 <path d="M5 19H19" stroke-linecap="round" stroke-linejoin="round"/>
@@ -708,27 +708,26 @@
                 });
             }
 
-            // Tambahkan di bagian script HTML Anda
             // Handle service worker updates
             if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.addEventListener('controllerchange', () => {
-                // New service worker has taken control
-                console.log('New service worker activated');
-                
-                // Optional: Reload page untuk mendapatkan versi terbaru
-                if (confirm('New version available! Reload to update?')) {
-                window.location.reload();
-                }
-            });
-            
-            // Check for updates every 30 minutes
-            setInterval(() => {
-                if (navigator.serviceWorker.controller) {
-                navigator.serviceWorker.controller.postMessage({ 
-                    type: 'CHECK_UPDATE' 
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    // New service worker has taken control
+                    console.log('New service worker activated');
+                    
+                    // Optional: Reload page untuk mendapatkan versi terbaru
+                    if (confirm('Versi baru tersedia! Muat ulang untuk memperbarui?')) {
+                        window.location.reload();
+                    }
                 });
-                }
-            }, 30 * 60 * 1000);
+                
+                // Check for updates every 30 minutes
+                setInterval(() => {
+                    if (navigator.serviceWorker.controller) {
+                        navigator.serviceWorker.controller.postMessage({ 
+                            type: 'CHECK_UPDATE' 
+                        });
+                    }
+                }, 30 * 60 * 1000);
             }
             
             // Clear cache function
@@ -752,8 +751,6 @@
                     });
                 }
             };
-
-            // Add this script to your app.blade.php layout, after the service worker registration
 
             // PWA Cache Management for Analytics
             (function() {

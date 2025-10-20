@@ -38,7 +38,7 @@
                 <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-                Task Details
+                Detail Tugas
             </h2>
         </div>
         
@@ -47,16 +47,16 @@
                 <!-- Left Column -->
                 <div class="space-y-6">
                     <div>
-                        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">Description</label>
+                        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">Deskripsi</label>
                         <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                            <p class="text-gray-700 leading-relaxed whitespace-pre-line">{{ $task->description ?? 'No description provided' }}</p>
+                            <p class="text-gray-700 leading-relaxed whitespace-pre-line">{{ $task->description ?? 'Tidak ada deskripsi' }}</p>
                         </div>
                     </div>
 
                     <!-- Task Attachments -->
                     @if($task->file_path || $task->link)
                         <div>
-                            <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 block">Task Materials</label>
+                            <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 block">Materi Tugas</label>
                             <div class="space-y-3">
                                 @if($task->file_path)
                                     <div class="bg-gradient-to-br from-indigo-50 to-white rounded-xl border border-indigo-200 p-4 shadow-sm">
@@ -68,7 +68,7 @@
                                             </div>
                                             <div class="flex-1 min-w-0">
                                                 <p class="text-sm font-medium text-gray-900 truncate">{{ basename($task->file_path) }}</p>
-                                                <p class="text-xs text-gray-500">Task attachment</p>
+                                                <p class="text-xs text-gray-500">Lampiran tugas</p>
                                             </div>
                                         </div>
                                         <div class="flex gap-2">
@@ -79,14 +79,14 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                                 </svg>
-                                                View
+                                                Lihat
                                             </a>
                                             <a href="{{ route('workspace.tasks.download', [$workspace, $task]) }}" 
                                                class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition-all text-sm font-medium shadow-sm hover:shadow">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                                                 </svg>
-                                                Download
+                                                Unduh
                                             </a>
                                         </div>
                                     </div>
@@ -101,7 +101,7 @@
                                             </svg>
                                         </div>
                                         <div class="flex-1 min-w-0">
-                                            <p class="text-xs font-medium text-blue-600 mb-0.5">External Link</p>
+                                            <p class="text-xs font-medium text-blue-600 mb-0.5">Tautan Eksternal</p>
                                             <p class="text-sm text-gray-700 truncate">{{ $task->link }}</p>
                                         </div>
                                     </a>
@@ -115,7 +115,7 @@
                 <div class="space-y-6">
                     <div class="grid grid-cols-1 gap-4">
                         <div class="bg-gradient-to-br from-gray-50 to-white rounded-lg p-4 border border-gray-200">
-                            <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">Priority</label>
+                            <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">Prioritas</label>
                             <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold {{ 
                                 $task->priority === 'urgent' ? 'bg-red-100 text-red-800 border border-red-200' : 
                                 ($task->priority === 'high' ? 'bg-orange-100 text-orange-800 border border-orange-200' : 
@@ -125,12 +125,12 @@
                                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
                                 </svg>
-                                {{ ucfirst($task->priority) }} Priority
+                                Prioritas {{ $task->priority === 'urgent' ? 'Mendesak' : ($task->priority === 'high' ? 'Tinggi' : ($task->priority === 'medium' ? 'Sedang' : 'Rendah')) }}
                             </span>
                         </div>
                         
                         <div class="bg-gradient-to-br from-gray-50 to-white rounded-lg p-4 border border-gray-200">
-                            <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">Overall Status</label>
+                            <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">Status Keseluruhan</label>
                             @php
                                 $totalUsers = $task->assignedUsers->count();
                                 $submittedCount = $task->submissions->count();
@@ -141,21 +141,21 @@
                                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                                     </svg>
-                                    All Completed
+                                    Semua Selesai
                                 </span>
                             @else
                                 <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold bg-amber-100 text-amber-800 border border-amber-200">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                     </svg>
-                                    In Progress
+                                    Sedang Berlangsung
                                 </span>
                             @endif
                         </div>
                     </div>
                     
                     <div class="bg-gradient-to-br from-gray-50 to-white rounded-lg p-4 border border-gray-200">
-                        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 block">Timeline</label>
+                        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 block">Garis Waktu</label>
                         <div class="space-y-3">
                             <div class="flex items-center gap-3">
                                 <div class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
@@ -164,8 +164,8 @@
                                     </svg>
                                 </div>
                                 <div>
-                                    <p class="text-xs text-gray-500 mb-0.5">Created</p>
-                                    <p class="text-sm font-medium text-gray-900">{{ $task->created_at->format('M d, Y') }}</p>
+                                    <p class="text-xs text-gray-500 mb-0.5">Dibuat</p>
+                                    <p class="text-sm font-medium text-gray-900">{{ $task->created_at->format('d M Y') }}</p>
                                 </div>
                             </div>
                             <div class="flex items-center gap-3">
@@ -175,11 +175,11 @@
                                     </svg>
                                 </div>
                                 <div>
-                                    <p class="text-xs text-gray-500 mb-0.5">Due Date</p>
+                                    <p class="text-xs text-gray-500 mb-0.5">Batas Waktu</p>
                                     @if($task->due_date)
-                                        <p class="text-sm font-medium text-gray-900">{{ date('M d, Y', strtotime($task->due_date)) }}</p>
+                                        <p class="text-sm font-medium text-gray-900">{{ date('d M Y', strtotime($task->due_date)) }}</p>
                                     @else
-                                        <p class="text-sm text-gray-400">No due date</p>
+                                        <p class="text-sm text-gray-400">Tidak ada batas waktu</p>
                                     @endif
                                 </div>
                             </div>
@@ -187,10 +187,10 @@
                     </div>
                     
                     <div class="bg-gradient-to-br from-indigo-50 to-white rounded-lg p-4 border border-indigo-200">
-                        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 block">Progress Tracker</label>
+                        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 block">Pelacakan Progres</label>
                         <div class="space-y-3">
                             <div class="flex justify-between items-center">
-                                <span class="text-sm text-gray-700 font-medium">{{ $submittedCount }} of {{ $totalUsers }} completed</span>
+                                <span class="text-sm text-gray-700 font-medium">{{ $submittedCount }} dari {{ $totalUsers }} selesai</span>
                                 <span class="text-xl font-bold text-indigo-600">{{ $totalUsers > 0 ? round(($submittedCount / $totalUsers) * 100) : 0 }}%</span>
                             </div>
                             <div class="relative w-full bg-gray-200 rounded-full h-3 overflow-hidden">
@@ -212,10 +212,10 @@
                     <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
                     </svg>
-                    Assigned Users
+                    Pengguna yang Ditugaskan
                 </h2>
                 <span class="px-3 py-1 text-xs font-semibold bg-indigo-100 text-indigo-700 rounded-full">
-                    {{ $task->assignedUsers->count() }} {{ $task->assignedUsers->count() === 1 ? 'user' : 'users' }}
+                    {{ $task->assignedUsers->count() }} {{ $task->assignedUsers->count() === 1 ? 'pengguna' : 'pengguna' }}
                 </span>
             </div>
         </div>
@@ -244,14 +244,14 @@
                                 <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                                 </svg>
-                                Done
+                                Selesai
                             </span>
                         @else
                             <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 border border-gray-200 flex-shrink-0 ml-2">
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01"/>
                                 </svg>
-                                Unfinished
+                                Belum Selesai
                             </span>
                         @endif
                     </div>
@@ -268,10 +268,10 @@
                     <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                     </svg>
-                    Submissions
+                    Pengumpulan
                 </h2>
                 <span class="px-3 py-1 text-xs font-semibold bg-indigo-100 text-indigo-700 rounded-full">
-                    {{ $task->submissions->count() }} {{ $task->submissions->count() === 1 ? 'submission' : 'submissions' }}
+                    {{ $task->submissions->count() }} {{ $task->submissions->count() === 1 ? 'pengumpulan' : 'pengumpulan' }}
                 </span>
             </div>
         </div>
@@ -299,7 +299,7 @@
                                         <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                                         </svg>
-                                        Submitted
+                                        Dikumpulkan
                                     </div>
                                     <p class="text-xs text-gray-500 mt-1">{{ $submission->created_at->diffForHumans() }}</p>
                                 </div>
@@ -313,7 +313,7 @@
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/>
                                             </svg>
-                                            Notes
+                                            Catatan
                                         </h4>
                                         <p class="text-gray-700 leading-relaxed bg-white rounded-lg p-4 border border-gray-200 shadow-sm whitespace-pre-line">{{ $submission->notes }}</p>
                                     </div>
@@ -325,7 +325,7 @@
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
                                             </svg>
-                                            Attached File
+                                            File Terlampir
                                         </h4>
                                         <div class="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
                                             <div class="flex items-center gap-3 mb-3">
@@ -338,7 +338,7 @@
                                                     <p class="font-medium text-gray-900 text-sm truncate">
                                                         {{ basename($submission->file_path) }}
                                                     </p>
-                                                    <p class="text-xs text-gray-500 mt-0.5">Submission file</p>
+                                                    <p class="text-xs text-gray-500 mt-0.5">File pengumpulan</p>
                                                 </div>
                                             </div>
                                             <div class="flex gap-2">
@@ -349,14 +349,14 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                                     </svg>
-                                                    View
+                                                    Lihat
                                                 </a>
                                                 <a href="{{ route('workspace.submissions.download', [$workspace, $task, $submission]) }}" 
                                                    class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition-all text-sm font-medium shadow-sm hover:shadow">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                                                     </svg>
-                                                    Download
+                                                    Unduh
                                                 </a>
                                             </div>
                                         </div>
@@ -369,7 +369,7 @@
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
                                             </svg>
-                                            Submission Link
+                                            Tautan Pengumpulan
                                         </h4>
                                         <a href="{{ $submission->link }}" 
                                            target="_blank"
@@ -380,7 +380,7 @@
                                                 </svg>
                                             </div>
                                             <div class="flex-1 min-w-0">
-                                                <p class="text-xs font-medium text-blue-600 mb-0.5">External Link</p>
+                                                <p class="text-xs font-medium text-blue-600 mb-0.5">Tautan Eksternal</p>
                                                 <p class="text-sm text-gray-700 truncate font-medium">{{ $submission->link }}</p>
                                             </div>
                                             <svg class="w-5 h-5 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -400,8 +400,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                         </svg>
                     </div>
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">No submissions yet</h3>
-                    <p class="text-sm text-gray-500 max-w-sm mx-auto">Submissions will appear here once users submit their work for this task</p>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Belum ada pengumpulan</h3>
+                    <p class="text-sm text-gray-500 max-w-sm mx-auto">Pengumpulan akan muncul di sini setelah pengguna mengumpulkan tugas mereka</p>
                 </div>
             @endif
         </div>

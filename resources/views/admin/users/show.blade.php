@@ -1,10 +1,10 @@
 @extends('admin.layouts.admin')
 
-@section('page-title', 'User Details')
+@section('page-title', 'Detail Pengguna')
 
 @section('content')
 <div class="max-w-7xl mx-auto">
-    {{-- Header Section --}}
+    {{-- Bagian Header --}}
     <div class="mb-8">
         <div class="flex items-center gap-3 mb-2">
             <a href="{{ route('users.index') }}" 
@@ -14,15 +14,15 @@
                 </svg>
             </a>
             <div>
-                <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">User Details</h1>
-                <p class="text-sm text-gray-600 mt-1">View user information and assigned tasks</p>
+                <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Detail Pengguna</h1>
+                <p class="text-sm text-gray-600 mt-1">Lihat informasi pengguna dan tugas yang diberikan</p>
             </div>
         </div>
     </div>
 
-    {{-- User Profile Card --}}
+    {{-- Kartu Profil Pengguna --}}
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mb-8">
-        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-8">
+        <div class="bg-gradient-to-r dari-blue-50 ke-indigo-50 px-6 py-8">
             <div class="flex flex-col sm:flex-row items-start sm:items-center gap-6">
                 <div class="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0 shadow-lg ring-4 ring-blue-100">
                     <span class="text-white font-bold text-4xl">
@@ -42,7 +42,7 @@
                             <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                             </svg>
-                            <span>Joined {{ $user->created_at->format('M d, Y') }}</span>
+                            <span>Bergabung {{ $user->created_at->format('d M, Y') }}</span>
                             <span class="text-gray-400">•</span>
                             <span class="text-gray-500">{{ $user->created_at->diffForHumans() }}</span>
                         </div>
@@ -52,7 +52,7 @@
                             <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                 <circle cx="10" cy="10" r="4"/>
                             </svg>
-                            Active User
+                            Pengguna Aktif
                         </span>
                         <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -66,7 +66,7 @@
         </div>
     </div>
 
-    {{-- Stats Cards --}}
+    {{-- Kartu Statistik --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
         @php
             $totalTasks = $tasks->count();
@@ -74,13 +74,13 @@
                 return $task->submissions->where('user_id', $user->id)->isNotEmpty();
             })->count();
             
-            // Overdue tasks: tasks with due_date in the past and not submitted
+            // Tugas terlambat: tugas dengan due_date di masa lalu dan belum dikirim
             $overdueTasks = $tasks->filter(function($task) use ($user) {
                 $hasSubmitted = $task->submissions->where('user_id', $user->id)->isNotEmpty();
                 return !$hasSubmitted && $task->due_date && now()->gt($task->due_date);
             })->count();
             
-            // Unfinished tasks: tasks not submitted yet (including overdue)
+            // Tugas belum selesai: tugas yang belum dikirim (termasuk yang terlambat)
             $unfinishedTasks = $totalTasks - $completedTasks;
         @endphp
 
@@ -94,9 +94,9 @@
                     </div>
                     <span class="px-3 py-1 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full">Total</span>
                 </div>
-                <h3 class="text-sm font-medium text-gray-600 mb-1">Total Tasks</h3>
+                <h3 class="text-sm font-medium text-gray-600 mb-1">Total Tugas</h3>
                 <p class="text-3xl font-bold text-gray-900">{{ $totalTasks }}</p>
-                <p class="text-sm text-gray-500 mt-1">Assigned tasks</p>
+                <p class="text-sm text-gray-500 mt-1">Tugas yang diberikan</p>
             </div>
         </div>
 
@@ -108,11 +108,11 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                     </div>
-                    <span class="px-3 py-1 bg-green-50 text-green-700 text-xs font-semibold rounded-full">Done</span>
+                    <span class="px-3 py-1 bg-green-50 text-green-700 text-xs font-semibold rounded-full">Selesai</span>
                 </div>
-                <h3 class="text-sm font-medium text-gray-600 mb-1">Completed</h3>
+                <h3 class="text-sm font-medium text-gray-600 mb-1">Selesai</h3>
                 <p class="text-3xl font-bold text-gray-900">{{ $completedTasks }}</p>
-                <p class="text-sm text-gray-500 mt-1">Submitted tasks</p>
+                <p class="text-sm text-gray-500 mt-1">Tugas yang telah dikirim</p>
             </div>
         </div>
 
@@ -124,11 +124,11 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                     </div>
-                    <span class="px-3 py-1 bg-red-50 text-red-700 text-xs font-semibold rounded-full">Late</span>
+                    <span class="px-3 py-1 bg-red-50 text-red-700 text-xs font-semibold rounded-full">Terlambat</span>
                 </div>
-                <h3 class="text-sm font-medium text-gray-600 mb-1">Overdue</h3>
+                <h3 class="text-sm font-medium text-gray-600 mb-1">Terlambat</h3>
                 <p class="text-3xl font-bold text-gray-900">{{ $overdueTasks }}</p>
-                <p class="text-sm text-gray-500 mt-1">Past deadline</p>
+                <p class="text-sm text-gray-500 mt-1">Melewati batas waktu</p>
             </div>
         </div>
 
@@ -142,14 +142,14 @@
                     </div>
                     <span class="px-3 py-1 bg-orange-50 text-orange-700 text-xs font-semibold rounded-full">Pending</span>
                 </div>
-                <h3 class="text-sm font-medium text-gray-600 mb-1">Unfinished</h3>
+                <h3 class="text-sm font-medium text-gray-600 mb-1">Belum Selesai</h3>
                 <p class="text-3xl font-bold text-gray-900">{{ $unfinishedTasks }}</p>
-                <p class="text-sm text-gray-500 mt-1">Not submitted</p>
+                <p class="text-sm text-gray-500 mt-1">Belum dikirim</p>
             </div>
         </div>
     </div>
 
-    {{-- Tasks Section --}}
+    {{-- Bagian Tugas --}}
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
             <div class="flex items-center justify-between">
@@ -160,12 +160,12 @@
                         </svg>
                     </div>
                     <div>
-                        <h2 class="text-lg font-semibold text-gray-900">Assigned Tasks</h2>
-                        <p class="text-sm text-gray-600">All tasks with submission status</p>
+                        <h2 class="text-lg font-semibold text-gray-900">Tugas yang Diberikan</h2>
+                        <p class="text-sm text-gray-600">Semua tugas dengan status pengiriman</p>
                     </div>
                 </div>
                 <span class="px-3 py-1 bg-purple-100 text-purple-700 text-sm font-semibold rounded-full">
-                    {{ $tasks->count() }} Tasks
+                    {{ $tasks->count() }} Tugas
                 </span>
             </div>
         </div>
@@ -180,7 +180,7 @@
                             $workspace = $task->workspace;
                         @endphp
                         <div class="bg-white rounded-xl border-2 border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-200 hover:border-purple-300">
-                            <!-- Task Header -->
+                            <!-- Header Tugas -->
                             <div class="p-5 border-b border-gray-100" style="background: linear-gradient(135deg, {{ $workspace->color }}15 0%, {{ $workspace->color }}05 100%);">
                                 <div class="flex items-start justify-between mb-3">
                                     <div class="flex-1">
@@ -210,24 +210,24 @@
                                     </span>
                                 </div>
 
-                                <!-- Task Info -->
+                                <!-- Info Tugas -->
                                 <div class="flex items-center gap-4 text-xs text-gray-600">
                                     @if($task->due_date)
                                     <div class="flex items-center gap-1">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                         </svg>
-                                        <span class="font-medium">Due: {{ date('M d, Y', strtotime($task->due_date)) }}</span>
+                                        <span class="font-medium">Batas: {{ date('d M, Y', strtotime($task->due_date)) }}</span>
                                     </div>
                                     @endif
                                 </div>
                             </div>
 
-                            <!-- Task Details -->
+                            <!-- Detail Tugas -->
                             <div class="p-5">
                                 <!-- Status -->
                                 <div class="mb-4">
-                                    <h4 class="text-sm font-medium text-gray-700 mb-2">Submission Status</h4>
+                                    <h4 class="text-sm font-medium text-gray-700 mb-2">Status Pengiriman</h4>
                                     @if($hasSubmitted)
                                         <div class="flex items-center gap-2 p-3 bg-green-50 rounded-lg border border-green-200">
                                             <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
@@ -236,9 +236,9 @@
                                                 </svg>
                                             </div>
                                             <div class="flex-1">
-                                                <p class="text-sm font-semibold text-green-800">Submitted</p>
+                                                <p class="text-sm font-semibold text-green-800">Telah Dikirim</p>
                                                 <p class="text-xs text-green-600">
-                                                    {{ $userSubmission->submitted_at ? $userSubmission->submitted_at->diffForHumans() : 'Recently' }}
+                                                    {{ $userSubmission->submitted_at ? $userSubmission->submitted_at->diffForHumans() : 'Baru saja' }}
                                                 </p>
                                             </div>
                                             <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border
@@ -256,7 +256,7 @@
 
                                         @if($userSubmission->notes)
                                         <div class="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                                            <p class="text-xs font-medium text-gray-700 mb-1">User Notes:</p>
+                                            <p class="text-xs font-medium text-gray-700 mb-1">Catatan Pengguna:</p>
                                             <p class="text-sm text-gray-600">{{ $userSubmission->notes }}</p>
                                         </div>
                                         @endif
@@ -268,14 +268,14 @@
                                                 </svg>
                                             </div>
                                             <div class="flex-1">
-                                                <p class="text-sm font-semibold text-gray-800">Not Submitted</p>
-                                                <p class="text-xs text-gray-600">Waiting for submission</p>
+                                                <p class="text-sm font-semibold text-gray-800">Belum Dikirim</p>
+                                                <p class="text-xs text-gray-600">Menunggu pengiriman</p>
                                             </div>
                                         </div>
                                     @endif
                                 </div>
 
-                                <!-- Action Button -->
+                                <!-- Tombol Aksi -->
                                 <div class="pt-3 border-t border-gray-100">
                                     <a href="{{ route('workspace.tasks.show', [$workspace, $task]) }}" 
                                        class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-purple-700 transition-colors shadow-sm">
@@ -283,7 +283,7 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                         </svg>
-                                        <span class="text-sm font-medium">View Task Details</span>
+                                        <span class="text-sm font-medium">Lihat Detail Tugas</span>
                                     </a>
                                 </div>
                             </div>
@@ -297,8 +297,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                         </svg>
                     </div>
-                    <h3 class="text-lg font-semibold text-gray-900 mb-1">No Tasks Assigned</h3>
-                    <p class="text-sm text-gray-500">This user has no tasks assigned yet</p>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-1">Tidak Ada Tugas yang Diberikan</h3>
+                    <p class="text-sm text-gray-500">Pengguna ini belum memiliki tugas yang diberikan</p>
                 </div>
             @endif
         </div>

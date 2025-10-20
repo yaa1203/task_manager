@@ -2,8 +2,8 @@
     <x-slot name="header">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div>
-                <h2 class="font-semibold text-xl text-gray-800">📂 My Workspaces</h2>
-                <p class="text-sm text-gray-600 mt-1">Manage and track all your tasks across workspaces</p>
+                <h2 class="font-semibold text-xl text-gray-800">📂 Ruang Kerja Saya</h2>
+                <p class="text-sm text-gray-600 mt-1">Kelola dan lacak semua tugas Anda di berbagai ruang kerja</p>
             </div>
         </div>
     </x-slot>
@@ -44,14 +44,14 @@
                     $totalUnfinished = $totalTasks - $totalDone - $totalOverdue;
                 @endphp
 
-                {{-- Statistics Cards --}}
+                {{-- Kartu Statistik --}}
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                     @php
                     $statCards = [
-                        ['label' => 'Total Tasks', 'value' => $totalTasks, 'color' => 'blue', 'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2'],
-                        ['label' => 'Completed', 'value' => $totalDone, 'color' => 'green', 'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'],
-                        ['label' => 'Overdue', 'value' => $totalOverdue, 'color' => 'red', 'icon' => 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
-                        ['label' => 'Unfinished', 'value' => $totalUnfinished, 'color' => 'gray', 'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z']
+                        ['label' => 'Total Tugas', 'value' => $totalTasks, 'color' => 'blue', 'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2'],
+                        ['label' => 'Selesai', 'value' => $totalDone, 'color' => 'green', 'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'],
+                        ['label' => 'Terlambat', 'value' => $totalOverdue, 'color' => 'red', 'icon' => 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
+                        ['label' => 'Belum Selesai', 'value' => $totalUnfinished, 'color' => 'gray', 'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z']
                     ];
                     @endphp
 
@@ -72,7 +72,7 @@
                     @endforeach
                 </div>
 
-                {{-- Workspace Grid --}}
+                {{-- Grid Ruang Kerja --}}
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                     @foreach($workspaces as $workspace)
                         @php
@@ -111,7 +111,7 @@
                         <a href="{{ route('my-workspaces.show', $workspace) }}" 
                            class="block bg-white rounded-lg shadow hover:shadow-lg transition group">
                             
-                            {{-- Header with Icon and Type Badge --}}
+                            {{-- Header dengan Ikon dan Badge Tipe --}}
                             <div class="p-4 sm:p-5 border-b border-gray-100" 
                                  style="background: linear-gradient(135deg, {{ $workspace->color }}15 0%, {{ $workspace->color }}05 100%);">
                                 <div class="flex items-start gap-3 mb-3">
@@ -129,12 +129,12 @@
                                 @endif
                             </div>
 
-                            {{-- Stats Section --}}
+                            {{-- Bagian Statistik --}}
                             <div class="p-4 sm:p-5">
-                                {{-- Progress Bar --}}
+                                {{-- Bar Kemajuan --}}
                                 <div class="mb-4">
                                     <div class="flex items-center justify-between mb-2">
-                                        <span class="text-xs font-semibold text-gray-700">Progress</span>
+                                        <span class="text-xs font-semibold text-gray-700">Kemajuan</span>
                                         <span class="text-sm font-bold" style="color: {{ $workspace->color }};">{{ $progress }}%</span>
                                     </div>
                                     <div class="w-full bg-gray-200 rounded-full h-2.5">
@@ -144,9 +144,9 @@
                                     </div>
                                 </div>
 
-                                {{-- Task Statistics Grid --}}
+                                {{-- Grid Statistik Tugas --}}
                                 <div class="grid grid-cols-3 gap-2 mb-4">
-                                    {{-- Done Tasks --}}
+                                    {{-- Tugas Selesai --}}
                                     <div class="text-center p-2.5 bg-green-50 rounded-lg border border-green-100">
                                         <div class="flex items-center justify-center gap-1 mb-1">
                                             <svg class="w-3.5 h-3.5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
@@ -154,10 +154,10 @@
                                             </svg>
                                         </div>
                                         <p class="text-lg font-bold text-green-700">{{ $doneTasks }}</p>
-                                        <p class="text-xs text-green-600 font-medium">Done</p>
+                                        <p class="text-xs text-green-600 font-medium">Selesai</p>
                                     </div>
 
-                                    {{-- Todo Tasks --}}
+                                    {{-- Tugas Belum Selesai --}}
                                     <div class="text-center p-2.5 bg-gray-50 rounded-lg border border-gray-100">
                                         <div class="flex items-center justify-center gap-1 mb-1">
                                             <svg class="w-3.5 h-3.5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -165,10 +165,10 @@
                                             </svg>
                                         </div>
                                         <p class="text-lg font-bold text-gray-700">{{ $unfinishedTasks }}</p>
-                                        <p class="text-xs text-gray-600 font-medium">Unfinished</p>
+                                        <p class="text-xs text-gray-600 font-medium">Belum Selesai</p>
                                     </div>
 
-                                    {{-- Overdue Tasks --}}
+                                    {{-- Tugas Terlambat --}}
                                     <div class="text-center p-2.5 {{ $overdueTasks > 0 ? 'bg-red-50 border border-red-100' : 'bg-gray-50 border border-gray-100' }} rounded-lg">
                                         <div class="flex items-center justify-center gap-1 mb-1">
                                             <svg class="w-3.5 h-3.5 {{ $overdueTasks > 0 ? 'text-red-600' : 'text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -176,23 +176,23 @@
                                             </svg>
                                         </div>
                                         <p class="text-lg font-bold {{ $overdueTasks > 0 ? 'text-red-700' : 'text-gray-400' }}">{{ $overdueTasks }}</p>
-                                        <p class="text-xs {{ $overdueTasks > 0 ? 'text-red-600' : 'text-gray-400' }} font-medium">Overdue</p>
+                                        <p class="text-xs {{ $overdueTasks > 0 ? 'text-red-600' : 'text-gray-400' }} font-medium">Terlambat</p>
                                     </div>
                                 </div>
 
-                                {{-- Total Tasks --}}
+                                {{-- Total Tugas --}}
                                 <div class="pt-3 border-t border-gray-100">
                                     <div class="flex items-center justify-between">
-                                        <span class="text-sm text-gray-600">Total Tasks</span>
-                                        <span class="text-sm font-bold text-gray-900">{{ $totalTasks }} task{{ $totalTasks !== 1 ? 's' : '' }}</span>
+                                        <span class="text-sm text-gray-600">Total Tugas</span>
+                                        <span class="text-sm font-bold text-gray-900">{{ $totalTasks }} tugas{{ $totalTasks !== 1 ? '' : '' }}</span>
                                     </div>
                                 </div>
 
-                                {{-- View Details Button --}}
+                                {{-- Tombol Lihat Detail --}}
                                 <div class="mt-4 pt-3 border-t border-gray-100">
                                     <div class="flex items-center justify-center gap-2 text-sm font-semibold group-hover:gap-3 transition-all"
                                          style="color: {{ $workspace->color }};">
-                                        <span>View Details</span>
+                                        <span>Lihat Detail</span>
                                         <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                                         </svg>
@@ -203,7 +203,7 @@
                     @endforeach
                 </div>
             @else
-                {{-- Empty State --}}
+                {{-- State Kosong --}}
                 <div class="bg-white rounded-lg shadow p-8 sm:p-12 text-center">
                     <div class="max-w-md mx-auto">
                         <div class="bg-gray-100 w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -211,13 +211,13 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
                             </svg>
                         </div>
-                        <h3 class="text-lg sm:text-xl font-bold text-gray-900 mb-2">No Workspaces Yet</h3>
-                        <p class="text-sm sm:text-base text-gray-500 mb-4">You haven't been assigned to any workspaces yet. Contact your administrator to get started.</p>
+                        <h3 class="text-lg sm:text-xl font-bold text-gray-900 mb-2">Belum Ada Ruang Kerja</h3>
+                        <p class="text-sm sm:text-base text-gray-500 mb-4">Anda belum ditugaskan ke ruang kerja mana pun. Hubungi administrator Anda untuk memulai.</p>
                         <div class="flex items-center justify-center gap-2 text-sm text-gray-400">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
-                            <span>Check back later for updates</span>
+                            <span>Periksa nanti untuk pembaruan</span>
                         </div>
                     </div>
                 </div>
@@ -233,19 +233,19 @@
         overflow: hidden;
     }
 
-    /* Smooth hover transitions */
+    /* Transisi hover yang halus */
     .group:hover {
         transform: translateY(-2px);
     }
 
-    /* Ensure text truncation works properly */
+    /* Memastikan pemotongan teks berfungsi dengan baik */
     .truncate {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
 
-    /* Mobile optimization */
+    /* Optimasi mobile */
     @media (max-width: 640px) {
         .truncate {
             max-width: 100%;

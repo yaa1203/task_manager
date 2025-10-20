@@ -1,5 +1,5 @@
 <nav class="bg-white border-b border-gray-100">
-    <!-- Primary Navigation Menu -->
+    <!-- Menu Navigasi Utama -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
             <div class="flex">
@@ -13,7 +13,7 @@
                     </a>
                 </div>
 
-                <!-- Navigation Links - Desktop -->
+                <!-- Tautan Navigasi - Desktop -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
@@ -43,15 +43,15 @@
             </div>
 
             <div class="flex items-center">
-                <!-- Notifications Dropdown - Desktop -->
+                <!-- Dropdown Notifikasi - Desktop -->
                 <div class="hidden sm:flex sm:items-center sm:ms-4">
                     <div class="relative" x-data="{ open: false }" @click.away="open = false">
                         <button @click="open = !open" 
                                 class="inline-flex items-center p-2 text-sm font-medium text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
                                 type="button"
                                 aria-expanded="false"
-                                aria-label="View notifications">
-                            <span class="sr-only">View notifications</span>
+                                aria-label="Lihat notifikasi">
+                            <span class="sr-only">Lihat notifikasi</span>
                             @if (Auth::user()->unreadNotifications->count() > 0)
                                 <span class="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 flex items-center justify-center">
                                     <span class="text-xs text-white font-bold">
@@ -67,7 +67,7 @@
                             </svg>
                         </button>
 
-                        <!-- Dropdown Menu -->
+                        <!-- Menu Dropdown -->
                         <div x-show="open"
                              x-transition:enter="transition ease-out duration-200"
                              x-transition:enter-start="opacity-0 scale-95"
@@ -93,7 +93,7 @@
                                     $readNotifications = Auth::user()->readNotifications()->latest()->take(5)->get();
                                 @endphp
                                 
-                                <!-- Unread Notifications -->
+                                <!-- Notifikasi Belum Dibaca -->
                                 @if ($unreadNotifications->count() > 0)
                                     <div class="max-h-60 overflow-y-auto">
                                         @foreach ($unreadNotifications as $notification)
@@ -141,7 +141,7 @@
                                     </div>
                                 @endif
                                 
-                                <!-- Read Notifications -->
+                                <!-- Notifikasi Sudah Dibaca -->
                                 @if ($readNotifications->count() > 0)
                                     <div class="px-4 py-2 border-t border-gray-200">
                                         <h4 class="text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -185,7 +185,7 @@
                     </div>
                 </div>
 
-                <!-- Settings Dropdown - Desktop -->
+                <!-- Dropdown Pengaturan - Desktop -->
                 <div class="hidden sm:flex sm:items-center sm:ms-6">
                     <div class="relative" x-data="{ open: false }" @click.away="open = false">
                         <button @click="open = !open" 
@@ -201,7 +201,7 @@
                             </div>
                         </button>
 
-                        <!-- Dropdown Menu -->
+                        <!-- Menu Dropdown -->
                         <div x-show="open"
                              x-transition:enter="transition ease-out duration-200"
                              x-transition:enter-start="opacity-0 scale-95"
@@ -253,7 +253,7 @@
         </div>
     </div>
 
-    <!-- Responsive Navigation Menu - Mobile -->
+    <!-- Menu Navigasi Responsif - Mobile -->
     <div id="mobile-menu" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
             <a href="{{ route('dashboard') }}" 
@@ -293,7 +293,7 @@
             </a>
         </div>
 
-        <!-- Responsive Settings Options -->
+        <!-- Opsi Pengaturan Responsif -->
         <div class="pt-4 pb-1 border-t border-gray-200">
             <div class="px-4">
                 <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>

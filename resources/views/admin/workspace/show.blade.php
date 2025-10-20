@@ -3,7 +3,7 @@
 @section('content')
 <div class="max-w-7xl mx-auto">
     
-    <!-- Header Section -->
+    <!-- Bagian Header -->
     <div class="mb-6">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div class="flex items-center gap-4">
@@ -31,7 +31,7 @@
                         </div>
                         <div>
                             <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">{{ $workspace->name }}</h1>
-                            <p class="text-sm text-gray-500">Task workspace</p>
+                            <p class="text-sm text-gray-500">Workspace Tugas</p>
                         </div>
                     </div>
                 </div>
@@ -51,7 +51,7 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
                         </svg>
-                        Archive
+                        Arsip
                     </button>
                 </form>
             </div>
@@ -61,7 +61,7 @@
         @endif
     </div>
 
-    <!-- Success Message -->
+    <!-- Pesan Sukses -->
     @if(session('success'))
     <div class="mb-6 p-4 bg-green-50 border-l-4 border-green-500 rounded-lg shadow-sm animate-fade-in">
         <div class="flex items-center gap-3">
@@ -73,21 +73,21 @@
     </div>
     @endif
 
-    <!-- Tasks Section -->
+    <!-- Bagian Tugas -->
     <div>
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
                 <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                 </svg>
-                Tasks ({{ $workspace->tasks->count() }})
+                Tugas ({{ $workspace->tasks->count() }})
             </h2>
             <a href="{{ route('workspace.tasks.create', $workspace) }}" 
                class="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
-                Create Task
+                Buat Tugas
             </a>
         </div>
 
@@ -95,7 +95,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             @foreach($workspace->tasks as $task)
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
-                <!-- Task Header -->
+                <!-- Header Tugas -->
                 <div class="p-5 border-b border-gray-100">
                     <div class="flex items-start justify-between mb-3">
                         <div class="flex-1">
@@ -119,10 +119,10 @@
                         </span>
                     </div>
 
-                    <!-- Progress Section -->
+                    <!-- Bagian Kemajuan -->
                     <div class="mb-3">
                         <div class="flex justify-between items-center mb-1">
-                            <span class="text-xs font-medium text-gray-700">Progress</span>
+                            <span class="text-xs font-medium text-gray-700">Kemajuan</span>
                             <span class="text-xs font-semibold text-gray-900">
                                 {{ $task->getProgressPercentage() }}%
                             </span>
@@ -133,26 +133,26 @@
                         </div>
                         <div class="flex justify-between items-center mt-1">
                             <span class="text-xs text-gray-500">
-                                {{ $task->submissions->count() }}/{{ $task->assignedUsers->count() }} completed
+                                {{ $task->submissions->count() }}/{{ $task->assignedUsers->count() }} selesai
                             </span>
                             @if($task->due_date)
                             <span class="text-xs text-gray-500">
-                                Due: {{ date('M d, Y', strtotime($task->due_date)) }}
+                                Batas: {{ date('d M, Y', strtotime($task->due_date)) }}
                             </span>
                             @endif
                         </div>
                     </div>
                 </div>
 
-                <!-- Task Details -->
+                <!-- Detail Tugas -->
                 <div class="p-5">
-                    <!-- Assigned Users with Status -->
+                    <!-- Pengguna yang Diberi Tugas dengan Status -->
                     <div class="mb-4">
-                        <h4 class="text-sm font-medium text-gray-700 mb-2">Assigned Users</h4>
+                        <h4 class="text-sm font-medium text-gray-700 mb-2">Pengguna yang Diberi Tugas</h4>
                         <div class="space-y-2">
                             @foreach($task->assignedUsers as $user)
                                 @php
-                                    // Check if this user has submitted
+                                    // Periksa apakah pengguna ini telah mengirimkan
                                     $userSubmission = $task->submissions->where('user_id', $user->id)->first();
                                     $hasSubmitted = $userSubmission !== null;
                                 @endphp
@@ -170,14 +170,14 @@
                                             <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                                             </svg>
-                                            Done
+                                            Selesai
                                         </span>
                                     @else
                                         <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
                                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                             </svg>
-                                            Unfinished
+                                            Belum Selesai
                                         </span>
                                     @endif
                                 </div>
@@ -185,9 +185,9 @@
                         </div>
                     </div>
 
-                    <!-- Overall Status -->
+                    <!-- Status Keseluruhan -->
                     <div class="mb-4">
-                        <h4 class="text-sm font-medium text-gray-700 mb-2">Overall Status</h4>
+                        <h4 class="text-sm font-medium text-gray-700 mb-2">Status Keseluruhan</h4>
                         <div class="flex items-center gap-2">
                             @php
                                 $totalUsers = $task->assignedUsers->count();
@@ -199,20 +199,20 @@
                                     <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                                     </svg>
-                                    Done
+                                    Selesai
                                 </span>
                             @else
                                 <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                     </svg>
-                                    Unfinished
+                                    Belum Selesai
                                 </span>
                             @endif
                         </div>
                     </div>
 
-                    <!-- Action Buttons -->
+                    <!-- Tombol Aksi -->
                     <div class="flex gap-2 pt-2">
                         <a href="{{ route('workspace.tasks.show', [$workspace, $task]) }}" 
                            class="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition">
@@ -220,7 +220,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                             </svg>
-                            <span class="text-sm font-medium">View</span>
+                            <span class="text-sm font-medium">Lihat</span>
                         </a>
                         <a href="{{ route('workspace.tasks.edit', [$workspace, $task]) }}" 
                            class="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
@@ -229,14 +229,14 @@
                             </svg>
                             <span class="text-sm font-medium">Edit</span>
                         </a>
-                        <form action="{{ route('workspace.tasks.destroy', [$workspace, $task]) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this task?');" class="flex-1">
+                        <form action="{{ route('workspace.tasks.destroy', [$workspace, $task]) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus tugas ini?');" class="flex-1">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                 </svg>
-                                <span class="text-sm font-medium">Delete</span>
+                                <span class="text-sm font-medium">Hapus</span>
                             </button>
                         </form>
                     </div>
@@ -249,14 +249,14 @@
             <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
             </svg>
-            <h3 class="text-lg font-semibold text-gray-900 mb-1">No tasks yet</h3>
-            <p class="text-sm text-gray-500 mb-6">Create your first task to get started</p>
+            <h3 class="text-lg font-semibold text-gray-900 mb-1">Belum ada tugas</h3>
+            <p class="text-sm text-gray-500 mb-6">Buat tugas pertama Anda untuk memulai</p>
             <a href="{{ route('workspace.tasks.create', $workspace) }}" 
                class="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
-                Create Task
+                Buat Tugas
             </a>
         </div>
         @endif

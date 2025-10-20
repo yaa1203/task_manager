@@ -10,8 +10,8 @@
                 </svg>
             </a>
             <div>
-                <h2 class="font-bold text-2xl sm:text-3xl text-gray-900">Create New Workspace</h2>
-                <p class="text-sm text-gray-600 mt-1">Set up a new workspace to organize your tasks</p>
+                <h2 class="font-bold text-2xl sm:text-3xl text-gray-900">Buat Workspace Baru</h2>
+                <p class="text-sm text-gray-600 mt-1">Siapkan workspace baru untuk mengatur tugas Anda</p>
             </div>
         </div>
     </x-slot>
@@ -23,40 +23,40 @@
                     @csrf
                     
                     <div class="p-6 sm:p-8 space-y-6">
-                        <!-- Workspace Name -->
+                        <!-- Nama Workspace -->
                         <div>
                             <label for="name" class="block text-sm font-semibold text-gray-900 mb-2">
-                                Workspace Name <span class="text-red-500">*</span>
+                                Nama Workspace <span class="text-red-500">*</span>
                             </label>
                             <input type="text" id="name" name="name" required
                                    value="{{ old('name') }}"
                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-base"
-                                   placeholder="e.g., Web Development Tasks">
+                                   placeholder="Contoh: Tugas Pengembangan Web">
                             @error('name')
                                 <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                             @enderror
                         </div>
 
-                        <!-- Description -->
+                        <!-- Deskripsi -->
                         <div>
                             <label for="description" class="block text-sm font-semibold text-gray-900 mb-2">
-                                Description
+                                Deskripsi
                             </label>
                             <textarea id="description" name="description" rows="3"
                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-base"
-                                      placeholder="Brief description of this workspace...">{{ old('description') }}</textarea>
+                                      placeholder="Deskripsi singkat workspace ini...">{{ old('description') }}</textarea>
                             @error('description')
                                 <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                             @enderror
                         </div>
 
-                        <!-- Workspace Type (Hidden - Default to Task) -->
+                        <!-- Tipe Workspace (Tersembunyi - Default ke Task) -->
                         <input type="hidden" name="type" value="task">
 
-                        <!-- Icon Selection - Professional SVG Icons -->
+                        <!-- Pilihan Ikon - Ikon SVG Profesional -->
                         <div>
                             <label class="block text-sm font-semibold text-gray-900 mb-3">
-                                Icon <span class="text-red-500">*</span>
+                                Ikon <span class="text-red-500">*</span>
                             </label>
                             <div class="grid grid-cols-4 sm:grid-cols-6 gap-3 max-w-md">
                                 @php
@@ -85,24 +85,24 @@
                             @enderror
                         </div>
 
-                        <!-- Color Selection - Professional Palette -->
+                        <!-- Pilihan Warna - Palet Profesional -->
                         <div>
                             <label class="block text-sm font-semibold text-gray-900 mb-3">
-                                Theme Color <span class="text-red-500">*</span>
+                                Warna Tema <span class="text-red-500">*</span>
                             </label>
                             <div class="flex flex-wrap gap-3 max-w-md">
                                 @php
                                 $professionalColors = [
                                     '#6366f1' => 'Indigo',
-                                    '#3b82f6' => 'Blue',
-                                    '#8b5cf6' => 'Purple',
-                                    '#ec4899' => 'Pink',
-                                    '#ef4444' => 'Red',
-                                    '#f59e0b' => 'Amber',
-                                    '#10b981' => 'Green',
+                                    '#3b82f6' => 'Biru',
+                                    '#8b5cf6' => 'Ungu',
+                                    '#ec4899' => 'Merah Muda',
+                                    '#ef4444' => 'Merah',
+                                    '#f59e0b' => 'Kuning',
+                                    '#10b981' => 'Hijau',
                                     '#06b6d4' => 'Cyan',
-                                    '#64748b' => 'Slate',
-                                    '#78716c' => 'Stone'
+                                    '#64748b' => 'Abu-abu',
+                                    '#78716c' => 'Abu-abu Tua'
                                 ];
                                 @endphp
                                 @foreach($professionalColors as $colorValue => $colorName)
@@ -124,10 +124,10 @@
                             @enderror
                         </div>
 
-                        <!-- Preview Card -->
+                        <!-- Kartu Pratinjau -->
                         <div class="border-t pt-6">
                             <label class="block text-sm font-semibold text-gray-900 mb-3">
-                                Preview
+                                Pratinjau
                             </label>
                             <div class="bg-white rounded-lg border border-gray-300 overflow-hidden max-w-sm">
                                 <div id="previewCard" class="p-5 border-l-4" style="border-color: #6366f1; background-color: #f8f9fa;">
@@ -139,10 +139,10 @@
                                         </div>
                                         <div class="flex-1 min-w-0">
                                             <h4 id="previewName" class="font-semibold text-gray-900 mb-1">
-                                                Workspace Name
+                                                Nama Workspace
                                             </h4>
                                             <p id="previewDesc" class="text-sm text-gray-600 line-clamp-2">
-                                                Your workspace description will appear here
+                                                Deskripsi workspace Anda akan muncul di sini
                                             </p>
                                         </div>
                                     </div>
@@ -151,16 +151,16 @@
                         </div>
                     </div>
 
-                    <!-- Footer Actions -->
+                    <!-- Aksi Footer -->
                     <div class="border-t border-gray-200 px-6 py-4 sm:px-8 bg-gray-50 rounded-b-xl">
                         <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
                             <a href="{{ route('workspaces.index') }}" 
                                class="w-full sm:w-auto text-center px-5 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium">
-                                Cancel
+                                Batal
                             </a>
                             <button type="submit"
                                     class="w-full sm:w-auto px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium shadow-sm">
-                                Create Workspace
+                                Buat Workspace
                             </button>
                         </div>
                     </div>
@@ -193,17 +193,17 @@
                 'clipboard': '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>'
             };
 
-            // Update preview name
+            // Update pratinjau nama
             nameInput.addEventListener('input', function() {
-                previewName.textContent = this.value || 'Workspace Name';
+                previewName.textContent = this.value || 'Nama Workspace';
             });
 
-            // Update preview description
+            // Update pratinjau deskripsi
             descInput.addEventListener('input', function() {
-                previewDesc.textContent = this.value || 'Your workspace description will appear here';
+                previewDesc.textContent = this.value || 'Deskripsi workspace Anda akan muncul di sini';
             });
 
-            // Update preview icon
+            // Update pratinjau ikon
             iconRadios.forEach(radio => {
                 radio.addEventListener('change', function() {
                     selectedIcon = this.value;
@@ -211,7 +211,7 @@
                 });
             });
 
-            // Update preview color
+            // Update pratinjau warna
             colorRadios.forEach(radio => {
                 radio.addEventListener('change', function() {
                     selectedColor = this.value;
@@ -224,7 +224,7 @@
                 previewCard.style.backgroundColor = selectedColor + '08';
             }
 
-            // Initialize preview with selected values
+            // Inisialisasi pratinjau dengan nilai terpilih
             const selectedColorRadio = document.querySelector('.color-radio:checked');
             if (selectedColorRadio) {
                 selectedColor = selectedColorRadio.value;

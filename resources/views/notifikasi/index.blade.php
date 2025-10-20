@@ -2,8 +2,8 @@
     <x-slot name="header">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div>
-                <h2 class="font-semibold text-xl text-gray-800">🔔 Notifications</h2>
-                <p class="text-sm text-gray-600 mt-1">Stay updated with your task assignments</p>
+                <h2 class="font-semibold text-xl text-gray-800">🔔 Notifikasi</h2>
+                <p class="text-sm text-gray-600 mt-1">Tetap update dengan penugasan tugas Anda</p>
             </div>
             @if($notifications->total() > 0)
             <form action="{{ route('notifikasi.markAllAsRead') }}" method="POST">
@@ -13,8 +13,8 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
-                    <span class="hidden sm:inline">Mark All as Read</span>
-                    <span class="sm:hidden">Mark All</span>
+                    <span class="hidden sm:inline">Tandai Semua Dibaca</span>
+                    <span class="sm:hidden">Tandai Semua</span>
                 </button>
             </form>
             @endif
@@ -80,17 +80,17 @@
                                         <div class="flex-1 min-w-0">
                                             <div class="flex items-start justify-between gap-2 mb-1">
                                                 <h3 class="text-sm sm:text-base font-semibold {{ $isUnread ? 'text-gray-900' : 'text-gray-700' }}">
-                                                    {{ $data['title'] ?? 'Notification' }}
+                                                    {{ $data['title'] ?? 'Notifikasi' }}
                                                 </h3>
                                                 @if ($isUnread)
                                                 <span class="flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800">
-                                                    New
+                                                    Baru
                                                 </span>
                                                 @endif
                                             </div>
                                             
                                             <p class="text-sm text-gray-600 mb-2 line-clamp-2">
-                                                {{ $data['message'] ?? 'You have a new notification' }}
+                                                {{ $data['message'] ?? 'Anda memiliki notifikasi baru' }}
                                             </p>
 
                                             <div class="flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-gray-500">
@@ -131,23 +131,23 @@
                             <div class="flex-1 flex justify-between sm:hidden">
                                 <a href="{{ $notifications->previousPageUrl() ?? '#' }}" 
                                    class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 {{ $notifications->onFirstPage() ? 'opacity-50 cursor-not-allowed' : '' }}">
-                                    Previous
+                                    Sebelumnya
                                 </a>
                                 <a href="{{ $notifications->nextPageUrl() ?? '#' }}" 
                                    class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 {{ !$notifications->hasMorePages() ? 'opacity-50 cursor-not-allowed' : '' }}">
-                                    Next
+                                    Selanjutnya
                                 </a>
                             </div>
                             <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                                 <div>
                                     <p class="text-sm text-gray-700">
-                                        Showing
+                                        Menampilkan
                                         <span class="font-medium">{{ $notifications->firstItem() }}</span>
-                                        to
+                                        hingga
                                         <span class="font-medium">{{ $notifications->lastItem() }}</span>
-                                        of
+                                        dari
                                         <span class="font-medium">{{ $notifications->total() }}</span>
-                                        results
+                                        hasil
                                     </p>
                                 </div>
                                 <div>
@@ -167,8 +167,8 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                             </svg>
                         </div>
-                        <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-2">No Notifications</h3>
-                        <p class="text-sm text-gray-500">You're all caught up! Check back later for new notifications.</p>
+                        <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-2">Tidak Ada Notifikasi</h3>
+                        <p class="text-sm text-gray-500">Anda sudah update! Periksa nanti untuk notifikasi baru.</p>
                     </div>
                 </div>
             @endif

@@ -1,30 +1,32 @@
+
+
 @extends('admin.layouts.admin')
 
-@section('page-title', 'Analytics Dashboard')
+@section('page-title', 'Dashboard Analitik')
 
 @section('content')
 <div class="max-w-7xl mx-auto">
-    {{-- Header Section --}}
+    {{-- Bagian Header --}}
     <div class="mb-8">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-                <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Analytics Dashboard</h1>
-                <p class="text-sm sm:text-base text-gray-600">Global overview of all users and activities</p>
+                <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Dashboard Analitik</h1>
+                <p class="text-sm sm:text-base text-gray-600">Tinjauan global tentang semua pengguna dan aktivitas</p>
             </div>
             <div class="flex gap-2">
                 <button onclick="refreshData()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                     </svg>
-                    <span>Refresh</span>
+                    <span>Segarkan</span>
                 </button>
             </div>
         </div>
     </div>
 
-    {{-- Stats Cards --}}
+    {{-- Kartu Statistik --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
-        {{-- Total Users Card --}}
+        {{-- Kartu Total Pengguna --}}
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
             <div class="p-6">
                 <div class="flex items-center justify-between mb-4">
@@ -35,12 +37,12 @@
                     </div>
                     <span class="px-3 py-1 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full">Total</span>
                 </div>
-                <h3 class="text-sm font-medium text-gray-600 mb-1">All Users</h3>
+                <h3 class="text-sm font-medium text-gray-600 mb-1">Semua Pengguna</h3>
                 <p id="total-users" class="text-3xl font-bold text-gray-900">-</p>
             </div>
         </div>
 
-        {{-- Total Tasks Card --}}
+        {{-- Kartu Total Tugas --}}
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
             <div class="p-6">
                 <div class="flex items-center justify-between mb-4">
@@ -49,14 +51,14 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                         </svg>
                     </div>
-                    <span class="px-3 py-1 bg-indigo-50 text-indigo-700 text-xs font-semibold rounded-full">All</span>
+                    <span class="px-3 py-1 bg-indigo-50 text-indigo-700 text-xs font-semibold rounded-full">Semua</span>
                 </div>
-                <h3 class="text-sm font-medium text-gray-600 mb-1">Total Tasks</h3>
+                <h3 class="text-sm font-medium text-gray-600 mb-1">Total Tugas</h3>
                 <p id="total-tasks" class="text-3xl font-bold text-gray-900">-</p>
             </div>
         </div>
 
-        {{-- Completed Tasks Card --}}
+        {{-- Kartu Tugas Selesai --}}
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
             <div class="p-6">
                 <div class="flex items-center justify-between mb-4">
@@ -65,17 +67,17 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                     </div>
-                    <span class="px-3 py-1 bg-green-50 text-green-700 text-xs font-semibold rounded-full">Done</span>
+                    <span class="px-3 py-1 bg-green-50 text-green-700 text-xs font-semibold rounded-full">Selesai</span>
                 </div>
-                <h3 class="text-sm font-medium text-gray-600 mb-1">Completed</h3>
+                <h3 class="text-sm font-medium text-gray-600 mb-1">Selesai</h3>
                 <p id="completed-tasks" class="text-3xl font-bold text-gray-900">-</p>
                 <p class="text-xs text-gray-500 mt-1">
-                    <span id="completion-rate">-</span>% completion rate
+                    <span id="completion-rate">-</span>% tingkat penyelesaian
                 </p>
             </div>
         </div>
 
-        {{-- Overdue Tasks Card --}}
+        {{-- Kartu Tugas Terlambat --}}
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
             <div class="p-6">
                 <div class="flex items-center justify-between mb-4">
@@ -84,54 +86,54 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                     </div>
-                    <span class="px-3 py-1 bg-red-50 text-red-700 text-xs font-semibold rounded-full">Alert</span>
+                    <span class="px-3 py-1 bg-red-50 text-red-700 text-xs font-semibold rounded-full">Peringatan</span>
                 </div>
-                <h3 class="text-sm font-medium text-gray-600 mb-1">Overdue Tasks</h3>
+                <h3 class="text-sm font-medium text-gray-600 mb-1">Tugas Terlambat</h3>
                 <p id="unfinished-tasks" class="text-3xl font-bold text-gray-900">-</p>
             </div>
         </div>
     </div>
 
-    {{-- Charts --}}
+    {{-- Grafik --}}
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-8">
         
-        <!-- Task Distribution -->
+        <!-- Distribusi Tugas -->
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
             <div class="p-4 sm:p-6">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-base sm:text-lg font-semibold text-gray-800">Task Distribution</h3>
-                    <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">All Users</span>
+                    <h3 class="text-base sm:text-lg font-semibold text-gray-800">Distribusi Tugas</h3>
+                    <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">Semua Pengguna</span>
                 </div>
                 <div class="h-48 sm:h-64">
                     <canvas id="taskChart"></canvas>
                 </div>
                 <div class="mt-4 grid grid-cols-3 gap-2 text-center">
                     <div class="bg-red-50 rounded-lg p-2">
-                        <p class="text-xs text-gray-600">Overdue</p>
+                        <p class="text-xs text-gray-600">Terlambat</p>
                         <p id="overdue-count" class="text-lg font-bold text-red-600">-</p>
                     </div>
                     <div class="bg-gray-50 rounded-lg p-2">
-                        <p class="text-xs text-gray-600">Unfinished</p>
+                        <p class="text-xs text-gray-600">Belum Selesai</p>
                         <p id="unfinished-count" class="text-lg font-bold text-gray-600">-</p>
                     </div>
                     <div class="bg-green-50 rounded-lg p-2">
-                        <p class="text-xs text-gray-600">Done</p>
+                        <p class="text-xs text-gray-600">Selesai</p>
                         <p id="done-count" class="text-lg font-bold text-green-600">-</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Task Status Overview -->
+        <!-- Ringkasan Status Tugas -->
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
             <div class="p-4 sm:p-6">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-base sm:text-lg font-semibold text-gray-800">Task Status Overview</h3>
-                    <span class="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">All Users</span>
+                    <h3 class="text-base sm:text-lg font-semibold text-gray-800">Ringkasan Status Tugas</h3>
+                    <span class="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">Semua Pengguna</span>
                 </div>
                 <div class="h-48 sm:h-64 flex items-center justify-center">
                     <div class="grid grid-cols-3 gap-6 w-full max-w-md">
-                        <!-- Overdue -->
+                        <!-- Terlambat -->
                         <div class="text-center">
                             <div class="relative inline-flex items-center justify-center w-20 h-20 mb-2">
                                 <svg class="w-20 h-20">
@@ -144,10 +146,10 @@
                                 </div>
                             </div>
                             <p id="overdue-overview" class="text-2xl font-bold text-red-600">-</p>
-                            <p class="text-xs text-gray-600 mt-1">Overdue</p>
+                            <p class="text-xs text-gray-600 mt-1">Terlambat</p>
                         </div>
                         
-                        <!-- Unfinished -->
+                        <!-- Belum Selesai -->
                         <div class="text-center">
                             <div class="relative inline-flex items-center justify-center w-20 h-20 mb-2">
                                 <svg class="w-20 h-20">
@@ -160,10 +162,10 @@
                                 </div>
                             </div>
                             <p id="unfinished-overview" class="text-2xl font-bold text-gray-600">-</p>
-                            <p class="text-xs text-gray-600 mt-1">Unfinished</p>
+                            <p class="text-xs text-gray-600 mt-1">Belum Selesai</p>
                         </div>
                         
-                        <!-- Done -->
+                        <!-- Selesai -->
                         <div class="text-center">
                             <div class="relative inline-flex items-center justify-center w-20 h-20 mb-2">
                                 <svg class="w-20 h-20">
@@ -176,25 +178,25 @@
                                 </div>
                             </div>
                             <p id="done-overview" class="text-2xl font-bold text-green-600">-</p>
-                            <p class="text-xs text-gray-600 mt-1">Done</p>
+                            <p class="text-xs text-gray-600 mt-1">Selesai</p>
                         </div>
                     </div>
                 </div>
                 <div class="mt-4 bg-gray-50 rounded-lg p-3 text-center">
-                    <p class="text-xs text-gray-600">Total Tasks</p>
+                    <p class="text-xs text-gray-600">Total Tugas</p>
                     <p id="total-tasks-overview" class="text-2xl font-bold text-gray-800">-</p>
                 </div>
             </div>
         </div>
     </div>
 
-    {{-- Performance Metrics --}}
+    {{-- Metrik Kinerja --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-        {{-- Completion Rate --}}
+        {{-- Tingkat Penyelesaian --}}
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
             <div class="p-4 sm:p-6">
                 <div class="flex items-center justify-between mb-3">
-                    <h3 class="text-sm font-semibold text-gray-800">Completion Rate</h3>
+                    <h3 class="text-sm font-semibold text-gray-800">Tingkat Penyelesaian</h3>
                     <div class="bg-green-100 p-2 rounded-full">
                         <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
@@ -207,15 +209,15 @@
                         <div id="system-completion-bar" style="width:0%" class="h-full bg-gradient-to-r from-green-500 to-green-600 transition-all duration-500"></div>
                     </div>
                 </div>
-                <p class="text-xs text-gray-500 mt-2">Across all users</p>
+                <p class="text-xs text-gray-500 mt-2">Di semua pengguna</p>
             </div>
         </div>
 
-        {{-- Overdue Workload --}}
+        {{-- Beban Tugas Terlambat --}}
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
             <div class="p-4 sm:p-6">
                 <div class="flex items-center justify-between mb-3">
-                    <h3 class="text-sm font-semibold text-gray-800">Overdue Tasks</h3>
+                    <h3 class="text-sm font-semibold text-gray-800">Tugas Terlambat</h3>
                     <div class="bg-red-100 p-2 rounded-full">
                         <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -224,22 +226,22 @@
                 </div>
                 <div class="flex items-baseline gap-2">
                     <span id="overdue-workload-value" class="text-2xl sm:text-3xl font-bold text-red-600">-</span>
-                    <span class="text-sm text-gray-500">tasks</span>
+                    <span class="text-sm text-gray-500">tugas</span>
                 </div>
-                <p class="text-xs text-gray-500 mt-2">Need attention</p>
+                <p class="text-xs text-gray-500 mt-2">Memerlukan perhatian</p>
             </div>
         </div>
     </div>
 </div>
 
-{{-- Loading Overlay --}}
+ {{-- Overlay Loading --}}
 <div id="loading" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center">
     <div class="bg-white rounded-lg p-6 flex flex-col items-center gap-3">
         <svg class="animate-spin h-10 w-10 text-blue-600" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
-        <p class="text-gray-700 font-medium">Loading analytics...</p>
+        <p class="text-gray-700 font-medium">Memuat analitik...</p>
     </div>
 </div>
 
@@ -271,7 +273,7 @@
         const { tasks, users, summary } = data;
         const total = (tasks.overdue || 0) + (tasks.unfinished || 0) + (tasks.done || 0);
         
-        // Update cards
+        // Update kartu
         const updates = {
             'total-users': users?.total || 0,
             'total-tasks': total,
@@ -294,7 +296,7 @@
             if (el) el.textContent = value;
         });
 
-        // Update progress bars
+        // Update progress bar
         document.getElementById('system-completion-bar').style.width = (summary?.completion_rate || 0) + '%';
 
         updateCharts(data);
@@ -307,7 +309,7 @@
         charts.task = new Chart(document.getElementById('taskChart'), {
             type: 'doughnut',
             data: {
-                labels: ['Overdue', 'Unfinished', 'Done'],
+                labels: ['Terlambat', 'Belum Selesai', 'Selesai'],
                 datasets: [{
                     data: taskData,
                     backgroundColor: ['#ef4444', '#6b7280', '#10b981'],
@@ -328,7 +330,7 @@
     function refreshData() { loadAnalytics(); }
 
     function exportReport() {
-        alert('Export feature will be implemented.');
+        alert('Fitur ekspor akan diimplementasikan.');
     }
 </script>
 @endsection

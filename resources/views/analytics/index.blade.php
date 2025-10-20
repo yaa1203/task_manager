@@ -2,8 +2,8 @@
     <x-slot name="header">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div>
-                <h2 class="font-semibold text-lg sm:text-xl text-gray-800">📊 Analytics Dashboard</h2>
-                <p class="text-xs sm:text-sm text-gray-600 mt-1">Your productivity insights and statistics</p>
+                <h2 class="font-semibold text-lg sm:text-xl text-gray-800">📊 Dasbor Analitik</h2>
+                <p class="text-xs sm:text-sm text-gray-600 mt-1">Wawasan produktivitas dan statistik Anda</p>
             </div>
          
         </div>
@@ -12,14 +12,14 @@
     <div class="py-4 sm:py-6">
         <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 space-y-4 sm:space-y-6">
             
-            {{-- Error Alert --}}
+            {{-- Alert Error --}}
             <div id="error-alert" class="hidden bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
                 <div class="flex items-start">
                     <svg class="w-5 h-5 text-red-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                     <div class="ml-3">
-                        <p class="text-sm text-red-700 font-medium">Failed to load analytics</p>
+                        <p class="text-sm text-red-700 font-medium">Gagal memuat analitik</p>
                         <p id="error-message" class="text-xs text-red-600 mt-1"></p>
                     </div>
                     <button onclick="hideError()" class="ml-auto text-red-500 hover:text-red-700">
@@ -30,14 +30,14 @@
                 </div>
             </div>
             
-            {{-- Summary Cards --}}
+            {{-- Kartu Ringkasan --}}
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
                 @php
                 $cards = [
-                    ['color' => 'blue', 'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2', 'label' => 'Total Tasks', 'id' => 'total-tasks'],
-                    ['color' => 'green', 'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', 'label' => 'Completed', 'id' => 'completed-tasks'],
-                    ['color' => 'gray', 'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', 'label' => 'Unfinished', 'id' => 'unfinished-tasks'],
-                    ['color' => 'red', 'icon' => 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z', 'label' => 'Overdue', 'id' => 'overdue-tasks']
+                    ['color' => 'blue', 'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2', 'label' => 'Total Tugas', 'id' => 'total-tasks'],
+                    ['color' => 'green', 'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', 'label' => 'Selesai', 'id' => 'completed-tasks'],
+                    ['color' => 'gray', 'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', 'label' => 'Belum Selesai', 'id' => 'unfinished-tasks'],
+                    ['color' => 'red', 'icon' => 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z', 'label' => 'Terlambat', 'id' => 'overdue-tasks']
                 ];
                 @endphp
 
@@ -58,14 +58,14 @@
                 @endforeach
             </div>
 
-            {{-- Charts --}}
+            {{-- Grafik --}}
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
                 
-                <!-- Task Distribution -->
+                <!-- Distribusi Tugas -->
                 <div class="bg-white shadow-lg rounded-lg p-3 sm:p-6">
                     <div class="flex items-center justify-between mb-3 sm:mb-4">
-                        <h3 class="text-sm sm:text-base lg:text-lg font-semibold text-gray-800">Task Distribution</h3>
-                        <span id="chart-update-time" class="text-[10px] sm:text-xs text-gray-500">Loading...</span>
+                        <h3 class="text-sm sm:text-base lg:text-lg font-semibold text-gray-800">Distribusi Tugas</h3>
+                        <span id="chart-update-time" class="text-[10px] sm:text-xs text-gray-500">Memuat...</span>
                     </div>
                     <div class="h-40 sm:h-48 lg:h-64 mb-3 relative">
                         <canvas id="taskChart"></canvas>
@@ -75,9 +75,9 @@
                     </div>
                     <div class="grid grid-cols-3 gap-1.5 sm:gap-2 text-center">
                         @foreach([
-                            ['id' => 'done-count', 'label' => 'Done', 'color' => 'green'], 
-                            ['id' => 'unfinished-count', 'label' => 'Unfinished', 'color' => 'gray'], 
-                            ['id' => 'overdue-count', 'label' => 'Overdue', 'color' => 'red']
+                            ['id' => 'done-count', 'label' => 'Selesai', 'color' => 'green'], 
+                            ['id' => 'unfinished-count', 'label' => 'Belum Selesai', 'color' => 'gray'], 
+                            ['id' => 'overdue-count', 'label' => 'Terlambat', 'color' => 'red']
                         ] as $stat)
                         <div class="bg-{{ $stat['color'] }}-50 rounded-lg p-1.5 sm:p-2">
                             <p class="text-[10px] sm:text-xs text-gray-600">{{ $stat['label'] }}</p>
@@ -87,11 +87,11 @@
                     </div>
                 </div>
 
-                <!-- Workspace Overview -->
+                <!-- Tinjauan Ruang Kerja -->
                 <div class="bg-white shadow-lg rounded-lg p-3 sm:p-6">
                     <div class="flex items-center justify-between mb-3 sm:mb-4">
-                        <h3 class="text-sm sm:text-base lg:text-lg font-semibold text-gray-800">Workspace Overview</h3>
-                        <span class="text-[10px] sm:text-xs text-gray-500">Updated now</span>
+                        <h3 class="text-sm sm:text-base lg:text-lg font-semibold text-gray-800">Tinjauan Ruang Kerja</h3>
+                        <span class="text-[10px] sm:text-xs text-gray-500">Diperbarui sekarang</span>
                     </div>
                     <div class="h-40 sm:h-48 lg:h-64 mb-3 relative">
                         <canvas id="workspaceChart"></canvas>
@@ -101,20 +101,20 @@
                     </div>
                     <div class="flex justify-center">
                         <div class="bg-purple-50 rounded-lg p-2 sm:p-3 text-center min-w-[100px] sm:min-w-[120px]">
-                            <p class="text-[10px] sm:text-xs text-gray-600">Total Workspaces</p>
+                            <p class="text-[10px] sm:text-xs text-gray-600">Total Ruang Kerja</p>
                             <p id="total-workspaces" class="text-xl sm:text-2xl font-bold text-purple-600">-</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {{-- Metrics --}}
+            {{-- Metrik --}}
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                 @php
                 $metrics = [
-                    ['title' => 'Completion Rate', 'color' => 'green', 'icon' => 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6', 'id' => 'completion', 'type' => 'progress', 'desc' => 'Tasks completed'],
-                    ['title' => 'Average Tasks', 'color' => 'blue', 'icon' => 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', 'id' => 'avg-tasks', 'type' => 'decimal', 'desc' => 'Per workspace'],
-                    ['title' => 'Overdue Rate', 'color' => 'red', 'icon' => 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z', 'id' => 'overdue-rate', 'type' => 'progress', 'desc' => 'Tasks overdue']
+                    ['title' => 'Tingkat Penyelesaian', 'color' => 'green', 'icon' => 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6', 'id' => 'completion', 'type' => 'progress', 'desc' => 'Tugas selesai'],
+                    ['title' => 'Rata-rata Tugas', 'color' => 'blue', 'icon' => 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', 'id' => 'avg-tasks', 'type' => 'decimal', 'desc' => 'Per ruang kerja'],
+                    ['title' => 'Tingkat Keterlambatan', 'color' => 'red', 'icon' => 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z', 'id' => 'overdue-rate', 'type' => 'progress', 'desc' => 'Tugas terlambat']
                 ];
                 @endphp
 
@@ -138,12 +138,12 @@
                     @elseif($metric['type'] === 'decimal')
                     <div class="flex items-baseline gap-1.5 sm:gap-2">
                         <span id="{{ $metric['id'] }}" class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800">-</span>
-                        <span class="text-xs sm:text-sm text-gray-500">tasks</span>
+                        <span class="text-xs sm:text-sm text-gray-500">tugas</span>
                     </div>
                     @else
                     <div class="flex items-baseline gap-1.5 sm:gap-2">
                         <span id="{{ $metric['id'] }}" class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800">-</span>
-                        <span class="text-xs sm:text-sm text-gray-500">tasks</span>
+                        <span class="text-xs sm:text-sm text-gray-500">tugas</span>
                     </div>
                     @endif
                     <p class="text-[10px] sm:text-xs text-gray-500 mt-1 sm:mt-2">{{ $metric['desc'] }}</p>
@@ -158,23 +158,23 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Add this script to your analytics index.blade.php, replace the existing loadAnalytics function
+        // Tambahkan skrip ini ke analytics index.blade Anda, ganti fungsi loadAnalytics yang ada
 
         let charts = { task: null, workspace: null };
         let retryCount = 0;
         const MAX_RETRIES = 3;
 
         document.addEventListener("DOMContentLoaded", function() {
-            console.log('Analytics page loaded');
+            console.log('Halaman analitik dimuat');
             
-            // Clear any cached analytics data on page load
+            // Hapus data analitik yang di-cache saat memuat halaman
             if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
                 navigator.serviceWorker.controller.postMessage({ 
                     type: 'CLEAR_ANALYTICS_CACHE' 
                 });
             }
             
-            // Small delay to ensure service worker is ready
+            // Sedikit penundaan untuk memastikan service worker siap
             setTimeout(() => loadAnalytics(), 100);
         });
 
@@ -192,7 +192,7 @@
                 errorMessage.textContent = message;
                 errorAlert.classList.remove('hidden');
             }
-            console.error('Analytics Error:', message);
+            console.error('Error Analitik:', message);
         }
 
         function hideError() {
@@ -207,10 +207,10 @@
             hideError();
             
             const url = `${window.location.origin}/analytics/data`;
-            console.log('Fetching analytics from:', url);
+            console.log('Mengambil data analitik dari:', url);
 
             try {
-                // Add timestamp to prevent caching
+                // Tambahkan timestamp untuk mencegah caching
                 const timestamp = new Date().getTime();
                 const fetchUrl = `${url}?t=${timestamp}`;
                 
@@ -225,46 +225,46 @@
                         'Expires': '0'
                     },
                     credentials: 'same-origin',
-                    cache: 'no-store' // Force fresh data
+                    cache: 'no-store' // Paksa data fresh
                 });
 
-                console.log('Response status:', response.status);
-                console.log('Response headers:', [...response.headers.entries()]);
+                console.log('Status respons:', response.status);
+                console.log('Header respons:', [...response.headers.entries()]);
 
                 if (!response.ok) {
                     const errorText = await response.text();
-                    console.error('Response error:', errorText);
+                    console.error('Error respons:', errorText);
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
                 const contentType = response.headers.get('content-type');
                 if (!contentType || !contentType.includes('application/json')) {
-                    throw new Error('Response is not JSON');
+                    throw new Error('Respons bukan JSON');
                 }
 
                 const data = await response.json();
-                console.log('Analytics data received:', data);
+                console.log('Data analitik diterima:', data);
 
-                // Validate data structure
+                // Validasi struktur data
                 if (!data || typeof data !== 'object') {
-                    throw new Error('Invalid data structure');
+                    throw new Error('Struktur data tidak valid');
                 }
 
                 updateUI(data);
-                retryCount = 0; // Reset retry count on success
+                retryCount = 0; // Reset hitungan percobaan pada keberhasilan
                 toggleLoading(false);
 
             } catch (error) {
-                console.error('Error loading analytics:', error);
+                console.error('Error memuat analitik:', error);
                 toggleLoading(false);
                 
                 if (retryCount < MAX_RETRIES) {
                     retryCount++;
-                    showError(`Failed to load data. Retrying... (${retryCount}/${MAX_RETRIES})`);
+                    showError(`Gagal memuat data. Mencoba lagi... (${retryCount}/${MAX_RETRIES})`);
                     setTimeout(() => loadAnalytics(), 2000 * retryCount);
                 } else {
-                    showError('Failed to load analytics data. Please check your connection and try again.');
-                    // Show default/empty state
+                    showError('Gagal memuat data analitik. Periksa koneksi Anda dan coba lagi.');
+                    // Tampilkan status default/kosong
                     updateUI(getDefaultData());
                 }
             }
@@ -283,19 +283,19 @@
             try {
                 const { tasks, workspaces, weekly_trend, summary } = data;
                 
-                // Safely get task counts
+                // Dapatkan jumlah tugas dengan aman
                 const done = parseInt(tasks?.done) || 0;
                 const unfinished = parseInt(tasks?.unfinished) || 0;
                 const overdue = parseInt(tasks?.overdue) || 0;
                 const total = done + unfinished + overdue;
                 
-                // Calculate rates
+                // Hitung tingkat
                 const completionRate = parseFloat(summary?.completion_rate) || 0;
                 const overdueRate = total > 0 ? Math.round((overdue / total) * 100) : 0;
                 const totalWorkspaces = parseInt(workspaces?.total) || 0;
                 const avgTasks = totalWorkspaces > 0 ? (total / totalWorkspaces).toFixed(1) : '0.0';
                 
-                // Update all elements safely
+                // Perbarui semua elemen dengan aman
                 const updates = {
                     'total-tasks': total,
                     'completed-tasks': done,
@@ -317,29 +317,29 @@
                     }
                 });
 
-                // Update progress bars
+                // Perbarui progress bar
                 const completionBar = document.getElementById('completion-bar');
                 const overdueBar = document.getElementById('overdue-rate-bar');
                 
                 if (completionBar) completionBar.style.width = completionRate + '%';
                 if (overdueBar) overdueBar.style.width = overdueRate + '%';
                 
-                // Update timestamp
+                // Perbarui timestamp
                 const timestamp = document.getElementById('chart-update-time');
                 if (timestamp) {
-                    timestamp.textContent = 'Updated ' + new Date().toLocaleTimeString('id-ID', { 
+                    timestamp.textContent = 'Diperbarui ' + new Date().toLocaleTimeString('id-ID', { 
                         hour: '2-digit', 
                         minute: '2-digit' 
                     });
                 }
                 
-                // Update charts
+                // Perbarui grafik
                 updateCharts(data);
                 
-                console.log('UI updated successfully');
+                console.log('UI berhasil diperbarui');
             } catch (error) {
-                console.error('Error updating UI:', error);
-                showError('Error displaying data: ' + error.message);
+                console.error('Error memperbarui UI:', error);
+                showError('Error menampilkan data: ' + error.message);
             }
         }
 
@@ -352,18 +352,18 @@
                 ];
                 const workspaceData = Array.isArray(data.workspaces?.breakdown) ? data.workspaces.breakdown : [];
 
-                // Responsive settings
+                // Pengaturan responsif
                 const isMobile = window.innerWidth < 640;
                 const fontSize = isMobile ? 9 : 11;
                 const legendPadding = isMobile ? 5 : 10;
 
-                // Hide loading spinners
+                // Sembunyikan spinner loading
                 const taskLoading = document.getElementById('task-chart-loading');
                 const workspaceLoading = document.getElementById('workspace-chart-loading');
                 if (taskLoading) taskLoading.style.display = 'none';
                 if (workspaceLoading) workspaceLoading.style.display = 'none';
 
-                // Task Distribution Chart
+                // Grafik Distribusi Tugas
                 const taskCanvas = document.getElementById('taskChart');
                 if (taskCanvas) {
                     if (charts.task) charts.task.destroy();
@@ -372,7 +372,7 @@
                     charts.task = new Chart(ctx, {
                         type: 'doughnut',
                         data: {
-                            labels: ['Done', 'Unfinished', 'Overdue'],
+                            labels: ['Selesai', 'Belum Selesai', 'Terlambat'],
                             datasets: [{
                                 data: taskData,
                                 backgroundColor: ['#10b981', '#6b7280', '#ef4444'],
@@ -406,7 +406,7 @@
                     });
                 }
 
-                // Workspace Chart
+                // Grafik Ruang Kerja
                 const workspaceCanvas = document.getElementById('workspaceChart');
                 if (workspaceCanvas) {
                     if (charts.workspace) charts.workspace.destroy();
@@ -418,12 +418,12 @@
                             type: 'bar',
                             data: {
                                 labels: workspaceData.map(w => {
-                                    const name = w.name || 'Unknown';
+                                    const name = w.name || 'Tidak Diketahui';
                                     const maxLen = isMobile ? 10 : 15;
                                     return name.length > maxLen ? name.substring(0, maxLen) + '...' : name;
                                 }),
                                 datasets: [{
-                                    label: 'Tasks',
+                                    label: 'Tugas',
                                     data: workspaceData.map(w => parseInt(w.tasks) || 0),
                                     backgroundColor: '#8b5cf6',
                                     borderRadius: isMobile ? 4 : 8
@@ -436,7 +436,7 @@
                                     legend: { display: false },
                                     tooltip: {
                                         callbacks: {
-                                            label: function(ctx) { return `${ctx.parsed.y} tasks`; }
+                                            label: function(ctx) { return `${ctx.parsed.y} tugas`; }
                                         }
                                     }
                                 },
@@ -459,26 +459,26 @@
                             }
                         });
                     } else {
-                        // Show empty state
+                        // Tampilkan state kosong
                         ctx.clearRect(0, 0, workspaceCanvas.width, workspaceCanvas.height);
                         ctx.font = `${isMobile ? 12 : 14}px sans-serif`;
                         ctx.fillStyle = '#9ca3af';
                         ctx.textAlign = 'center';
-                        ctx.fillText('No workspace data', workspaceCanvas.width / 2, workspaceCanvas.height / 2);
+                        ctx.fillText('Tidak ada data ruang kerja', workspaceCanvas.width / 2, workspaceCanvas.height / 2);
                     }
                 }
                 
-                console.log('Charts updated successfully');
+                console.log('Grafik berhasil diperbarui');
             } catch (error) {
-                console.error('Error updating charts:', error);
+                console.error('Error memperbarui grafik:', error);
             }
         }
 
         function refreshData() { 
-            console.log('Manual refresh triggered');
+            console.log('Pembaruan manual dipicu');
             retryCount = 0;
             
-            // Clear service worker cache for analytics
+            // Hapus cache service worker untuk analitik
             if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
                 navigator.serviceWorker.controller.postMessage({ 
                     type: 'CLEAR_ANALYTICS_CACHE' 
@@ -488,24 +488,24 @@
             setTimeout(() => loadAnalytics(), 100);
         }
 
-        // Re-render charts on window resize
+        // Render ulang grafik saat ukuran window berubah
         let resizeTimer;
         window.addEventListener('resize', function() {
             clearTimeout(resizeTimer);
             resizeTimer = setTimeout(function() {
                 if (charts.task || charts.workspace) {
-                    console.log('Window resized, re-rendering charts');
+                    console.log('Ukuran window berubah, merender ulang grafik');
                     loadAnalytics();
                 }
             }, 250);
         });
 
-        // Handle visibility change (when user returns to tab)
+        // Handle perubahan visibilitas (saat pengguna kembali ke tab)
         document.addEventListener('visibilitychange', function() {
             if (!document.hidden) {
-                console.log('Page became visible, refreshing data');
+                console.log('Halaman menjadi terlihat, memperbarui data');
                 
-                // Clear cache and reload
+                // Hapus cache dan muat ulang
                 if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
                     navigator.serviceWorker.controller.postMessage({ 
                         type: 'CLEAR_ANALYTICS_CACHE' 
@@ -516,11 +516,11 @@
             }
         });
 
-        // Handle online event
+        // Handle event online
         window.addEventListener('online', function() {
-            console.log('Connection restored, refreshing analytics');
+            console.log('Koneksi dipulihkan, memperbarui analitik');
             
-            // Clear cache and reload
+            // Hapus cache dan muat ulang
             if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
                 navigator.serviceWorker.controller.postMessage({ 
                     type: 'CLEAR_ANALYTICS_CACHE' 
