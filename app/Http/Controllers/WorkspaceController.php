@@ -230,8 +230,20 @@ class WorkspaceController extends Controller
         // Handle file upload
         $filePath = null;
         if ($request->hasFile('file')) {
-            $filePath = $request->file('file')->store('task_files', 'public');
-            \Log::info('File uploaded: ' . $filePath); // ← TAMBAHKAN INI
+            $file = $request->file('file');
+            
+            // Validate file exists and is valid
+            if ($file->isValid()) {
+                $filePath = $file->store('task_files', 'public');
+                \Log::info('File uploaded successfully', [
+                    'path' => $filePath,
+                    'full_path' => storage_path('app/public/' . $filePath),
+                    'exists' => file_exists(storage_path('app/public/' . $filePath))
+                ]);
+            } else {
+                \Log::error('File upload failed - invalid file');
+                return back()->withErrors(['file' => 'File upload failed. Please try again.']);
+            }
         }
 
         // Create single task
@@ -431,6 +443,14 @@ class WorkspaceController extends Controller
 
         $hasSubmitted = $submissions->isNotEmpty();
 
+        // Di method userShowTask di WorkspaceController
+        \Log::info('Task file details', [
+            'file_path' => $task->file_path,
+            'storage_path' => storage_path('app/public/' . $task->file_path),
+            'file_exists' => file_exists(storage_path('app/public/' . $task->file_path)),
+            'asset_url' => asset('storage/' . $task->file_path),
+        ]);
+
         return view('work.tasks.show', compact('workspace', 'task', 'submissions', 'hasSubmitted'));
     }
 
@@ -488,14 +508,24 @@ class WorkspaceController extends Controller
         return back()->with('success', 'Submission sent successfully!');
     }
 
-    // Tambahkan method ini ke WorkspaceController.php
-
     /**
-     * View task file in browser
+     * View task file in browser - UNTUK USER DAN ADMIN
      */
     public function viewTaskFile(Workspace $workspace, Task $task)
     {
-        $this->authorize('view', $workspace);
+        // Check authorization berdasarkan role
+        if (Auth::user()->role === 'admin') {
+            $this->authorize('view', $workspace);
+        } else {
+            // Untuk user biasa, cek apakah dia assigned ke task ini
+            $isAccessible = $task->assignedUsers()
+                ->where('user_id', Auth::id())
+                ->exists();
+            
+            if (!$isAccessible) {
+                abort(403, 'You are not assigned to this task');
+            }
+        }
         
         if ($task->workspace_id !== $workspace->id) {
             abort(404);
@@ -515,11 +545,23 @@ class WorkspaceController extends Controller
     }
 
     /**
-     * Download task file
+     * Download task file - UNTUK USER DAN ADMIN
      */
     public function downloadTaskFile(Workspace $workspace, Task $task)
     {
-        $this->authorize('view', $workspace);
+        // Check authorization berdasarkan role
+        if (Auth::user()->role === 'admin') {
+            $this->authorize('view', $workspace);
+        } else {
+            // Untuk user biasa, cek apakah dia assigned ke task ini
+            $isAccessible = $task->assignedUsers()
+                ->where('user_id', Auth::id())
+                ->exists();
+            
+            if (!$isAccessible) {
+                abort(403, 'You are not assigned to this task');
+            }
+        }
         
         if ($task->workspace_id !== $workspace->id) {
             abort(404);

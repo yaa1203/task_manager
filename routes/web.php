@@ -47,8 +47,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/my-workspaces/{workspace}/task/{task}/submit', [WorkspaceController::class, 'submitTask'])->name('my-workspaces.task.submit');
     Route::get('/my-workspaces/{workspace}/task/{task}', [WorkspaceController::class, 'userShowTask'])->name('my-workspaces.task.show');
     // View task file
-    Route::get('{workspace}/tasks/{task}/view', [WorkspaceController::class, 'viewTaskFile'])
-        ->name('my-workspaces.task.view');
+    Route::get('/workspaces/{workspace}/tasks/{task}/view-file', [WorkspaceController::class, 'viewTaskFile'])
+        ->name('my-workspaces.task.view-file');
     
     // Download task file
     Route::get('{workspace}/tasks/{task}/download', [WorkspaceController::class, 'downloadTaskFile'])
