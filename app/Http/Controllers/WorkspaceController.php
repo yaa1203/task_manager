@@ -215,10 +215,13 @@ class WorkspaceController extends Controller
             'description' => 'nullable|string',
             'status' => 'required|in:todo,in_progress,done',
             'priority' => 'required|in:low,medium,high,urgent',
-            'due_date' => 'nullable|date',
+            'due_date' => 'nullable|date_format:Y-m-d H:i:s', // Pastikan format benar
             'file' => 'nullable|file|max:10240',
             'link' => 'nullable|url',
         ]);
+
+        // Debug log
+        \Log::info('Due Date Received:', ['due_date' => $request->due_date]);
 
         // Determine user IDs based on assign_to_all flag
         if ($request->assign_to_all) {
@@ -232,7 +235,6 @@ class WorkspaceController extends Controller
         if ($request->hasFile('file')) {
             $file = $request->file('file');
             
-            // Validate file exists and is valid
             if ($file->isValid()) {
                 $filePath = $file->store('task_files', 'public');
                 \Log::info('File uploaded successfully', [
@@ -256,7 +258,13 @@ class WorkspaceController extends Controller
             'link' => $validated['link'] ?? null,
             'status' => $validated['status'],
             'priority' => $validated['priority'],
-            'due_date' => $validated['due_date'],
+            'due_date' => $validated['due_date'] ?? null, // Langsung gunakan value yang sudah digabungkan
+        ]);
+
+        // Debug log
+        \Log::info('Task Created:', [
+            'task_id' => $task->id,
+            'due_date_saved' => $task->due_date
         ]);
 
         // Attach users to task
@@ -309,11 +317,14 @@ class WorkspaceController extends Controller
             'description' => 'nullable|string',
             'status' => 'required|in:todo,in_progress,done',
             'priority' => 'required|in:low,medium,high,urgent',
-            'due_date' => 'nullable|date',
+            'due_date' => 'nullable|date_format:Y-m-d H:i:s', // Pastikan format benar
             'file' => 'nullable|file|max:10240',
             'link' => 'nullable|url',
             'remove_file' => 'nullable|boolean',
         ]);
+
+        // Debug log
+        \Log::info('Due Date Update Received:', ['due_date' => $request->due_date]);
 
         // Handle file upload
         $filePath = $task->file_path;
@@ -340,7 +351,13 @@ class WorkspaceController extends Controller
             'link' => $validated['link'] ?? null,
             'status' => $validated['status'],
             'priority' => $validated['priority'],
-            'due_date' => $validated['due_date'],
+            'due_date' => $validated['due_date'] ?? null, // Langsung gunakan value yang sudah digabungkan
+        ]);
+
+        // Debug log
+        \Log::info('Task Updated:', [
+            'task_id' => $task->id,
+            'due_date_saved' => $task->due_date
         ]);
 
         // Sync assigned users

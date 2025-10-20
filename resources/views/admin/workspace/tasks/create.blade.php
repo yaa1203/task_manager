@@ -154,22 +154,42 @@
                         required
                         class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                     <option value="low">Rendah</option>
-                    <option value="medium" selected">Sedang</option>
+                    <option value="medium" selected>Sedang</option>
                     <option value="high">Tinggi</option>
                     <option value="urgent">Segera</option>
                 </select>
             </div>
 
-            <!-- Tanggal Batas -->
+            <!-- Tanggal dan Waktu Batas -->
             <div class="mb-6">
                 <label for="due_date" class="block text-sm font-medium text-gray-700 mb-2">
-                    Tanggal Batas
+                    Tanggal dan Waktu Batas <span class="text-red-500">*</span>
                 </label>
-                <input type="date" 
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label for="due_date_date" class="block text-xs font-medium text-gray-500 mb-1">Tanggal</label>
+                        <input type="date" 
+                               name="due_date_date" 
+                               id="due_date_date"
+                               value="{{ old('due_date_date') }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    
+                    <div>
+                        <label for="due_date_time" class="block text-xs font-medium text-gray-500 mb-1">Waktu</label>
+                        <input type="time" 
+                               name="due_date_time" 
+                               id="due_date_time"
+                               value="{{ old('due_date_time') }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                </div>
+                
+                <input type="hidden" 
                        name="due_date" 
-                       id="due_date"
-                       value="{{ old('due_date') }}"
-                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                       id="due_date_hidden"
+                       value="{{ old('due_date') }}">
             </div>
 
             <!-- Tombol Aksi -->
@@ -188,6 +208,9 @@
 </div>
 
 <script>
+// Script untuk form CREATE TASK
+// Letakkan di bagian bawah file create.blade.php
+
 function displayFileName(input) {
     const fileNameDisplay = document.getElementById('file-name');
     if (input.files && input.files[0]) {
@@ -217,13 +240,68 @@ function toggleUserSelection(checkbox) {
     }
 }
 
+// Fungsi untuk menggabungkan tanggal dan waktu
+function combineDateTime() {
+    const dateInput = document.getElementById('due_date_date');
+    const timeInput = document.getElementById('due_date_time');
+    const hiddenInput = document.getElementById('due_date_hidden');
+    
+    if (dateInput.value && timeInput.value) {
+        // Format: YYYY-MM-DD HH:mm:00
+        hiddenInput.value = dateInput.value + ' ' + timeInput.value + ':00';
+        console.log('Combined DateTime:', hiddenInput.value); // Debug
+    } else if (dateInput.value && !timeInput.value) {
+        // Jika hanya tanggal yang diisi, set waktu default 23:59:00
+        hiddenInput.value = dateInput.value + ' 23:59:00';
+        console.log('Date only, set default time:', hiddenInput.value); // Debug
+    } else {
+        hiddenInput.value = '';
+    }
+}
+
+// Event listener untuk input tanggal dan waktu
+document.addEventListener('DOMContentLoaded', function() {
+    const dateInput = document.getElementById('due_date_date');
+    const timeInput = document.getElementById('due_date_time');
+    const hiddenInput = document.getElementById('due_date_hidden');
+    
+    // Jika ada nilai hidden yang sudah ada (dari old input), pisahkan ke date dan time
+    if (hiddenInput.value) {
+        const dateTime = hiddenInput.value.split(' ');
+        if (dateTime.length === 2) {
+            dateInput.value = dateTime[0];
+            timeInput.value = dateTime[1].substring(0, 5); // Ambil HH:mm
+        }
+    }
+    
+    // Tambahkan event listener
+    dateInput.addEventListener('change', combineDateTime);
+    timeInput.addEventListener('change', combineDateTime);
+});
+
+// Form submit handler
 document.getElementById('taskForm').addEventListener('submit', function(e) {
     const assignToAllCheckbox = document.getElementById('assign_to_all');
     const userCheckboxes = document.querySelectorAll('.user-checkbox');
+    const dateInput = document.getElementById('due_date_date');
+    const timeInput = document.getElementById('due_date_time');
+    const hiddenInput = document.getElementById('due_date_hidden');
     
+    // PENTING: Gabungkan tanggal dan waktu sebelum submit
+    if (dateInput.value) {
+        if (timeInput.value) {
+            hiddenInput.value = dateInput.value + ' ' + timeInput.value + ':00';
+        } else {
+            // Jika waktu tidak diisi, gunakan waktu default
+            hiddenInput.value = dateInput.value + ' 23:59:00';
+        }
+        console.log('Final DateTime before submit:', hiddenInput.value); // Debug
+    }
+    
+    // Handle assign to all
     if (assignToAllCheckbox.checked) {
         userCheckboxes.forEach(cb => {
-            cb.disabled = true;
+            cb.disabled = false; // Enable agar value terkirim
             cb.checked = false;
         });
     }

@@ -162,7 +162,7 @@ use Illuminate\Support\Facades\Storage;
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
                                 Belum Selesai
-                            @endif>
+                            @endif
                         </span>
                     </div>
                     <div>
@@ -170,14 +170,14 @@ use Illuminate\Support\Facades\Storage;
                         <div class="text-xs sm:text-sm font-medium text-gray-900">
                             @if($task->due_date)
                                 <span class="{{ \Carbon\Carbon::parse($task->due_date)->isPast() && !$hasUserSubmitted ? 'text-red-600' : '' }}">
-                                    {{ \Carbon\Carbon::parse($task->due_date)->format('d M Y') }}
+                                    {{ \Carbon\Carbon::parse($task->due_date)->format('d M Y H:i') }}
                                 </span>
                                 @if(\Carbon\Carbon::parse($task->due_date)->isPast() && !$hasUserSubmitted)
                                     <div class="text-xs text-red-600 mt-0.5">(Terlambat)</div>
                                 @endif
                             @else
                                 <span class="text-gray-400">Tidak ada tanggal jatuh tempo</span>
-                            @endif>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -258,7 +258,7 @@ use Illuminate\Support\Facades\Storage;
                                 <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-0 mb-3">
                                     <div class="flex-1">
                                         <p class="text-xs sm:text-sm text-gray-500">
-                                            Dikirim {{ $submission->created_at->diffForHumans() }}
+                                            Dikirim {{ $submission->created_at->format('d M Y H:i') }}
                                         </p>
                                     </div>
                                     @if($submission->status)

@@ -172,14 +172,36 @@
                 </select>
             </div>
 
-            <!-- Tanggal Batas -->
+            <!-- Tanggal dan Waktu Batas -->
             <div class="mb-6">
                 <label for="due_date" class="block text-sm font-medium text-gray-700 mb-2">
-                    Tanggal Batas
+                    Tanggal dan Waktu Batas <span class="text-red-500">*</span>
                 </label>
-                <input type="date" name="due_date" id="due_date"
-                       value="{{ old('due_date', $task->due_date ? $task->due_date->format('Y-m-d') : '') }}"
-                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label for="due_date_date" class="block text-xs font-medium text-gray-500 mb-1">Tanggal</label>
+                        <input type="date" 
+                               name="due_date_date" 
+                               id="due_date_date"
+                               value="{{ old('due_date_date', $task->due_date ? $task->due_date->format('Y-m-d') : '') }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    
+                    <div>
+                        <label for="due_date_time" class="block text-xs font-medium text-gray-500 mb-1">Waktu</label>
+                        <input type="time" 
+                               name="due_date_time" 
+                               id="due_date_time"
+                               value="{{ old('due_date_time', $task->due_date ? $task->due_date->format('H:i') : '') }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                </div>
+                
+                <input type="hidden" 
+                       name="due_date" 
+                       id="due_date_hidden"
+                       value="{{ old('due_date', $task->due_date ? $task->due_date->format('Y-m-d H:i:s') : '') }}">
             </div>
 
             <!-- Aksi -->
@@ -198,6 +220,10 @@
 </div>
 
 <script>
+// Script untuk form EDIT TASK
+// Letakkan di bagian bawah file edit.blade.php
+// Ganti semua script yang ada dengan script ini
+
 function displayFileName(input) {
     const fileNameDisplay = document.getElementById('file-name');
     if (input.files && input.files[0]) {
@@ -212,12 +238,78 @@ function toggleUserSelection(checkbox) {
     const userCheckboxes = document.querySelectorAll('.user-checkbox');
     const userSelection = document.getElementById('user-selection');
     if (checkbox.checked) {
-        userCheckboxes.forEach(cb => { cb.checked = true; cb.disabled = true; });
+        userCheckboxes.forEach(cb => { 
+            cb.checked = true; 
+            cb.disabled = true; 
+        });
         userSelection.classList.add('opacity-50', 'pointer-events-none');
     } else {
-        userCheckboxes.forEach(cb => { cb.checked = false; cb.disabled = false; });
+        userCheckboxes.forEach(cb => { 
+            cb.checked = false; 
+            cb.disabled = false; 
+        });
         userSelection.classList.remove('opacity-50', 'pointer-events-none');
     }
 }
+
+// Fungsi untuk menggabungkan tanggal dan waktu
+function combineDateTime() {
+    const dateInput = document.getElementById('due_date_date');
+    const timeInput = document.getElementById('due_date_time');
+    const hiddenInput = document.getElementById('due_date_hidden');
+    
+    if (dateInput.value && timeInput.value) {
+        // Format: YYYY-MM-DD HH:mm:00
+        hiddenInput.value = dateInput.value + ' ' + timeInput.value + ':00';
+        console.log('Combined DateTime:', hiddenInput.value); // Debug
+    } else if (dateInput.value && !timeInput.value) {
+        // Jika hanya tanggal yang diisi, set waktu default 23:59:00
+        hiddenInput.value = dateInput.value + ' 23:59:00';
+        console.log('Date only, set default time:', hiddenInput.value); // Debug
+    } else {
+        hiddenInput.value = '';
+    }
+}
+
+// Inisialisasi saat halaman dimuat
+document.addEventListener('DOMContentLoaded', function() {
+    const dateInput = document.getElementById('due_date_date');
+    const timeInput = document.getElementById('due_date_time');
+    const hiddenInput = document.getElementById('due_date_hidden');
+    
+    console.log('Initial hidden value:', hiddenInput.value); // Debug
+    
+    // Jika ada nilai hidden yang sudah ada, coba pisahkan ke date dan time
+    if (hiddenInput.value) {
+        const dateTime = hiddenInput.value.split(' ');
+        if (dateTime.length === 2) {
+            dateInput.value = dateTime[0];
+            timeInput.value = dateTime[1].substring(0, 5); // Ambil HH:mm
+            console.log('Parsed date:', dateInput.value, 'time:', timeInput.value); // Debug
+        }
+    }
+    
+    // Tambahkan event listener untuk input tanggal dan waktu
+    dateInput.addEventListener('change', combineDateTime);
+    timeInput.addEventListener('change', combineDateTime);
+});
+
+// Form submit handler
+document.getElementById('taskForm').addEventListener('submit', function(e) {
+    const dateInput = document.getElementById('due_date_date');
+    const timeInput = document.getElementById('due_date_time');
+    const hiddenInput = document.getElementById('due_date_hidden');
+    
+    // PENTING: Gabungkan tanggal dan waktu sebelum submit
+    if (dateInput.value) {
+        if (timeInput.value) {
+            hiddenInput.value = dateInput.value + ' ' + timeInput.value + ':00';
+        } else {
+            // Jika waktu tidak diisi, gunakan waktu default
+            hiddenInput.value = dateInput.value + ' 23:59:00';
+        }
+        console.log('Final DateTime before submit:', hiddenInput.value); // Debug
+    }
+});
 </script>
 @endsection

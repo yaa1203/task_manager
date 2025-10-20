@@ -106,7 +106,7 @@ class CalendarController extends Controller
                     'workspaceIcon' => $task->workspace->icon ?? '📁',
                     'priority' => $task->priority ?? 'medium',
                     'description' => $task->description ?? '',
-                    'dueDate' => $task->due_date ? Carbon::parse($task->due_date)->format('d M Y') : null,
+                    'dueDate' => $task->due_date ? Carbon::parse($task->due_date)->format('d M Y H:i') : null,
                     'isDone' => $isDone,
                     'isOverdue' => $isOverdue,
                 ],

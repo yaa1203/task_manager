@@ -165,7 +165,9 @@
                                 </div>
                                 <div>
                                     <p class="text-xs text-gray-500 mb-0.5">Dibuat</p>
-                                    <p class="text-sm font-medium text-gray-900">{{ $task->created_at->format('d M Y') }}</p>
+                                    <p class="text-sm font-medium text-gray-900">
+                                        {{ \Carbon\Carbon::parse($task->created_at)->format('d M Y H:i') }}
+                                    </p>
                                 </div>
                             </div>
                             <div class="flex items-center gap-3">
@@ -177,7 +179,9 @@
                                 <div>
                                     <p class="text-xs text-gray-500 mb-0.5">Batas Waktu</p>
                                     @if($task->due_date)
-                                        <p class="text-sm font-medium text-gray-900">{{ date('d M Y', strtotime($task->due_date)) }}</p>
+                                        <p class="text-sm font-medium text-gray-900">
+                                            {{ \Carbon\Carbon::parse($task->due_date)->format('d M Y H:i') }}
+                                        </p>
                                     @else
                                         <p class="text-sm text-gray-400">Tidak ada batas waktu</p>
                                     @endif
@@ -301,7 +305,9 @@
                                         </svg>
                                         Dikumpulkan
                                     </div>
-                                    <p class="text-xs text-gray-500 mt-1">{{ $submission->created_at->diffForHumans() }}</p>
+                                    <p class="text-xs text-gray-500 mt-1">
+                                        {{ \Carbon\Carbon::parse($submission->created_at)->format('d M Y H:i') }}
+                                    </p>
                                 </div>
                             </div>
                             

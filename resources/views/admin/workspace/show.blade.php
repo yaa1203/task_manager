@@ -137,7 +137,7 @@
                             </span>
                             @if($task->due_date)
                             <span class="text-xs text-gray-500">
-                                Batas: {{ date('d M, Y', strtotime($task->due_date)) }}
+                                Batas: {{ date('d M Y H:i', strtotime($task->due_date)) }}
                             </span>
                             @endif
                         </div>
