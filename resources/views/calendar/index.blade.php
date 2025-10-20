@@ -97,23 +97,7 @@
             </div>
 
             {{-- Legend --}}
-            <div class="bg-white rounded-lg shadow p-3 sm:p-4">
-                <h3 class="text-sm font-semibold text-gray-700 mb-3">Legend</h3>
-                <div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 sm:gap-4">
-                    @foreach([
-                        ['color' => 'green', 'label' => 'Completed'],
-                        ['color' => 'gray', 'label' => 'Unfinished'],
-                        ['color' => 'red', 'label' => 'Overdue']
-                    ] as $legend)
-                    <div class="flex items-center gap-2">
-                        <div class="w-3 h-3 sm:w-4 sm:h-4 bg-{{ $legend['color'] }}-500 rounded"></div>
-                        <span class="text-xs sm:text-sm text-gray-600">{{ $legend['label'] }}</span>
-                    </div>
-                    @endforeach
-                </div>
-            </div>
-        </div>
-    </div>
+           
 
     {{-- Event Details Modal --}}
     <div id="eventModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 p-4">
