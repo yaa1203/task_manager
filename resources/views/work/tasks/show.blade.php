@@ -37,7 +37,7 @@ use Illuminate\Support\Facades\Storage;
                     </div>
                 @endif
 
-                <!-- Task Materials from Admin - ALWAYS SHOW THIS SECTION -->
+                <!-- Task Materials from Admin -->
                 <div class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                     <div class="flex items-center justify-between mb-3">
                         <h4 class="text-sm font-semibold text-blue-900 flex items-center gap-2">
@@ -46,16 +46,6 @@ use Illuminate\Support\Facades\Storage;
                             </svg>
                             Task Materials
                         </h4>
-                        @if($task->file_path)
-                            <a href="{{ route('my-workspaces.task.download', [$workspace, $task]) }}" 
-                            class="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                            download>
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                                </svg>
-                                Download
-                            </a>
-                        @endif
                     </div>
                     
                     @if($task->file_path || $task->link)
@@ -70,18 +60,16 @@ use Illuminate\Support\Facades\Storage;
                                 @endphp
                                 
                                 @if($isImage)
-                                    <!-- Display image directly -->
                                     @if($imageExists)
                                         <div class="bg-white rounded-lg overflow-hidden border border-gray-200 shadow-sm">
-                                            <!-- Gunakan route view-file untuk menampilkan gambar -->
-                                            <a href="{{ route('my-workspaces.task.view-file', [$workspace, $task]) }}" 
-                                            target="_blank" 
-                                            class="block">
+                                            <button type="button" 
+                                                    onclick="openImageModal('{{ asset('storage/' . $task->file_path) }}')" 
+                                                    class="block w-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg overflow-hidden">
                                                 <img src="{{ asset('storage/' . $task->file_path) }}" 
                                                     alt="Task attachment"
                                                     class="w-full h-auto max-h-[500px] object-contain hover:opacity-95 transition-opacity"
                                                     loading="lazy">
-                                            </a>
+                                            </button>
                                         </div>
                                         <p class="text-xs text-gray-600 text-center mt-2">
                                             <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -101,7 +89,6 @@ use Illuminate\Support\Facades\Storage;
                                         </div>
                                     @endif
                                 @else
-                                    <!-- Display file icon for non-images -->
                                     <div class="bg-white rounded-lg p-4 border border-gray-200">
                                         <div class="flex items-center gap-3">
                                             <div class="flex-shrink-0">
@@ -175,7 +162,7 @@ use Illuminate\Support\Facades\Storage;
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
                                 Unfinished
-                            @endif
+                            @endif>
                         </span>
                     </div>
                     <div>
@@ -190,7 +177,7 @@ use Illuminate\Support\Facades\Storage;
                                 @endif
                             @else
                                 <span class="text-gray-400">No due date</span>
-                            @endif
+                            @endif>
                         </div>
                     </div>
                 </div>
@@ -254,7 +241,7 @@ use Illuminate\Support\Facades\Storage;
 
                     <button type="submit" 
                             {{ $hasSubmitted ? 'disabled' : '' }}
-                            class="w-full bg-blue-600 text-white px-4 py-2.5 sm:py-3 rounded-lg font-semibold text-sm sm:text-base transition shadow-sm {{ $hasSubmitted ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700 active:bg-blue-800' }}">
+                            class="w-full bg-blue-600 text-white px-4 py-2.5 rounded-lg font-semibold text-sm sm:text-base transition shadow-sm {{ $hasSubmitted ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700 active:bg-blue-800' }}">
                         {{ $hasSubmitted ? 'Already Submitted' : 'Submit Task' }}
                     </button>
                 </form>
@@ -400,7 +387,7 @@ use Illuminate\Support\Facades\Storage;
 
                     <button type="submit" 
                             {{ $hasSubmitted ? 'disabled' : '' }}
-                            class="w-full bg-blue-600 text-white px-4 py-2.5 rounded-lg font-semibold transition shadow-sm {{ $hasSubmitted ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700 active:bg-blue-800' }}">
+                            class="w-full bg-blue-600 text-white px-4 py-3 rounded-lg font-semibold text-base transition shadow-sm {{ $hasSubmitted ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700 active:bg-blue-800' }}">
                         {{ $hasSubmitted ? 'Already Submitted' : 'Submit Task' }}
                     </button>
                 </form>
@@ -408,4 +395,88 @@ use Illuminate\Support\Facades\Storage;
         </div>
     </div>
 </div>
+
+<!-- Image Modal Pop-up -->
+<div id="imageModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black bg-opacity-75 p-4" onclick="closeImageModal(event)">
+    <div class="relative max-w-7xl max-h-full">
+        <!-- Close Button -->
+        <button onclick="closeImageModal()" 
+                class="absolute -top-12 right-0 text-white hover:text-gray-300 transition-colors focus:outline-none">
+            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+        
+        <!-- Image Container -->
+        <div class="bg-white rounded-lg overflow-hidden shadow-2xl">
+            <img id="modalImage" src="" alt="Full size image" class="max-w-full max-h-[85vh] w-auto h-auto object-contain">
+        </div>
+        
+        <!-- Download Button -->
+        <div class="text-center mt-4">
+            <a href="{{ route('my-workspaces.task.download', [$workspace, $task]) }}" 
+               class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+               download>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+                Download Image
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+function openImageModal(imageSrc) {
+    const modal = document.getElementById('imageModal');
+    const modalImage = document.getElementById('modalImage');
+    
+    modalImage.src = imageSrc;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    
+    // Prevent body scroll when modal is open
+    document.body.style.overflow = 'hidden';
+}
+
+function closeImageModal(event) {
+    // Close only if clicked on backdrop or close button
+    if (!event || event.target.id === 'imageModal' || event.currentTarget.tagName === 'BUTTON') {
+        const modal = document.getElementById('imageModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        
+        // Restore body scroll
+        document.body.style.overflow = 'auto';
+    }
+}
+
+// Close modal on Escape key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeImageModal();
+    }
+});
+</script>
+
+<style>
+#imageModal {
+    backdrop-filter: blur(4px);
+}
+
+#imageModal img {
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+</style>
 </x-app-layout>
