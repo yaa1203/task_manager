@@ -9,7 +9,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Manajemen Pengguna</h1>
-                <p class="text-sm sm:text-base text-gray-600">Kelola dan pantau semua pengguna sistem</p>
+                <p class="text-sm sm:text-base text-gray-600">Kelola dan pantau pengguna yang sudah diberi tugas</p>
             </div>
         </div>
     </div>
@@ -49,7 +49,7 @@
                     </div>
                     <span class="px-3 py-1 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full">Total</span>
                 </div>
-                <h3 class="text-sm font-medium text-gray-600 mb-1">Semua Pengguna</h3>
+                <h3 class="text-sm font-medium text-gray-600 mb-1">Pengguna Terdaftar</h3>
                 <p class="text-3xl font-bold text-gray-900">{{ $users->total() }}</p>
             </div>
         </div>
@@ -80,7 +80,7 @@
                     <span class="px-3 py-1 bg-orange-50 text-orange-700 text-xs font-semibold rounded-full">Bulan</span>
                 </div>
                 <h3 class="text-sm font-medium text-gray-600 mb-1">Bulan Ini</h3>
-                <p class="text-3xl font-bold text-gray-900">{{ \App\Models\User::where('role', 'user')->where('created_at', '>=', now()->startOfMonth())->count() }}</p>
+                <p class="text-3xl font-bold text-gray-900">{{ \App\Models\User::where('role', 'user')->whereHas('assignedTasks')->where('created_at', '>=', now()->startOfMonth())->count() }}</p>
             </div>
         </div>
 
@@ -95,7 +95,7 @@
                     <span class="px-3 py-1 bg-purple-50 text-purple-700 text-xs font-semibold rounded-full">Minggu</span>
                 </div>
                 <h3 class="text-sm font-medium text-gray-600 mb-1">Minggu Ini</h3>
-                <p class="text-3xl font-bold text-gray-900">{{ \App\Models\User::where('role', 'user')->where('created_at', '>=', now()->startOfWeek())->count() }}</p>
+                <p class="text-3xl font-bold text-gray-900">{{ \App\Models\User::where('role', 'user')->whereHas('assignedTasks')->where('created_at', '>=', now()->startOfWeek())->count() }}</p>
             </div>
         </div>
     </div>
@@ -133,6 +133,7 @@
                     <tr>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Pengguna</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Email</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Jumlah Tugas</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Terdaftar</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Aksi</th>
@@ -161,6 +162,14 @@
                                 </svg>
                                 {{ $user->email }}
                             </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 border border-indigo-200">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                </svg>
+                                {{ $user->assigned_tasks_count }} Tugas
+                            </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="text-sm text-gray-900">{{ $user->created_at->format('d M, Y') }}</div>
@@ -199,15 +208,15 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="5" class="px-6 py-16 text-center">
+                        <td colspan="6" class="px-6 py-16 text-center">
                             <div class="flex flex-col items-center justify-center">
                                 <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                                     <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
                                     </svg>
                                 </div>
-                                <h3 class="text-lg font-semibold text-gray-900 mb-1">Tidak ada pengguna ditemukan</h3>
-                                <p class="text-sm text-gray-500">Mulai dengan menambahkan pengguna baru</p>
+                                <h3 class="text-lg font-semibold text-gray-900 mb-1">Belum ada pengguna yang diberi tugas</h3>
+                                <p class="text-sm text-gray-500">Pengguna akan muncul di sini setelah Anda memberikan tugas kepada mereka</p>
                             </div>
                         </td>
                     </tr>
@@ -237,12 +246,20 @@
                             </svg>
                             <span class="truncate">{{ $user->email }}</span>
                         </div>
-                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
-                            <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
-                                <circle cx="10" cy="10" r="4"/>
-                            </svg>
-                            Aktif
-                        </span>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                                <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
+                                    <circle cx="10" cy="10" r="4"/>
+                                </svg>
+                                Aktif
+                            </span>
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 border border-indigo-200">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                </svg>
+                                {{ $user->assigned_tasks_count }} Tugas
+                            </span>
+                        </div>
                     </div>
                 </div>
 
@@ -300,8 +317,8 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
                 </svg>
             </div>
-            <h3 class="text-lg font-semibold text-gray-900 mb-1">Tidak ada pengguna ditemukan</h3>
-            <p class="text-sm text-gray-500">Mulai dengan menambahkan pengguna baru</p>
+            <h3 class="text-lg font-semibold text-gray-900 mb-1">Belum ada pengguna yang diberi tugas</h3>
+            <p class="text-sm text-gray-500">Pengguna akan muncul di sini setelah Anda memberikan tugas kepada mereka</p>
         </div>
         @endforelse
     </div>

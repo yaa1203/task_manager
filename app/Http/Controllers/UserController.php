@@ -9,12 +9,15 @@ use Illuminate\Http\Request;
 class UserController extends Controller
 {
     /**
-     * Tampilkan semua user untuk monitoring (hanya role 'user')
+     * Tampilkan semua user untuk monitoring (hanya role 'user' yang pernah diberi tugas)
      */
     public function index()
     {
-        // Ambil hanya user dengan role 'user', tidak termasuk admin
+        // Ambil hanya user dengan role 'user' yang pernah di-assign ke task
+        // menggunakan whereHas untuk filter user yang memiliki assignedTasks
         $users = User::where('role', 'user')
+            ->whereHas('assignedTasks') // Filter: hanya user yang pernah diberi tugas
+            ->withCount('assignedTasks') // Hitung jumlah task yang di-assign
             ->orderBy('created_at', 'desc')
             ->paginate(15);
 
@@ -50,7 +53,6 @@ class UserController extends Controller
     public function show(User $user)
     {
         // Cek apakah user yang akan ditampilkan adalah admin
-        // Jika ya, redirect dengan pesan error (opsional, untuk keamanan tambahan)
         if ($user->role === 'admin' && auth()->user()->role !== 'admin') {
             return redirect()->route('users.index')
                 ->with('error', 'Akses ditolak.');
@@ -64,11 +66,18 @@ class UserController extends Controller
                 'submissions' => function($query) use ($user) {
                     $query->where('user_id', $user->id);
                 },
-                'assignedUsers'
+                'assignedUsers',
+                'creator'
             ])
             ->latest()
             ->get();
 
-        return view('admin.users.show', compact('user', 'tasks'));
+        // Hitung statistik menggunakan accessor dari model
+        $totalTasks = $user->total_assigned_tasks;
+        $completedTasks = $user->completed_tasks_count;
+        $pendingTasks = $user->pending_tasks_count;
+        $todoTasks = $user->todo_tasks_count;
+
+        return view('admin.users.show', compact('user', 'tasks', 'totalTasks', 'completedTasks', 'pendingTasks', 'todoTasks'));
     }
 }

@@ -145,7 +145,7 @@ class AnalyticsController extends Controller
                     'total_tasks' => (int) $totalTasks,
                     'completion_rate' => (float) $completionRate,
                 ],
-                'timestamp' => time(), // Add timestamp for debugging
+                'timestamp' => time(),
             ];
 
             Log::info('Analytics data prepared successfully', [
@@ -202,7 +202,7 @@ class AnalyticsController extends Controller
     }
 
     /**
-     * Get analytics data for admin (all users)
+     * Get analytics data for admin (hanya user yang sudah diberi tugas)
      */
     public function adminData()
     {
@@ -253,10 +253,13 @@ class AnalyticsController extends Controller
                 'done' => (int) $doneTasks,
             ];
 
-            // User statistics
-            $totalUsers = User::where('role', 'user')->count();
+            // User statistics - HANYA user yang sudah pernah diberi tugas
+            $totalUsers = User::where('role', 'user')
+                ->whereHas('assignedTasks') // Filter: hanya user yang pernah diberi tugas
+                ->count();
             
             // Active users = users yang punya submission dalam 7 hari terakhir
+            // DAN sudah pernah diberi tugas
             $activeUserIds = collect();
             foreach ($allTasks as $task) {
                 if (!$task->submissions) continue;
@@ -275,7 +278,12 @@ class AnalyticsController extends Controller
                     $activeUserIds->push($submission->user_id);
                 }
             }
-            $activeUsers = $activeUserIds->unique()->count();
+            
+            // Pastikan active users juga termasuk dalam user yang pernah diberi tugas
+            $activeUsers = User::where('role', 'user')
+                ->whereHas('assignedTasks')
+                ->whereIn('id', $activeUserIds->unique())
+                ->count();
 
             // Calculate completion rate
             $completionRate = $totalTasks > 0 
@@ -287,8 +295,8 @@ class AnalyticsController extends Controller
             $response = [
                 'tasks' => $taskStats,
                 'users' => [
-                    'total' => (int) $totalUsers,
-                    'active' => (int) $activeUsers,
+                    'total' => (int) $totalUsers, // Hanya user yang pernah diberi tugas
+                    'active' => (int) $activeUsers, // Hanya dari user yang pernah diberi tugas
                 ],
                 'summary' => [
                     'total_tasks' => (int) $totalTasks,
@@ -301,7 +309,8 @@ class AnalyticsController extends Controller
 
             Log::info('Admin analytics data prepared successfully', [
                 'total_tasks' => $totalTasks,
-                'total_users' => $totalUsers
+                'total_users' => $totalUsers,
+                'active_users' => $activeUsers
             ]);
 
             return response()->json($response)
