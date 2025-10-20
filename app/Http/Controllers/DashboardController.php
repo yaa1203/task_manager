@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Workspace;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
@@ -88,11 +89,79 @@ class DashboardController extends Controller
 
     public function AdminIndex()
     {
+        // Ambil hanya user dengan role 'user' yang pernah di-assign ke task
+        $users = User::where('role', 'user')
+            ->whereHas('assignedTasks')
+            ->withCount('assignedTasks')
+            ->latest()
+            ->take(5)
+            ->get();
+
+        // Hitung statistik untuk setiap user (konsisten dengan UserController)
+        $users->each(function ($user) {
+            $user->diligence_score = $this->calculateDiligenceScore($user);
+            $user->late_submissions_count = $this->countLateSubmissions($user);
+            $user->on_time_submissions_count = $this->countOnTimeSubmissions($user);
+            $user->completion_rate = $this->calculateCompletionRate($user);
+        });
+
+        // Total users yang pernah diberi tugas
+        $totalUsers = User::where('role', 'user')
+            ->whereHas('assignedTasks')
+            ->count();
+
         return view('admin.dashboard', [
-            'totalUsers' => User::where('role', 'user')->count(),
+            'totalUsers' => $totalUsers,
             'totalTasks' => Task::count(),
-            'admins' => User::where('role', 'admin')->get(),
-            'users' => User::where('role', 'user')->latest()->take(5)->get(),
+            'users' => $users,
         ]);
+    }
+
+    /**
+     * Calculate diligence score for a user
+     */
+    private function calculateDiligenceScore($user)
+    {
+        $onTimeCount = $this->countOnTimeSubmissions($user);
+        $lateCount = $this->countLateSubmissions($user);
+        return max(0, ($onTimeCount * 10) - ($lateCount * 5));
+    }
+
+    /**
+     * Count late submissions for a user
+     */
+    private function countLateSubmissions($user)
+    {
+        return DB::table('user_task_submissions')
+            ->join('tasks', 'user_task_submissions.task_id', '=', 'tasks.id')
+            ->where('user_task_submissions.user_id', $user->id)
+            ->whereRaw('user_task_submissions.created_at > tasks.due_date')
+            ->count();
+    }
+
+    /**
+     * Count on-time submissions for a user
+     */
+    private function countOnTimeSubmissions($user)
+    {
+        return DB::table('user_task_submissions')
+            ->join('tasks', 'user_task_submissions.task_id', '=', 'tasks.id')
+            ->where('user_task_submissions.user_id', $user->id)
+            ->whereRaw('user_task_submissions.created_at <= tasks.due_date')
+            ->count();
+    }
+
+    /**
+     * Calculate completion rate percentage
+     */
+    private function calculateCompletionRate($user)
+    {
+        $totalAssigned = $user->assignedTasks()->count();
+        if ($totalAssigned === 0) {
+            return 0;
+        }
+        
+        $completed = $user->submissions()->distinct('task_id')->count();
+        return round(($completed / $totalAssigned) * 100, 1);
     }
 }

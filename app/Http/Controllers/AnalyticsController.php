@@ -203,59 +203,57 @@ class AnalyticsController extends Controller
 
     /**
      * Get analytics data for admin (hanya user yang sudah diberi tugas)
+     * Menghitung berdasarkan TOTAL ASSIGNMENTS, bukan total tasks
      */
     public function adminData()
     {
         try {
             Log::info('Fetching admin analytics');
 
-            // Ambil semua tasks dengan submissions
+            // Ambil semua tasks dengan submissions dan assigned users
             $allTasks = Task::with(['submissions', 'assignedUsers'])->get();
             
-            // Hitung statistik tasks
-            $totalTasks = $allTasks->count();
-            
-            $doneTasks = $allTasks->filter(function($task) {
-                return $task->submissions && $task->submissions->isNotEmpty();
-            })->count();
-            
-            $overdueTasks = $allTasks->filter(function($task) {
-                $hasSubmission = $task->submissions && $task->submissions->isNotEmpty();
-                if (!$hasSubmission && $task->due_date) {
-                    try {
-                        return Carbon::parse($task->due_date)->isPast();
-                    } catch (\Exception $e) {
-                        Log::warning('Invalid due_date format for task: ' . $task->id);
-                        return false;
+            // LOGIKA BARU: Hitung berdasarkan TOTAL ASSIGNMENTS
+            // Setiap task * jumlah assigned users = total assignments
+            $totalAssignments = 0;
+            $completedAssignments = 0;
+            $overdueAssignments = 0;
+            $unfinishedAssignments = 0;
+
+            foreach ($allTasks as $task) {
+                $assignedUserCount = $task->assignedUsers->count();
+                $totalAssignments += $assignedUserCount;
+
+                // Untuk setiap user yang di-assign, cek statusnya
+                foreach ($task->assignedUsers as $user) {
+                    // Cek apakah user ini sudah submit
+                    $userSubmission = $task->submissions->where('user_id', $user->id)->first();
+                    
+                    if ($userSubmission) {
+                        // User sudah submit = completed
+                        $completedAssignments++;
+                    } else {
+                        // User belum submit, cek apakah overdue atau unfinished
+                        if ($task->due_date && Carbon::parse($task->due_date)->isPast()) {
+                            // Overdue
+                            $overdueAssignments++;
+                        } else {
+                            // Unfinished (belum deadline)
+                            $unfinishedAssignments++;
+                        }
                     }
                 }
-                return false;
-            })->count();
-            
-            $unfinishedTasks = $allTasks->filter(function($task) {
-                $hasSubmission = $task->submissions && $task->submissions->isNotEmpty();
-                $isOverdue = false;
-                
-                if (!$hasSubmission && $task->due_date) {
-                    try {
-                        $isOverdue = Carbon::parse($task->due_date)->isPast();
-                    } catch (\Exception $e) {
-                        $isOverdue = false;
-                    }
-                }
-                
-                return !$hasSubmission && !$isOverdue;
-            })->count();
+            }
 
             $taskStats = [
-                'overdue' => (int) $overdueTasks,
-                'unfinished' => (int) $unfinishedTasks,
-                'done' => (int) $doneTasks,
+                'overdue' => (int) $overdueAssignments,
+                'unfinished' => (int) $unfinishedAssignments,
+                'done' => (int) $completedAssignments,
             ];
 
             // User statistics - HANYA user yang sudah pernah diberi tugas
             $totalUsers = User::where('role', 'user')
-                ->whereHas('assignedTasks') // Filter: hanya user yang pernah diberi tugas
+                ->whereHas('assignedTasks')
                 ->count();
             
             // Active users = users yang punya submission dalam 7 hari terakhir
@@ -285,32 +283,32 @@ class AnalyticsController extends Controller
                 ->whereIn('id', $activeUserIds->unique())
                 ->count();
 
-            // Calculate completion rate
-            $completionRate = $totalTasks > 0 
-                ? round(($doneTasks / $totalTasks) * 100, 1)
+            // Calculate completion rate berdasarkan ASSIGNMENTS
+            $completionRate = $totalAssignments > 0 
+                ? round(($completedAssignments / $totalAssignments) * 100, 1)
                 : 0;
-            
-            $unfinishedWorkload = $unfinishedTasks;
 
             $response = [
                 'tasks' => $taskStats,
                 'users' => [
-                    'total' => (int) $totalUsers, // Hanya user yang pernah diberi tugas
-                    'active' => (int) $activeUsers, // Hanya dari user yang pernah diberi tugas
+                    'total' => (int) $totalUsers,
+                    'active' => (int) $activeUsers,
                 ],
                 'summary' => [
-                    'total_tasks' => (int) $totalTasks,
+                    'total_tasks' => (int) $totalAssignments, // Total assignments, bukan total tasks
                     'completion_rate' => (float) $completionRate,
-                    'unfinished_workload' => (int) $unfinishedWorkload,
-                    'overdue_workload' => (int) $overdueTasks,
+                    'unfinished_workload' => (int) $unfinishedAssignments,
+                    'overdue_workload' => (int) $overdueAssignments,
                 ],
                 'timestamp' => time(),
             ];
 
             Log::info('Admin analytics data prepared successfully', [
-                'total_tasks' => $totalTasks,
+                'total_assignments' => $totalAssignments,
+                'completed_assignments' => $completedAssignments,
                 'total_users' => $totalUsers,
-                'active_users' => $activeUsers
+                'active_users' => $activeUsers,
+                'completion_rate' => $completionRate
             ]);
 
             return response()->json($response)
