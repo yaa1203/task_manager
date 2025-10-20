@@ -115,7 +115,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         ->name('workspace.tasks.show');
     /// View task file
     Route::get('workspaces/{workspace}/tasks/{task}/view', [WorkspaceController::class, 'viewTaskFile'])
-        ->name('workspace.tasks.view');
+        ->name('workspace.tasks.view-file');
     
     // Download task file
     Route::get('workspaces/{workspace}/tasks/{task}/download', [WorkspaceController::class, 'downloadTaskFile'])
