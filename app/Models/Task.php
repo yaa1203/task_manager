@@ -15,6 +15,7 @@ class Task extends Model
         'project_id',
         'created_by',
         'title',
+        'original_filename',
         'description',
         'file_path',
         'link',
@@ -26,8 +27,15 @@ class Task extends Model
     ];
 
     protected $casts = [
+<<<<<<< HEAD
         'due_date' => 'datetime',
+=======
+        'submitted_at' => 'datetime',
+        'due_date' => 'date',
+>>>>>>> 387a90915fd776c88a8fd582cca44f71556d2387
         'completed_at' => 'datetime',
+        'original_filename' => 'string',
+        'file_path' => 'string',
     ];
 
     /**

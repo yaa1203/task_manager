@@ -57,7 +57,7 @@ Route::middleware(['auth'])->group(function () {
     // View submission file
     Route::get('{workspace}/tasks/{task}/submissions/{submission}/view', 
         [WorkspaceController::class, 'viewSubmissionFile'])
-        ->name('my-workspaces.submission.view');
+        ->name('my-workspaces.submission.view-file');
     
     // Download submission file
     Route::get('{workspace}/tasks/{task}/submissions/{submission}/download', 
