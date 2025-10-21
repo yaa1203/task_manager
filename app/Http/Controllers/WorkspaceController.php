@@ -202,7 +202,7 @@ class WorkspaceController extends Controller
     /**
      * Store task in workspace
      */
-    public function storeTask(Request $request, Workspace $workspace)
+    public function storeTask(Request $request, Workspace $workspace,Task $task)
     {
         $this->authorize('update', $workspace);
 
