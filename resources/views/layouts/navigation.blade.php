@@ -43,8 +43,8 @@
             </div>
 
             <div class="flex items-center">
-                <!-- Dropdown Notifikasi - Desktop -->
-                <div class="hidden sm:flex sm:items-center sm:ms-4">
+                <!-- Dropdown Notifikasi - Desktop & Mobile -->
+                <div class="flex items-center sm:ms-4">
                     <div class="relative" x-data="{ open: false }" @click.away="open = false">
                         <button @click="open = !open" 
                                 class="inline-flex items-center p-2 text-sm font-medium text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
@@ -229,7 +229,7 @@
                 </div>
 
                 <!-- Hamburger - Mobile -->
-                <div class="-me-2 flex items-center sm:hidden">
+                <div class="flex items-center sm:hidden ms-2">
                     <button id="mobile-menu-button" 
                             class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-indigo-500 transition duration-150 ease-in-out"
                             type="button"
@@ -274,22 +274,6 @@
             <a href="{{ url('analytics') }}" 
                class="block pl-3 pr-4 py-2 border-l-4 {{ request()->routeIs('analytics.*') ? 'border-indigo-400 text-indigo-700 bg-indigo-50' : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300' }} text-base font-medium transition">
                 {{ __('Analytics') }}
-            </a>
-
-            <a href="{{ url('notifikasi') }}" 
-               class="flex items-center px-4 py-2 border-l-4 {{ request()->routeIs('notifikasi.*') ? 'border-indigo-400 text-indigo-700 bg-indigo-50' : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300' }} text-base font-medium transition">
-                <svg class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" 
-                          stroke-linejoin="round" 
-                          stroke-width="2" 
-                          d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
-                {{ __('Notifications') }}
-                @if (Auth::user()->unreadNotifications->count() > 0)
-                    <span class="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                        {{ Auth::user()->unreadNotifications->count() }}
-                    </span>
-                @endif
             </a>
         </div>
 

@@ -1,219 +1,32 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Taskly - Kelola Tugas Anda dengan Mudah</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-15px); }
-        }
-        
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .float-animation {
-            animation: float 6s ease-in-out infinite;
-        }
-        
-        .fade-in-up {
-            animation: fadeInUp 0.8s ease-out forwards;
-        }
-        
-        .gradient-text {
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .feature-card {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        .feature-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        }
-        
-        .hero-image {
-            transition: transform 0.3s ease;
-        }
-        
-        .hero-image:hover {
-            transform: scale(1.02);
-        }
-        
-        /* Improved Mobile Navigation */
-        .mobile-menu-enter {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out;
-        }
-        
-        .mobile-menu-enter.active {
-            max-height: 200px;
-        }
-        
-        /* Better Button Styles */
-        .btn {
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-        
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
-        }
-        
-        .btn:hover::before {
-            width: 300px;
-            height: 300px;
-        }
-        
-        /* Responsive Typography */
-        @media (max-width: 640px) {
-            html {
-                font-size: 14px;
-            }
-            
-            .hero-section {
-                padding-top: 2rem;
-                padding-bottom: 2rem;
-            }
-            
-            .hero-image-container {
-                max-width: 100%;
-                padding: 0 1rem;
-            }
-            
-            .hero-image {
-                width: 100%;
-                height: auto;
-                aspect-ratio: 1;
-                object-fit: cover;
-            }
-        }
-        
-        @media (min-width: 641px) and (max-width: 768px) {
-            html {
-                font-size: 15px;
-            }
-        }
-        
-        @media (min-width: 769px) {
-            html {
-                font-size: 16px;
-            }
-        }
-        
-        /* Smooth Scrolling */
-        html {
-            scroll-behavior: smooth;
-        }
-        
-        /* Custom Container */
-        .container-custom {
-            width: 100%;
-            margin-left: auto;
-            margin-right: auto;
-            padding-left: 1rem;
-            padding-right: 1rem;
-        }
-        
-        @media (min-width: 640px) {
-            .container-custom {
-                max-width: 640px;
-                padding-left: 1.5rem;
-                padding-right: 1.5rem;
-            }
-        }
-        
-        @media (min-width: 768px) {
-            .container-custom {
-                max-width: 768px;
-            }
-        }
-        
-        @media (min-width: 1024px) {
-            .container-custom {
-                max-width: 1024px;
-            }
-        }
-        
-        @media (min-width: 1280px) {
-            .container-custom {
-                max-width: 1280px;
-            }
-        }
-    </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans antialiased">
     
     <!-- Navigation -->
     <nav class="bg-white shadow-sm sticky top-0 z-50">
-        <div class="container-custom">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <!-- Logo -->
                 <div class="flex items-center space-x-2">
                     <div class="bg-gradient-to-br from-blue-600 to-purple-600 text-white rounded-lg w-10 h-10 flex items-center justify-center font-bold text-xl shadow-md">
                         T
                     </div>
-                    <span class="font-bold text-xl gradient-text">Taskly</span>
+                    <span class="font-bold text-xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Taskly</span>
                 </div>
                 
-                <!-- Desktop Menu -->
-                <div class="hidden md:flex items-center space-x-4">
-                    <a href="{{ route('login')}}" class="text-gray-700 hover:text-blue-600 font-medium px-4 py-2 rounded-lg transition">
+                <!-- Desktop & Mobile Buttons -->
+                <div class="flex items-center space-x-2 sm:space-x-4">
+                    <a href="{{ route('login')}}" class="text-gray-700 hover:text-blue-600 font-medium px-3 sm:px-4 py-2 rounded-lg transition-colors duration-200 text-sm sm:text-base">
                         Masuk
                     </a>
-                    <a href="{{ route('register')}}" class="btn bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-2 rounded-lg font-medium shadow-md">
-                        Daftar Gratis
-                    </a>
-                </div>
-                
-                <!-- Mobile Menu Button -->
-                <button id="mobile-menu-btn" class="md:hidden text-gray-600 hover:text-gray-900 focus:outline-none p-2" aria-label="Toggle menu">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path id="menu-icon" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                        <path id="close-icon" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-            </div>
-            
-            <!-- Mobile Menu -->
-            <div id="mobile-menu" class="mobile-menu-enter md:hidden border-t border-gray-100">
-                <div class="py-4 space-y-3">
-                    <a href="{{ route('login')}}" class="block text-gray-700 hover:text-blue-600 font-medium px-4 py-2 rounded-lg transition">
-                        Masuk
-                    </a>
-                    <a href="{{ route('register')}}" class="block btn bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg font-medium text-center shadow-md">
+                    <a href="{{ route('register')}}" class="relative overflow-hidden bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-3 sm:px-6 py-2 rounded-lg font-medium shadow-md transition-all duration-300 transform hover:scale-105 text-sm sm:text-base">
                         Daftar Gratis
                     </a>
                 </div>
@@ -222,16 +35,16 @@
     </nav>
 
     <!-- Hero Section -->
-    <section class="hero-section relative overflow-hidden py-12 md:py-20 lg:py-24">
+    <section class="relative overflow-hidden py-12 md:py-20 lg:py-24">
         <div class="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 opacity-60"></div>
         
-        <div class="container-custom relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
                 <!-- Text Content -->
-                <div class="text-center lg:text-left space-y-6 fade-in-up">
+                <div class="text-center lg:text-left space-y-6 opacity-0 animate-fade-in-up">
                     <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
                         Kelola Tugas. <br class="hidden sm:block">
-                        <span class="gradient-text">Selesaikan Lebih Cepat.</span>
+                        <span class="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Selesaikan Lebih Cepat.</span>
                     </h1>
                     
                     <p class="text-base sm:text-lg md:text-xl text-gray-600 max-w-2xl mx-auto lg:mx-0">
@@ -239,23 +52,23 @@
                     </p>
                     
                     <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
-                        <a href="{{ route('register')}}" class="btn bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg transform hover:scale-105 transition inline-flex items-center justify-center">
-                            <i class="fas fa-rocket mr-2"></i>
+                        <a href="{{ route('register')}}" class="relative overflow-hidden bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg transform hover:scale-105 transition-all duration-300 inline-flex items-center justify-center group">
+                            <i class="fas fa-rocket mr-2 group-hover:animate-bounce"></i>
                             <span>Mulai Sekarang</span>
                         </a>
-                        <a href="#features" class="btn bg-white hover:bg-gray-50 text-blue-600 border-2 border-blue-600 px-8 py-4 rounded-xl font-semibold text-lg shadow-md transition inline-flex items-center justify-center">
+                        <a href="#features" class="bg-white hover:bg-gray-50 text-blue-600 border-2 border-blue-600 px-8 py-4 rounded-xl font-semibold text-lg shadow-md transition-all duration-300 transform hover:scale-105 inline-flex items-center justify-center">
                             <span>Lihat Fitur</span>
-                            <i class="fas fa-arrow-down ml-2"></i>
+                            <i class="fas fa-arrow-down ml-2 animate-bounce"></i>
                         </a>
                     </div>
                 </div>
                 
                 <!-- Hero Image -->
-                <div class="hero-image-container flex justify-center lg:justify-end mt-8 lg:mt-0">
-                    <div class="float-animation w-full max-w-sm md:max-w-md lg:max-w-lg">
+                <div class="flex justify-center lg:justify-end mt-8 lg:mt-0">
+                    <div class="w-full max-w-sm md:max-w-md lg:max-w-lg animate-float">
                         <img src="icons/banner.jpg" 
                              alt="Taskly App Preview" 
-                             class="hero-image w-full rounded-2xl shadow-2xl">
+                             class="w-full rounded-2xl shadow-2xl hover:scale-105 transition-transform duration-300">
                     </div>
                 </div>
             </div>
@@ -264,10 +77,10 @@
 
     <!-- Features Section -->
     <section id="features" class="py-16 md:py-20 lg:py-24 bg-white">
-        <div class="container-custom">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12 md:mb-16">
                 <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
-                    Fitur Unggulan <span class="gradient-text">Taskly</span>
+                    Fitur Unggulan <span class="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Taskly</span>
                 </h2>
                 <p class="text-base sm:text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
                     Dibuat khusus untuk membantu Anda mengelola tugas dengan efisien
@@ -276,7 +89,7 @@
             
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                 <!-- Feature Card 1 -->
-                <div class="feature-card bg-gradient-to-br from-blue-50 to-white p-6 md:p-8 rounded-2xl border border-gray-100">
+                <div class="bg-gradient-to-br from-blue-50 to-white p-6 md:p-8 rounded-2xl border border-gray-100 transform hover:-translate-y-2 hover:shadow-2xl transition-all duration-300">
                     <div class="bg-gradient-to-br from-blue-500 to-blue-600 w-14 h-14 rounded-xl flex items-center justify-center mb-5 shadow-lg">
                         <i class="fas fa-sync text-white text-2xl"></i>
                     </div>
@@ -287,7 +100,7 @@
                 </div>
                 
                 <!-- Feature Card 2 -->
-                <div class="feature-card bg-gradient-to-br from-purple-50 to-white p-6 md:p-8 rounded-2xl border border-gray-100">
+                <div class="bg-gradient-to-br from-purple-50 to-white p-6 md:p-8 rounded-2xl border border-gray-100 transform hover:-translate-y-2 hover:shadow-2xl transition-all duration-300">
                     <div class="bg-gradient-to-br from-purple-500 to-purple-600 w-14 h-14 rounded-xl flex items-center justify-center mb-5 shadow-lg">
                         <i class="fas fa-bell text-white text-2xl"></i>
                     </div>
@@ -298,7 +111,7 @@
                 </div>
                 
                 <!-- Feature Card 3 -->
-                <div class="feature-card bg-gradient-to-br from-green-50 to-white p-6 md:p-8 rounded-2xl border border-gray-100">
+                <div class="bg-gradient-to-br from-green-50 to-white p-6 md:p-8 rounded-2xl border border-gray-100 transform hover:-translate-y-2 hover:shadow-2xl transition-all duration-300">
                     <div class="bg-gradient-to-br from-green-500 to-green-600 w-14 h-14 rounded-xl flex items-center justify-center mb-5 shadow-lg">
                         <i class="fas fa-calendar-alt text-white text-2xl"></i>
                     </div>
@@ -309,7 +122,7 @@
                 </div>
                 
                 <!-- Feature Card 4 -->
-                <div class="feature-card bg-gradient-to-br from-yellow-50 to-white p-6 md:p-8 rounded-2xl border border-gray-100">
+                <div class="bg-gradient-to-br from-yellow-50 to-white p-6 md:p-8 rounded-2xl border border-gray-100 transform hover:-translate-y-2 hover:shadow-2xl transition-all duration-300">
                     <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 w-14 h-14 rounded-xl flex items-center justify-center mb-5 shadow-lg">
                         <i class="fas fa-users text-white text-2xl"></i>
                     </div>
@@ -320,7 +133,7 @@
                 </div>
                 
                 <!-- Feature Card 5 -->
-                <div class="feature-card bg-gradient-to-br from-red-50 to-white p-6 md:p-8 rounded-2xl border border-gray-100">
+                <div class="bg-gradient-to-br from-red-50 to-white p-6 md:p-8 rounded-2xl border border-gray-100 transform hover:-translate-y-2 hover:shadow-2xl transition-all duration-300">
                     <div class="bg-gradient-to-br from-red-500 to-red-600 w-14 h-14 rounded-xl flex items-center justify-center mb-5 shadow-lg">
                         <i class="fas fa-chart-line text-white text-2xl"></i>
                     </div>
@@ -331,7 +144,7 @@
                 </div>
                 
                 <!-- Feature Card 6 -->
-                <div class="feature-card bg-gradient-to-br from-indigo-50 to-white p-6 md:p-8 rounded-2xl border border-gray-100">
+                <div class="bg-gradient-to-br from-indigo-50 to-white p-6 md:p-8 rounded-2xl border border-gray-100 transform hover:-translate-y-2 hover:shadow-2xl transition-all duration-300">
                     <div class="bg-gradient-to-br from-indigo-500 to-indigo-600 w-14 h-14 rounded-xl flex items-center justify-center mb-5 shadow-lg">
                         <i class="fas fa-shield-alt text-white text-2xl"></i>
                     </div>
@@ -346,10 +159,10 @@
 
     <!-- Benefits Section -->
     <section id="benefits" class="py-16 md:py-20 lg:py-24 bg-gradient-to-br from-gray-50 to-blue-50">
-        <div class="container-custom">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12 md:mb-16">
                 <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
-                    Mengapa Pilih <span class="gradient-text">Taskly?</span>
+                    Mengapa Pilih <span class="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Taskly?</span>
                 </h2>
                 <p class="text-base sm:text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
                     Ribuan pengguna profesional telah meningkatkan produktivitas mereka dengan Taskly
@@ -357,21 +170,21 @@
             </div>
             
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 md:gap-8">
-                <div class="bg-white p-8 md:p-10 rounded-2xl shadow-lg text-center transform hover:scale-105 transition">
+                <div class="bg-white p-8 md:p-10 rounded-2xl shadow-lg text-center transform hover:scale-105 transition-transform duration-300">
                     <div class="text-5xl md:text-6xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-3">
                         85%
                     </div>
                     <p class="text-gray-700 font-semibold text-lg">Peningkatan Produktivitas</p>
                 </div>
                 
-                <div class="bg-white p-8 md:p-10 rounded-2xl shadow-lg text-center transform hover:scale-105 transition">
+                <div class="bg-white p-8 md:p-10 rounded-2xl shadow-lg text-center transform hover:scale-105 transition-transform duration-300">
                     <div class="text-5xl md:text-6xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-3">
                         10K+
                     </div>
                     <p class="text-gray-700 font-semibold text-lg">Tugas Selesai Setiap Hari</p>
                 </div>
                 
-                <div class="bg-white p-8 md:p-10 rounded-2xl shadow-lg text-center transform hover:scale-105 transition">
+                <div class="bg-white p-8 md:p-10 rounded-2xl shadow-lg text-center transform hover:scale-105 transition-transform duration-300">
                     <div class="text-5xl md:text-6xl font-bold bg-gradient-to-r from-green-600 to-teal-600 bg-clip-text text-transparent mb-3">
                         50K+
                     </div>
@@ -389,39 +202,37 @@
                 Bergabung dengan ribuan pengguna yang telah mengubah cara mereka bekerja
             </p>
             <div class="flex flex-col sm:flex-row gap-3 justify-center">
-                <a href="{{ route('register')}}" class="bg-white text-blue-600 hover:bg-gray-100 px-5 md:px-8 py-3 md:py-4 rounded-xl font-semibold text-base md:text-lg transition transform hover:scale-105 flex items-center justify-center">
+                <a href="{{ route('register')}}" class="bg-white text-blue-600 hover:bg-gray-100 px-5 md:px-8 py-3 md:py-4 rounded-xl font-semibold text-base md:text-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center">
                     <i class="fas fa-user-plus mr-2"></i>Buat Akun Gratis
                 </a>
             </div>
         </div>
     </section>
 
-    <script>
-        // Mobile menu toggle with smooth animation
-        document.addEventListener('DOMContentLoaded', function() {
-            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-            const mobileMenu = document.getElementById('mobile-menu');
-            const menuIcon = document.getElementById('menu-icon');
-            const closeIcon = document.getElementById('close-icon');
-            
-            if (mobileMenuBtn && mobileMenu) {
-                mobileMenuBtn.addEventListener('click', function() {
-                    mobileMenu.classList.toggle('active');
-                    menuIcon.classList.toggle('hidden');
-                    closeIcon.classList.toggle('hidden');
-                });
-                
-                // Close menu when clicking on a link
-                const mobileLinks = mobileMenu.querySelectorAll('a');
-                mobileLinks.forEach(link => {
-                    link.addEventListener('click', function() {
-                        mobileMenu.classList.remove('active');
-                        menuIcon.classList.remove('hidden');
-                        closeIcon.classList.add('hidden');
-                    });
-                });
+    <style>
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+        }
+        
+        @keyframes fade-in-up {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
             }
-        });
-    </script>
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        .animate-fade-in-up {
+            animation: fade-in-up 0.8s ease-out forwards;
+        }
+    </style>
 </body>
 </html>

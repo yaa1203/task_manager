@@ -197,8 +197,6 @@ class UserController extends Controller
         );
     }
 
-
-
     /**
      * Count late submissions for a user
      */
@@ -238,6 +236,18 @@ class UserController extends Controller
     }
 
     /**
+     * Calculate diligence score for a user
+     */
+    private function calculateDiligenceScore($user)
+    {
+        $onTimeCount = $this->countOnTimeSubmissions($user);
+        $lateCount = $this->countLateSubmissions($user);
+        
+        // Score: +10 poin untuk setiap pengiriman tepat waktu, -5 poin untuk setiap keterlambatan
+        return max(0, ($onTimeCount * 10) - ($lateCount * 5));
+    }
+
+    /**
      * Hapus user
      */
     public function destroy(User $user)
@@ -268,6 +278,7 @@ class UserController extends Controller
                 ->with('error', 'Akses ditolak.');
         }
 
+        // Eager load relations untuk performa
         $tasks = $user->assignedTasks()
             ->with([
                 'workspace',
@@ -280,12 +291,21 @@ class UserController extends Controller
             ->latest()
             ->get();
 
-        $totalTasks = $user->total_assigned_tasks;
-        $completedTasks = $user->completed_tasks_count;
-        $pendingTasks = $user->pending_tasks_count;
-        $todoTasks = $user->todo_tasks_count;
+        // Hitung statistik
+        $totalTasks = $tasks->count();
+        $completedTasks = $tasks->filter(function($task) use ($user) {
+            return $task->submissions->where('user_id', $user->id)->isNotEmpty();
+        })->count();
+        
+        $pendingTasks = $totalTasks - $completedTasks;
+        
+        // Tugas yang terlambat (belum dikirim dan sudah melewati due date)
+        $todoTasks = $tasks->filter(function($task) use ($user) {
+            $hasSubmitted = $task->submissions->where('user_id', $user->id)->isNotEmpty();
+            return !$hasSubmitted && $task->due_date && now()->gt($task->due_date);
+        })->count();
 
-        // Tambahan statistik kerajinan
+        // Statistik kerajinan
         $diligenceScore = $this->calculateDiligenceScore($user);
         $lateSubmissions = $this->countLateSubmissions($user);
         $onTimeSubmissions = $this->countOnTimeSubmissions($user);

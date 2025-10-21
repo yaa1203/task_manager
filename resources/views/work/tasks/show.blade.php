@@ -3,7 +3,7 @@ use Illuminate\Support\Facades\Storage;
 @endphp
 
 <x-app-layout>
-<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
     <!-- Tombol Kembali -->
     <div class="mb-4 sm:mb-6">
         <a href="{{ route('my-workspaces.show', $workspace) }}" class="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors mb-3">
@@ -14,9 +14,9 @@ use Illuminate\Support\Facades\Storage;
         </a>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6">
         <!-- Konten Utama -->
-        <div class="lg:col-span-2 space-y-4 sm:space-y-6">
+        <div class="lg:col-span-3 space-y-4 sm:space-y-6">
             <!-- Kartu Detail Tugas -->
             <div class="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm">
                 <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-4">
@@ -58,7 +58,6 @@ use Illuminate\Support\Facades\Storage;
                                     $storagePath = storage_path('app/public/' . $task->file_path);
                                     $fileExists = file_exists($storagePath);
                                     
-                                    // Tentukan ikon file berdasarkan ekstensi
                                     $fileIcon = 'document';
                                     $iconColor = 'gray';
                                     if (in_array($fileExtension, ['pdf'])) {
@@ -81,17 +80,14 @@ use Illuminate\Support\Facades\Storage;
                                         $iconColor = 'gray';
                                     }
                                     
-                                    // File yang bisa dilihat (preview) - PERBAIKAN DI SINI
                                     $previewableExtensions = ['pdf', 'txt', 'md', 'csv', 'html', 'htm', 'doc', 'docx'];
                                     $isPreviewable = in_array($fileExtension, $previewableExtensions);
                                     
-                                    // Gunakan nama asli jika ada, jika tidak gunakan nama dari path
                                     $displayName = $task->original_filename ?? basename($task->file_path);
                                 @endphp
 
                                 @if($fileExists)
                                     @if($isImage)
-                                        <!-- Preview Gambar -->
                                         <div class="bg-white rounded-lg overflow-hidden border border-gray-200 shadow-sm">
                                             <button type="button" 
                                                     onclick="openFileModal('{{ asset('storage/' . $task->file_path) }}', 'image', '{{ addslashes($displayName) }}')" 
@@ -110,7 +106,6 @@ use Illuminate\Support\Facades\Storage;
                                             Klik gambar untuk melihat ukuran penuh
                                         </p>
                                     @else
-                                        <!-- Kartu File -->
                                         <div class="bg-white rounded-lg p-4 border border-gray-200 hover:border-blue-300 transition-all">
                                             <div class="flex items-center gap-3 mb-3">
                                                 <div class="flex-shrink-0 w-12 h-12 rounded-lg bg-{{ $iconColor }}-100 flex items-center justify-center">
@@ -119,20 +114,6 @@ use Illuminate\Support\Facades\Storage;
                                                             <path d="M4 18h12V6h-4V2H4v16zm-2 1V0h10l4 4v16H2v-1z"/>
                                                             <text x="10" y="14" font-size="6" text-anchor="middle" fill="currentColor">PDF</text>
                                                         </svg>
-                                                    @elseif($fileIcon === 'word')
-                                                        <svg class="w-6 h-6 text-{{ $iconColor }}-600" fill="currentColor" viewBox="0 0 20 20">
-                                                            <path d="M4 2h12l4 4v12H4V2zm1 1v14h10V7h-4V3H5z"/>
-                                                            <text x="10" y="14" font-size="5" text-anchor="middle" fill="currentColor">DOC</text>
-                                                        </svg>
-                                                    @elseif($fileIcon === 'excel')
-                                                        <svg class="w-6 h-6 text-{{ $iconColor }}-600" fill="currentColor" viewBox="0 0 20 20">
-                                                            <path d="M4 2h12l4 4v12H4V2zm1 1v14h10V7h-4V3H5z"/>
-                                                            <text x="10" y="14" font-size="5" text-anchor="middle" fill="currentColor">XLS</text>
-                                                        </svg>
-                                                    @elseif($fileIcon === 'text')
-                                                        <svg class="w-6 h-6 text-{{ $iconColor }}-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                                        </svg>
                                                     @else
                                                         <svg class="w-6 h-6 text-{{ $iconColor }}-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
@@ -140,14 +121,11 @@ use Illuminate\Support\Facades\Storage;
                                                     @endif
                                                 </div>
                                                 <div class="flex-1 min-w-0">
-                                                    <p class="text-sm font-medium text-gray-900 truncate">
-                                                        {{ $displayName }}
-                                                    </p>
+                                                    <p class="text-sm font-medium text-gray-900 truncate">{{ $displayName }}</p>
                                                     <p class="text-xs text-gray-500 uppercase">{{ $fileExtension }} file</p>
                                                 </div>
                                             </div>
                                             
-                                            <!-- Tombol Lihat dan Unduh -->
                                             <div class="flex gap-2">
                                                 @if($isPreviewable)
                                                     <button onclick="openFileModal('{{ route('my-workspaces.task.view-file', [$workspace, $task]) }}', '{{ $fileExtension }}', '{{ addslashes($displayName) }}')"
@@ -175,9 +153,8 @@ use Illuminate\Support\Facades\Storage;
                                         <svg class="w-12 h-12 text-red-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                                         </svg>
-                                        <p class="text-sm font-medium text-red-800 mb-1">File tidak ditemukan di penyimpanan</p>
-                                        <p class="text-xs text-red-600 mb-2">{{ $task->file_path }}</p>
-                                        <p class="text-xs text-red-500">Pastikan: php artisan storage:link telah dijalankan</p>
+                                        <p class="text-sm font-medium text-red-800 mb-1">File tidak ditemukan</p>
+                                        <p class="text-xs text-red-600">{{ $task->file_path }}</p>
                                     </div>
                                 @endif
                             @endif
@@ -193,9 +170,7 @@ use Illuminate\Support\Facades\Storage;
                                             </svg>
                                         </div>
                                         <div class="flex-1 min-w-0">
-                                            <p class="text-sm font-medium text-blue-900 group-hover:text-blue-700 truncate">
-                                                Tautan Referensi
-                                            </p>
+                                            <p class="text-sm font-medium text-blue-900 group-hover:text-blue-700 truncate">Tautan Referensi</p>
                                             <p class="text-xs text-gray-600 truncate">{{ $task->link }}</p>
                                         </div>
                                         <svg class="w-5 h-5 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -211,7 +186,6 @@ use Illuminate\Support\Facades\Storage;
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                             </svg>
                             <p class="text-sm text-gray-600 font-medium">Tidak ada materi terlampir</p>
-                            <p class="text-xs text-gray-500 mt-1">Admin belum mengunggah file atau tautan apa pun</p>
                         </div>
                     @endif
                 </div>
@@ -258,70 +232,6 @@ use Illuminate\Support\Facades\Storage;
                 </div>
             </div>
 
-            <!-- Form Submit (Mobile) -->
-            <div class="lg:hidden bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm">
-                <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-4">Kirim Tugas</h3>
-
-                @if($hasSubmitted)
-                    <div class="bg-green-50 border border-green-200 rounded-lg p-3 sm:p-4 mb-4">
-                        <div class="flex items-start gap-2">
-                            <svg class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                            </svg>
-                            <p class="text-xs sm:text-sm text-green-800">
-                                Anda sudah mengirimkan submission untuk tugas ini
-                            </p>
-                        </div>
-                    </div>
-                @endif
-
-                <form action="{{ route('my-workspaces.task.submit', [$workspace, $task]) }}" 
-                      method="POST" 
-                      enctype="multipart/form-data"
-                      class="space-y-3 sm:space-y-4">
-                    @csrf
-
-                    <div>
-                        <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
-                            Unggah File
-                        </label>
-                        <input type="file" 
-                               name="file"
-                               {{ $hasSubmitted ? 'disabled' : '' }}
-                               class="block w-full text-xs sm:text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none {{ $hasSubmitted ? 'opacity-50' : '' }}">
-                        <p class="mt-1 text-xs text-gray-500">Maks 10MB</p>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
-                            Tautan (Opsional)
-                        </label>
-                        <input type="url" 
-                               name="link" 
-                               placeholder="https://contoh.com"
-                               {{ $hasSubmitted ? 'disabled' : '' }}
-                               class="block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 {{ $hasSubmitted ? 'opacity-50 bg-gray-100' : '' }}">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
-                            Catatan
-                        </label>
-                        <textarea name="notes" 
-                                  rows="4" 
-                                  placeholder="Tambahkan catatan tambahan..."
-                                  {{ $hasSubmitted ? 'disabled' : '' }}
-                                  class="block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 {{ $hasSubmitted ? 'opacity-50 bg-gray-100' : '' }}"></textarea>
-                    </div>
-
-                    <button type="submit" 
-                            {{ $hasSubmitted ? 'disabled' : '' }}
-                            class="w-full bg-blue-600 text-white px-4 py-2.5 rounded-lg font-semibold text-sm sm:text-base transition shadow-sm {{ $hasSubmitted ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700 active:bg-blue-800' }}">
-                        {{ $hasSubmitted ? 'Sudah Dikirim' : 'Kirim Tugas' }}
-                    </button>
-                </form>
-            </div>
-
             <!-- Pengumpulan Saya -->
             <div class="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm">
                 <h2 class="text-base sm:text-lg font-semibold text-gray-900 mb-4">Pengumpulan Saya</h2>
@@ -333,7 +243,6 @@ use Illuminate\Support\Facades\Storage;
                                 <div class="flex items-center justify-between mb-3">
                                     <p class="text-xs sm:text-sm text-gray-500">
                                         Dikirim {{ $submission->created_at->locale('id')->translatedFormat('d F Y H:i') }}
-
                                     </p>
                                     @if($submission->status)
                                         <span class="px-2.5 py-1 text-xs font-semibold rounded-full border w-fit
@@ -352,158 +261,6 @@ use Illuminate\Support\Facades\Storage;
                                         <p class="text-xs sm:text-sm text-gray-600 bg-gray-50 p-2 rounded">{{ $submission->notes }}</p>
                                     </div>
                                 @endif
-
-                                <!-- File dan Tautan Pengumpulan -->
-                                <div class="space-y-3">
-                                    @if($submission->file_path)
-                                        @php
-                                            $fileExtension = strtolower(pathinfo($submission->file_path, PATHINFO_EXTENSION));
-                                            $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp'];
-                                            $isImage = in_array($fileExtension, $imageExtensions);
-                                            $storagePath = storage_path('app/public/' . $submission->file_path);
-                                            $fileExists = file_exists($storagePath);
-                                            
-                                            $fileIcon = 'document';
-                                            $iconColor = 'gray';
-                                            if (in_array($fileExtension, ['pdf'])) {
-                                                $fileIcon = 'pdf';
-                                                $iconColor = 'red';
-                                            } elseif (in_array($fileExtension, ['doc', 'docx'])) {
-                                                $fileIcon = 'word';
-                                                $iconColor = 'blue';
-                                            } elseif (in_array($fileExtension, ['xls', 'xlsx'])) {
-                                                $fileIcon = 'excel';
-                                                $iconColor = 'green';
-                                            } elseif (in_array($fileExtension, ['ppt', 'pptx'])) {
-                                                $fileIcon = 'powerpoint';
-                                                $iconColor = 'orange';
-                                            } elseif (in_array($fileExtension, ['zip', 'rar', '7z'])) {
-                                                $fileIcon = 'archive';
-                                                $iconColor = 'yellow';
-                                            } elseif (in_array($fileExtension, ['txt', 'md', 'csv'])) {
-                                                $fileIcon = 'text';
-                                                $iconColor = 'gray';
-                                            }
-                                            
-                                            $previewableExtensions = ['pdf', 'txt', 'md', 'csv', 'html', 'htm', 'doc', 'docx'];
-                                            $isPreviewable = in_array($fileExtension, $previewableExtensions);
-                                            
-                                            $displayName = $submission->original_filename ?? basename($submission->file_path);
-                                        @endphp
-
-                                        @if($fileExists)
-                                            @if($isImage)
-                                                <div class="bg-white rounded-lg overflow-hidden border border-gray-200 shadow-sm">
-                                                    <button type="button" 
-                                                            onclick="openFileModal('{{ asset('storage/' . $submission->file_path) }}', 'image', '{{ addslashes($displayName) }}')" 
-                                                            class="block w-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg overflow-hidden">
-                                                        <img src="{{ asset('storage/' . $submission->file_path) }}" 
-                                                            alt="{{ $displayName }}"
-                                                            class="w-full h-auto max-h-[500px] object-contain hover:opacity-95 transition-opacity"
-                                                            loading="lazy">
-                                                    </button>
-                                                </div>
-                                                <p class="text-xs text-gray-600 text-center mt-2">
-                                                    <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                                    </svg>
-                                                    Klik gambar untuk melihat ukuran penuh
-                                                </p>
-                                            @else
-                                                <div class="bg-white rounded-lg p-4 border border-gray-200 hover:border-blue-300 transition-all">
-                                                    <div class="flex items-center gap-3 mb-3">
-                                                        <div class="flex-shrink-0 w-12 h-12 rounded-lg bg-{{ $iconColor }}-100 flex items-center justify-center">
-                                                            @if($fileIcon === 'pdf')
-                                                                <svg class="w-6 h-6 text-{{ $iconColor }}-600" fill="currentColor" viewBox="0 0 20 20">
-                                                                    <path d="M4 18h12V6h-4V2H4v16zm-2 1V0h10l4 4v16H2v-1z"/>
-                                                                    <text x="10" y="14" font-size="6" text-anchor="middle" fill="currentColor">PDF</text>
-                                                                </svg>
-                                                            @elseif($fileIcon === 'word')
-                                                                <svg class="w-6 h-6 text-{{ $iconColor }}-600" fill="currentColor" viewBox="0 0 20 20">
-                                                                    <path d="M4 2h12l4 4v12H4V2zm1 1v14h10V7h-4V3H5z"/>
-                                                                    <text x="10" y="14" font-size="5" text-anchor="middle" fill="currentColor">DOC</text>
-                                                                </svg>
-                                                            @elseif($fileIcon === 'excel')
-                                                                <svg class="w-6 h-6 text-{{ $iconColor }}-600" fill="currentColor" viewBox="0 0 20 20">
-                                                                    <path d="M4 2h12l4 4v12H4V2zm1 1v14h10V7h-4V3H5z"/>
-                                                                    <text x="10" y="14" font-size="5" text-anchor="middle" fill="currentColor">XLS</text>
-                                                                </svg>
-                                                            @elseif($fileIcon === 'text')
-                                                                <svg class="w-6 h-6 text-{{ $iconColor }}-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                                                </svg>
-                                                            @else
-                                                                <svg class="w-6 h-6 text-{{ $iconColor }}-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-                                                                </svg>
-                                                            @endif
-                                                        </div>
-                                                        <div class="flex-1 min-w-0">
-                                                            <p class="text-sm font-medium text-gray-900 truncate">
-                                                                {{ $displayName }}
-                                                            </p>
-                                                            <p class="text-xs text-gray-500 uppercase">{{ $fileExtension }} file</p>
-                                                        </div>
-                                                    </div>
-                                                    
-                                                    <div class="flex gap-2">
-                                                        @if($isPreviewable)
-                                                            <button onclick="openFileModal('{{ route('my-workspaces.submission.view-file', [$workspace, $task, $submission]) }}', '{{ $fileExtension }}', '{{ addslashes($displayName) }}')"
-                                                                    class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-sm font-medium">
-                                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                                                </svg>
-                                                                Lihat
-                                                            </button>
-                                                        @endif
-                                                        
-                                                        <a href="{{ route('my-workspaces.submission.download', [$workspace, $task, $submission]) }}" 
-                                                        class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition-all text-sm font-medium">
-                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                                                            </svg>
-                                                            Unduh
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                            @endif
-                                        @else
-                                            <div class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-                                                <svg class="w-12 h-12 text-red-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-                                                </svg>
-                                                <p class="text-sm font-medium text-red-800 mb-1">File tidak ditemukan di penyimpanan</p>
-                                                <p class="text-xs text-red-600 mb-2">{{ $submission->file_path }}</p>
-                                                <p class="text-xs text-red-500">Pastikan: php artisan storage:link telah dijalankan</p>
-                                            </div>
-                                        @endif
-                                    @endif
-
-                                    @if($submission->link)
-                                        <a href="{{ $submission->link }}" 
-                                        target="_blank"
-                                        class="block bg-white rounded-lg p-4 border border-blue-200 hover:border-blue-400 transition-all group">
-                                            <div class="flex items-center gap-3">
-                                                <div class="flex-shrink-0">
-                                                    <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
-                                                    </svg>
-                                                </div>
-                                                <div class="flex-1 min-w-0">
-                                                    <p class="text-sm font-medium text-blue-900 group-hover:text-blue-700 truncate">
-                                                        Tautan Pengumpulan
-                                                    </p>
-                                                    <p class="text-xs text-gray-600 truncate">{{ $submission->link }}</p>
-                                                </div>
-                                                <svg class="w-5 h-5 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                                                </svg>
-                                            </div>
-                                        </a>
-                                    @endif
-                                </div>
 
                                 @if($submission->admin_notes)
                                     <div class="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
@@ -525,26 +282,50 @@ use Illuminate\Support\Facades\Storage;
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
                         <p class="mt-2 text-xs sm:text-sm text-gray-500">Belum ada pengumpulan</p>
-                        <p class="text-xs text-gray-400 mt-1">Kirim pekerjaan Anda menggunakan form {{ $hasSubmitted ? 'di atas' : 'di samping' }}</p>
+                        <p class="text-xs text-gray-400 mt-1">Kirim pekerjaan Anda menggunakan form di samping</p>
                     </div>
                 @endif
             </div>
         </div>
 
-        <!-- Sidebar (Desktop only) -->
-        <div class="hidden lg:block lg:col-span-1">
-            <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm sticky top-6">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">Kirim Tugas</h3>
-
-                @if($hasSubmitted)
-                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-                        <div class="flex items-start gap-2">
-                            <svg class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+        <!-- Sidebar Submit Form (Desktop & Mobile) -->
+        <div class="lg:col-span-2">
+            <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-6 shadow-lg sticky top-6">
+                <!-- Header dengan Icon -->
+                <div class="flex items-center justify-between mb-6 pb-4 border-b-2 border-blue-200">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center shadow-md">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900">Kirim Tugas</h3>
+                            <p class="text-sm text-gray-600">Upload pekerjaan Anda</p>
+                        </div>
+                    </div>
+                    @if($hasUserSubmitted)
+                        <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-green-500 text-white shadow-md">
+                            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                             </svg>
-                            <p class="text-sm text-green-800">
-                                Anda sudah mengirimkan submission untuk tugas ini
-                            </p>
+                            Terkirim
+                        </span>
+                    @endif
+                </div>
+
+                @if($hasUserSubmitted)
+                    <div class="bg-white border-2 border-green-300 rounded-xl p-5 mb-6 shadow-sm">
+                        <div class="flex items-start gap-4">
+                            <div class="flex-shrink-0 w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                                <svg class="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="text-base font-bold text-green-900 mb-1">Pengumpulan Berhasil!</h4>
+                                <p class="text-sm text-green-700">Tugas Anda telah diterima dan sedang ditinjau oleh admin.</p>
+                            </div>
                         </div>
                     </div>
                 @endif
@@ -552,48 +333,137 @@ use Illuminate\Support\Facades\Storage;
                 <form action="{{ route('my-workspaces.task.submit', [$workspace, $task]) }}" 
                       method="POST" 
                       enctype="multipart/form-data"
-                      class="space-y-4">
+                      class="space-y-6">
                     @csrf
 
+                    <!-- Upload File Section -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Unggah File
+                        <label class="block text-sm font-bold text-gray-900 mb-3">
+                            <span class="flex items-center gap-2">
+                                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                                </svg>
+                                Unggah File Tugas
+                            </span>
                         </label>
-                        <input type="file" 
-                               name="file"
-                               {{ $hasSubmitted ? 'disabled' : '' }}
-                               class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none {{ $hasSubmitted ? 'opacity-50' : '' }}">
-                        <p class="mt-1 text-xs text-gray-500">Maks 10MB</p>
+                        <div class="mt-2 flex justify-center px-6 pt-8 pb-8 border-3 border-dashed rounded-xl transition-all {{ $hasUserSubmitted ? 'bg-gray-100 border-gray-300' : 'bg-white border-blue-300 hover:border-blue-500 hover:bg-blue-50' }}">
+                            <div class="space-y-3 text-center">
+                                @if(!$hasUserSubmitted)
+                                    <svg class="mx-auto h-16 w-16 text-blue-500" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                @else
+                                    <svg class="mx-auto h-16 w-16 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                    </svg>
+                                @endif
+                                <div class="flex flex-col items-center">
+                                    <label for="file" class="relative cursor-pointer bg-transparent rounded-lg font-bold text-base {{ $hasUserSubmitted ? 'text-gray-500 pointer-events-none' : 'text-blue-600 hover:text-blue-700' }}">
+                                        <span class="block mb-1">{{ $hasUserSubmitted ? '✓ File Sudah Diunggah' : 'Klik untuk pilih file' }}</span>
+                                        <input id="file" name="file" type="file" class="sr-only" {{ $hasUserSubmitted ? 'disabled' : '' }}>
+                                    </label>
+                                    <p class="text-sm text-gray-600 mt-1">atau seret dan letakkan di sini</p>
+                                </div>
+                                <p class="text-xs text-gray-500 px-4">
+                                    <span class="font-semibold">Maksimal 10MB.</span><br>
+                                    Format: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, ZIP, RAR, 7Z, JPG, PNG, GIF
+                                </p>
+                            </div>
+                        </div>
                     </div>
 
+                    <!-- Link Section -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Tautan (Opsional)
+                        <label for="link" class="block text-sm font-bold text-gray-900 mb-3">
+                            <span class="flex items-center gap-2">
+                                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                                </svg>
+                                Tautan (Opsional)
+                            </span>
                         </label>
-                        <input type="url" 
-                               name="link" 
-                               placeholder="https://contoh.com"
-                               {{ $hasSubmitted ? 'disabled' : '' }}
-                               class="block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 {{ $hasSubmitted ? 'opacity-50 bg-gray-100' : '' }}">
+                        <div class="relative">
+                            <input type="url" 
+                                   id="link"
+                                   name="link" 
+                                   placeholder="https://drive.google.com/..."
+                                   {{ $hasUserSubmitted ? 'disabled' : '' }}
+                                   class="block w-full pl-4 pr-12 py-3.5 text-base border-2 rounded-xl transition-all focus:ring-4 focus:ring-blue-100 {{ $hasUserSubmitted ? 'bg-gray-100 border-gray-300 text-gray-500' : 'bg-white border-gray-300 focus:border-blue-500' }}">
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <p class="mt-2 text-xs text-gray-600">Tambahkan link Google Drive, OneDrive, atau platform lainnya</p>
                     </div>
 
+                    <!-- Notes Section -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Catatan
+                        <label for="notes" class="block text-sm font-bold text-gray-900 mb-3">
+                            <span class="flex items-center gap-2">
+                                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                </svg>
+                                Catatan Tambahan
+                            </span>
                         </label>
-                        <textarea name="notes" 
-                                  rows="4" 
-                                  placeholder="Tambahkan catatan tambahan..."
-                                  {{ $hasSubmitted ? 'disabled' : '' }}
-                                  class="block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 {{ $hasSubmitted ? 'opacity-50 bg-gray-100' : '' }}"></textarea>
+                        <textarea id="notes" 
+                                  name="notes" 
+                                  rows="5" 
+                                  placeholder="Tambahkan catatan, komentar, atau penjelasan tentang tugas Anda..."
+                                  {{ $hasUserSubmitted ? 'disabled' : '' }}
+                                  class="block w-full px-4 py-3.5 text-base border-2 rounded-xl transition-all focus:ring-4 focus:ring-blue-100 resize-none {{ $hasUserSubmitted ? 'bg-gray-100 border-gray-300 text-gray-500' : 'bg-white border-gray-300 focus:border-blue-500' }}"></textarea>
                     </div>
 
-                    <button type="submit" 
-                            {{ $hasSubmitted ? 'disabled' : '' }}
-                            class="w-full bg-blue-600 text-white px-4 py-3 rounded-lg font-semibold text-base transition shadow-sm {{ $hasSubmitted ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700 active:bg-blue-800' }}">
-                        {{ $hasSubmitted ? 'Sudah Dikirim' : 'Kirim Tugas' }}
-                    </button>
+                    <!-- Submit Button -->
+                    <div class="pt-4">
+                        <button type="submit" 
+                                {{ $hasUserSubmitted ? 'disabled' : '' }}
+                                class="w-full flex justify-center items-center gap-3 px-6 py-4 border-2 border-transparent rounded-xl shadow-lg text-lg font-bold text-white transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-blue-300 {{ $hasUserSubmitted ? 'bg-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98]' }}">
+                            @if($hasUserSubmitted)
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                                Tugas Sudah Dikirim
+                            @else
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                                </svg>
+                                Kirim Tugas Sekarang
+                            @endif
+                        </button>
+                        @if(!$hasUserSubmitted)
+                            <p class="text-center text-xs text-gray-600 mt-3">
+                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                Pastikan semua file dan informasi sudah benar sebelum mengirim
+                            </p>
+                        @endif
+                    </div>
                 </form>
+
+                <!-- Info Box -->
+                @if(!$hasUserSubmitted)
+                    <div class="mt-6 bg-white border-2 border-blue-200 rounded-xl p-4">
+                        <div class="flex items-start gap-3">
+                            <div class="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <h5 class="text-sm font-bold text-gray-900 mb-1">Tips Pengumpulan</h5>
+                                <ul class="text-xs text-gray-600 space-y-1">
+                                    <li>• Upload file dengan format yang sesuai</li>
+                                    <li>• Pastikan file tidak melebihi 10MB</li>
+                                    <li>• Periksa kembali sebelum mengirim</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
@@ -666,41 +536,32 @@ function openFileModal(fileUrl, fileType, fileName) {
     const downloadLink = document.getElementById('downloadLink');
     const modalDownloadBtn = document.getElementById('modalDownloadBtn');
     
-    // Reset semua elemen
     modalImage.classList.add('hidden');
     modalIframe.classList.add('hidden');
     unsupportedFile.classList.add('hidden');
     fileLoading.classList.remove('hidden');
     modalDownloadBtn.classList.remove('hidden');
     
-    // Set nama file
     modalFileName.textContent = fileName;
     
-    // Set download URL - PERBAIKAN: cek apakah sudah route atau masih asset
     let downloadUrl = fileUrl;
     if (fileUrl.includes('/storage/')) {
-        // Jika asset URL, convert ke download route
-        // Ini untuk gambar yang menggunakan asset()
-        downloadUrl = fileUrl; // Keep as is untuk gambar
+        downloadUrl = fileUrl;
     } else if (fileUrl.includes('/view-file/')) {
-        // Jika view-file route, ganti ke download
         downloadUrl = fileUrl.replace('/view-file/', '/download/');
     }
     
     modalDownload.href = downloadUrl;
     downloadLink.href = downloadUrl;
     
-    // Tampilkan modal
     modal.classList.remove('hidden');
     modal.classList.add('flex');
     document.body.style.overflow = 'hidden';
     
-    // Handle berdasarkan tipe file
     setTimeout(() => {
         fileLoading.classList.add('hidden');
         
         if (fileType === 'image') {
-            // Untuk gambar
             modalImage.src = fileUrl;
             modalImage.classList.remove('hidden');
             modalImage.onload = () => {
@@ -712,15 +573,12 @@ function openFileModal(fileUrl, fileType, fileName) {
                 modalDownloadBtn.classList.add('hidden');
             };
         } else if (fileType === 'pdf') {
-            // Untuk PDF
             modalIframe.src = fileUrl + '#toolbar=0&navpanes=0&scrollbar=0&view=FitH';
             modalIframe.classList.remove('hidden');
         } else if (fileType === 'txt' || fileType === 'md' || fileType === 'csv' || fileType === 'html' || fileType === 'htm') {
-            // Untuk text files - PERBAIKAN: tambahkan wrapper untuk text
             fetch(fileUrl)
                 .then(response => response.text())
                 .then(text => {
-                    // Buat iframe dengan konten text
                     const blob = new Blob([`
                         <!DOCTYPE html>
                         <html>
@@ -756,7 +614,6 @@ function openFileModal(fileUrl, fileType, fileName) {
                     modalDownloadBtn.classList.add('hidden');
                 });
         } else {
-            // File tidak didukung untuk preview
             unsupportedFile.classList.remove('hidden');
             modalDownloadBtn.classList.add('hidden');
         }
@@ -769,7 +626,6 @@ function closeFileModal(event) {
         const modalIframe = document.getElementById('modalIframe');
         const modalImage = document.getElementById('modalImage');
         
-        // Reset iframe dan image
         modalIframe.src = '';
         modalImage.src = '';
         
@@ -779,7 +635,6 @@ function closeFileModal(event) {
     }
 }
 
-// Tutup modal dengan tombol Escape
 document.addEventListener('keydown', function(event) {
     if (event.key === 'Escape') {
         closeFileModal();
@@ -807,12 +662,10 @@ document.addEventListener('keydown', function(event) {
     }
 }
 
-/* Styling untuk iframe */
 #modalIframe {
     min-height: 600px;
 }
 
-/* Loading animation */
 @keyframes spin {
     to {
         transform: rotate(360deg);
@@ -821,6 +674,25 @@ document.addEventListener('keydown', function(event) {
 
 .animate-spin {
     animation: spin 1s linear infinite;
+}
+
+/* Custom scrollbar untuk textarea */
+textarea::-webkit-scrollbar {
+    width: 8px;
+}
+
+textarea::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+textarea::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+textarea::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
 }
 </style>
 </x-app-layout>
