@@ -103,16 +103,34 @@
     {{-- Filter & Search Section --}}
     <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 sm:p-5 mb-6">
         <form method="GET" action="{{ route('users.index') }}" class="flex flex-col sm:flex-row gap-3">
+            {{-- Hidden input untuk maintain sort_by --}}
+            <input type="hidden" name="sort_by" value="{{ $sortBy }}">
+            
             {{-- Search Bar --}}
-            <div class="flex-1">
-                <div class="relative">
-                    <input type="text" name="search" placeholder="Cari berdasarkan nama atau email..." 
-                           value="{{ request('search') }}"
-                           class="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-gray-50 hover:bg-white">
+            <div class="flex-1 flex gap-2">
+                <div class="relative flex-1">
+                    <input type="text" 
+                        name="search" 
+                        placeholder="Cari berdasarkan nama atau email..." 
+                        value="{{ $search ?? '' }}"
+                        class="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-gray-50 hover:bg-white">
                     <svg class="w-5 h-5 text-gray-400 absolute left-3.5 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                     </svg>
                 </div>
+                
+                {{-- Tombol Search --}}
+                <button type="submit" class="px-5 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors whitespace-nowrap font-medium text-sm">
+                    Cari
+                </button>
+                
+                {{-- Tombol Reset --}}
+                @if($search)
+                <a href="{{ route('users.index', ['sort_by' => $sortBy]) }}" 
+                   class="px-5 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-colors whitespace-nowrap font-medium text-sm">
+                    Reset
+                </a>
+                @endif
             </div>
 
             {{-- Sort Filter --}}

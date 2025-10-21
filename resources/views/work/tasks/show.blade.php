@@ -55,10 +55,14 @@ use Illuminate\Support\Facades\Storage;
                                     $fileExtension = strtolower(pathinfo($task->file_path, PATHINFO_EXTENSION));
                                     $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp'];
                                     $isImage = in_array($fileExtension, $imageExtensions);
+                                    $pdfExtensions = ['pdf'];
+                                    $isPdf = in_array($fileExtension, $pdfExtensions);
+                                    $textExtensions = ['txt', 'md', 'csv'];
+                                    $isText = in_array($fileExtension, $textExtensions);
                                     $storagePath = storage_path('app/public/' . $task->file_path);
                                     $fileExists = file_exists($storagePath);
                                     
-                                    // Determine file icon based on extension
+                                    // Tentukan ikon file berdasarkan ekstensi
                                     $fileIcon = 'document';
                                     $iconColor = 'gray';
                                     if (in_array($fileExtension, ['pdf'])) {
@@ -77,11 +81,15 @@ use Illuminate\Support\Facades\Storage;
                                         $fileIcon = 'archive';
                                         $iconColor = 'yellow';
                                     }
+                                    
+                                    // File yang bisa dilihat (preview)
+                                    $previewableExtensions = ['pdf', 'txt', 'md', 'csv', 'html', 'htm', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'];
+                                    $isPreviewable = in_array($fileExtension, $previewableExtensions);
                                 @endphp
-                                
+
                                 @if($fileExists)
                                     @if($isImage)
-                                        <!-- Image Preview -->
+                                        <!-- Preview Gambar -->
                                         <div class="bg-white rounded-lg overflow-hidden border border-gray-200 shadow-sm">
                                             <button type="button" 
                                                     onclick="openFileModal('{{ asset('storage/' . $task->file_path) }}', 'image', '{{ basename($task->file_path) }}')" 
@@ -100,7 +108,7 @@ use Illuminate\Support\Facades\Storage;
                                             Klik gambar untuk melihat ukuran penuh
                                         </p>
                                     @else
-                                        <!-- File Preview Card -->
+                                        <!-- Kartu File -->
                                         <div class="bg-white rounded-lg p-4 border border-gray-200 hover:border-blue-300 transition-all">
                                             <div class="flex items-center gap-3 mb-3">
                                                 <div class="flex-shrink-0 w-12 h-12 rounded-lg bg-{{ $iconColor }}-100 flex items-center justify-center">
@@ -132,8 +140,10 @@ use Illuminate\Support\Facades\Storage;
                                                     <p class="text-xs text-gray-500 uppercase">{{ $fileExtension }} file</p>
                                                 </div>
                                             </div>
+                                            
+                                            <!-- Tombol Lihat dan Unduh -->
                                             <div class="flex gap-2">
-                                                @if(in_array($fileExtension, ['pdf', 'txt']))
+                                                @if($isPreviewable)
                                                     <button onclick="openFileModal('{{ route('my-workspaces.task.view-file', [$workspace, $task]) }}', '{{ $fileExtension }}', '{{ basename($task->file_path) }}')"
                                                             class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-sm font-medium">
                                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -143,8 +153,9 @@ use Illuminate\Support\Facades\Storage;
                                                         Lihat
                                                     </button>
                                                 @endif
+                                                
                                                 <a href="{{ route('my-workspaces.task.download', [$workspace, $task]) }}" 
-                                                   class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition-all text-sm font-medium">
+                                                class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition-all text-sm font-medium">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                                                     </svg>
@@ -562,9 +573,14 @@ function openFileModal(fileUrl, fileType, fileName) {
             modalImage.onload = () => {
                 fileLoading.classList.add('hidden');
             };
+            modalImage.onerror = () => {
+                modalImage.classList.add('hidden');
+                unsupportedFile.classList.remove('hidden');
+                modalDownloadBtn.classList.add('hidden');
+            };
         } else if (fileType === 'pdf') {
             // Untuk PDF - langsung embed
-            modalIframe.src = fileUrl + '#toolbar=0&navpanes=0&scrollbar=1';
+            modalIframe.src = fileUrl + '#toolbar=0&navpanes=0&scrollbar=0&view=FitH';
             modalIframe.classList.remove('hidden');
             
             // Handle jika PDF gagal dimuat
@@ -573,10 +589,17 @@ function openFileModal(fileUrl, fileType, fileName) {
                 unsupportedFile.classList.remove('hidden');
                 modalDownloadBtn.classList.add('hidden');
             };
-        } else if (fileType === 'txt') {
-            // Untuk text files
+        } else if (fileType === 'txt' || fileType === 'md' || fileType === 'csv' || fileType === 'html' || fileType === 'htm') {
+            // Untuk text files dan HTML
             modalIframe.src = fileUrl;
             modalIframe.classList.remove('hidden');
+            
+            // Handle jika file gagal dimuat
+            modalIframe.onerror = () => {
+                modalIframe.classList.add('hidden');
+                unsupportedFile.classList.remove('hidden');
+                modalDownloadBtn.classList.add('hidden');
+            };
         } else {
             // File tidak didukung untuk preview (Office files: doc, docx, xls, xlsx, ppt, pptx)
             unsupportedFile.classList.remove('hidden');

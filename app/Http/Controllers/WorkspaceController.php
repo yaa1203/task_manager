@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\Workspace;
@@ -215,13 +214,10 @@ class WorkspaceController extends Controller
             'description' => 'nullable|string',
             'status' => 'required|in:todo,in_progress,done',
             'priority' => 'required|in:low,medium,high,urgent',
-            'due_date' => 'nullable|date_format:Y-m-d H:i:s', // Pastikan format benar
+            'due_date' => 'nullable|date_format:Y-m-d H:i:s',
             'file' => 'nullable|file|max:10240',
             'link' => 'nullable|url',
         ]);
-
-        // Debug log
-        \Log::info('Due Date Received:', ['due_date' => $request->due_date]);
 
         // Determine user IDs based on assign_to_all flag
         if ($request->assign_to_all) {
@@ -237,14 +233,6 @@ class WorkspaceController extends Controller
             
             if ($file->isValid()) {
                 $filePath = $file->store('task_files', 'public');
-                \Log::info('File uploaded successfully', [
-                    'path' => $filePath,
-                    'full_path' => storage_path('app/public/' . $filePath),
-                    'exists' => file_exists(storage_path('app/public/' . $filePath))
-                ]);
-            } else {
-                \Log::error('File upload failed - invalid file');
-                return back()->withErrors(['file' => 'File upload failed. Please try again.']);
             }
         }
 
@@ -258,13 +246,7 @@ class WorkspaceController extends Controller
             'link' => $validated['link'] ?? null,
             'status' => $validated['status'],
             'priority' => $validated['priority'],
-            'due_date' => $validated['due_date'] ?? null, // Langsung gunakan value yang sudah digabungkan
-        ]);
-
-        // Debug log
-        \Log::info('Task Created:', [
-            'task_id' => $task->id,
-            'due_date_saved' => $task->due_date
+            'due_date' => $validated['due_date'] ?? null,
         ]);
 
         // Attach users to task
@@ -317,14 +299,11 @@ class WorkspaceController extends Controller
             'description' => 'nullable|string',
             'status' => 'required|in:todo,in_progress,done',
             'priority' => 'required|in:low,medium,high,urgent',
-            'due_date' => 'nullable|date_format:Y-m-d H:i:s', // Pastikan format benar
+            'due_date' => 'nullable|date_format:Y-m-d H:i:s',
             'file' => 'nullable|file|max:10240',
             'link' => 'nullable|url',
             'remove_file' => 'nullable|boolean',
         ]);
-
-        // Debug log
-        \Log::info('Due Date Update Received:', ['due_date' => $request->due_date]);
 
         // Handle file upload
         $filePath = $task->file_path;
@@ -351,13 +330,7 @@ class WorkspaceController extends Controller
             'link' => $validated['link'] ?? null,
             'status' => $validated['status'],
             'priority' => $validated['priority'],
-            'due_date' => $validated['due_date'] ?? null, // Langsung gunakan value yang sudah digabungkan
-        ]);
-
-        // Debug log
-        \Log::info('Task Updated:', [
-            'task_id' => $task->id,
-            'due_date_saved' => $task->due_date
+            'due_date' => $validated['due_date'] ?? null,
         ]);
 
         // Sync assigned users
@@ -460,14 +433,6 @@ class WorkspaceController extends Controller
 
         $hasSubmitted = $submissions->isNotEmpty();
 
-        // Di method userShowTask di WorkspaceController
-        \Log::info('Task file details', [
-            'file_path' => $task->file_path,
-            'storage_path' => storage_path('app/public/' . $task->file_path),
-            'file_exists' => file_exists(storage_path('app/public/' . $task->file_path)),
-            'asset_url' => asset('storage/' . $task->file_path),
-        ]);
-
         return view('work.tasks.show', compact('workspace', 'task', 'submissions', 'hasSubmitted'));
     }
 
@@ -554,10 +519,39 @@ class WorkspaceController extends Controller
 
         $path = Storage::disk('public')->path($task->file_path);
         $mimeType = Storage::disk('public')->mimeType($task->file_path);
+        $extension = strtolower(pathinfo($task->file_path, PATHINFO_EXTENSION));
         
+        // Handle image files
+        $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp'];
+        if (in_array($extension, $imageExtensions)) {
+            return response()->file($path, [
+                'Content-Type' => $mimeType,
+                'Content-Disposition' => 'inline; filename="' . basename($task->file_path) . '"'
+            ]);
+        }
+        
+        // Handle PDF files
+        if ($extension === 'pdf') {
+            return response()->file($path, [
+                'Content-Type' => $mimeType,
+                'Content-Disposition' => 'inline; filename="' . basename($task->file_path) . '"'
+            ]);
+        }
+        
+        // Handle text files
+        $textExtensions = ['txt', 'md', 'csv'];
+        if (in_array($extension, $textExtensions)) {
+            return response()->file($path, [
+                'Content-Type' => $mimeType,
+                'Content-Disposition' => 'inline; filename="' . basename($task->file_path) . '"'
+            ]);
+        }
+        
+        // For other file types, return with appropriate headers for preview
         return response()->file($path, [
             'Content-Type' => $mimeType,
-            'Content-Disposition' => 'inline; filename="' . basename($task->file_path) . '"'
+            'Content-Disposition' => 'inline; filename="' . basename($task->file_path) . '"',
+            'X-Content-Type-Options' => 'nosniff'
         ]);
     }
 
