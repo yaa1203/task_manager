@@ -202,19 +202,10 @@ class WorkspaceController extends Controller
     /**
      * Store task in workspace
      */
-   public function storeTask(Request $request, Workspace $workspace)
-{
-    $this->authorize('update', $workspace);
+    public function storeTask(Request $request, Workspace $workspace)
+    {
+        $this->authorize('update', $workspace);
 
-<<<<<<< HEAD
-        \Log::info('Request all data:', $request->all());
-
-    // ✅ Gabungkan tanggal dan waktu sebelum validasi
-    if ($request->filled('due_date_date') && $request->filled('due_date_time')) {
-        $request->merge([
-            'due_date' => $request->due_date_date . ' ' . $request->due_date_time . ':00'
-        ]);
-=======
         $validated = $request->validate([
             'assign_to_all' => 'nullable|boolean',
             'user_ids' => 'required_without:assign_to_all|array|min:1',
@@ -283,86 +274,7 @@ class WorkspaceController extends Controller
         $userCount = count($userIds);
         return redirect()->route('workspaces.show', $workspace)
             ->with('success', "Task created and assigned to {$userCount} user(s) successfully!");
->>>>>>> 1bd569bbe245aeb3cd60c14f241eff0fe762c5fd
     }
-
-    // ✅ Validasi setelah due_date digabungkan
-    $validated = $request->validate([
-        'assign_to_all' => 'nullable|boolean',
-        'user_ids' => 'required_without:assign_to_all|array|min:1',
-        'user_ids.*' => 'exists:users,id',
-        'title' => 'required|string|max:255',
-        'description' => 'nullable|string',
-        'status' => 'required|in:todo,in_progress,done',
-        'priority' => 'required|in:low,medium,high,urgent',
-        'due_date' => 'nullable|date_format:Y-m-d H:i:s', // Format wajib Y-m-d H:i:s
-        'file' => 'nullable|file|max:10240',
-        'link' => 'nullable|url',
-    ]);
-
-    // Debug log untuk memastikan data masuk dengan benar
-    \Log::info('Due Date After Merge:', ['due_date' => $request->due_date]);
-
-    // Tentukan user IDs
-    if ($request->assign_to_all) {
-        $userIds = User::where('role', 'user')->pluck('id')->toArray();
-    } else {
-        $userIds = $validated['user_ids'];
-    }
-
-    // Handle upload file
-    $filePath = null;
-    if ($request->hasFile('file')) {
-        $file = $request->file('file');
-
-        if ($file->isValid()) {
-            $filePath = $file->store('task_files', 'public');
-            \Log::info('File uploaded successfully', [
-                'path' => $filePath,
-                'full_path' => storage_path('app/public/' . $filePath),
-                'exists' => file_exists(storage_path('app/public/' . $filePath))
-            ]);
-        } else {
-            \Log::error('File upload failed - invalid file');
-            return back()->withErrors(['file' => 'File upload failed. Please try again.']);
-        }
-    }
-
-    // Buat task
-    $task = Task::create([
-        'workspace_id' => $workspace->id,
-        'created_by' => auth()->id(),
-        'title' => $validated['title'],
-        'description' => $validated['description'] ?? null,
-        'file_path' => $filePath,
-        'link' => $validated['link'] ?? null,
-        'status' => $validated['status'],
-        'priority' => $validated['priority'],
-        'due_date' => $validated['due_date'] ?? null, // Sudah digabung
-    ]);
-
-    \Log::info('Task Created:', [
-        'task_id' => $task->id,
-        'due_date_saved' => $task->due_date
-    ]);
-
-    // Attach user ke task
-    $task->assignedUsers()->attach($userIds);
-
-    // Kirim notifikasi
-    foreach ($userIds as $userId) {
-        $assignedUser = User::find($userId);
-        if ($assignedUser) {
-            $assignedUser->notify(new TaskAssignedNotification($task));
-        }
-    }
-
-    $userCount = count($userIds);
-
-    return redirect()->route('workspaces.show', $workspace)
-        ->with('success', "Task created and assigned to {$userCount} user(s) successfully!");
-}
-
 
     /**
      * Edit task in workspace
@@ -552,8 +464,7 @@ class WorkspaceController extends Controller
     }
 
     /**
-     * User submit task - FIXED VERSION
-     * Ganti method submitTask di WorkspaceController dengan ini
+     * User submit task - FIXED VERSION (Without status column)
      */
     public function submitTask(Request $request, Workspace $workspace, Task $task)
     {
@@ -576,12 +487,11 @@ class WorkspaceController extends Controller
             'notes' => 'nullable|string|max:1000',
         ]);
 
-        // Buat array data submission dasar
+        // Buat array data submission dasar (hanya kolom yang ada di database)
         $submissionData = [
             'link' => $request->link,
             'notes' => $request->notes,
-            'status' => 'pending',
-            'submitted_at' => now(),
+            // submitted_at otomatis dari timestamps (created_at/updated_at)
         ];
         
         // Handle file upload
@@ -589,7 +499,7 @@ class WorkspaceController extends Controller
             $file = $request->file('file');
             
             if ($file->isValid()) {
-                // PENTING: Simpan nama asli file
+                // Simpan nama asli file
                 $originalFilename = $file->getClientOriginalName();
                 
                 // Buat nama file unik untuk penyimpanan
@@ -599,7 +509,7 @@ class WorkspaceController extends Controller
                 // Simpan file ke direktori submissions
                 $filePath = $file->storeAs('submissions', $filename, 'public');
                 
-                // PENTING: Tambahkan ke submission data
+                // Tambahkan ke submission data
                 $submissionData['file_path'] = $filePath;
                 $submissionData['original_filename'] = $originalFilename;
                 
@@ -626,13 +536,12 @@ class WorkspaceController extends Controller
         \Log::info('Submission Result:', [
             'id' => $submission->id,
             'original_filename_saved' => $submission->original_filename,
-            'display_name' => $submission->display_name,
         ]);
 
         // Kirim notifikasi ke pemilik workspace
         $workspaceOwner = User::find($workspace->user_id);
         if ($workspaceOwner) {
-            $workspaceOwner->notify(new \App\Notifications\TaskSubmittedNotification(
+            $workspaceOwner->notify(new TaskSubmittedNotification(
                 $task,
                 Auth::user(),
                 $submission
