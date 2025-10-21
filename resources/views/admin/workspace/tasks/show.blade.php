@@ -164,10 +164,12 @@
                                     </svg>
                                 </div>
                                 <div>
-                                    <p class="text-xs text-gray-500 mb-0.5">Dibuat</p>
-                                    <p class="text-sm font-medium text-gray-900">
-                                        {{ \Carbon\Carbon::parse($task->created_at)->format('d M Y H:i') }}
-                                    </p>
+                                   @foreach($task->submissions as $submission)
+    <p class="text-xs text-gray-500 mb-0.5">Dibuat</p>
+    <p class="text-sm font-medium text-gray-900">
+          {{ \Carbon\Carbon::parse($submission->created_at)->format('d M Y H:i') }}
+    </p>
+@endforeach
                                 </div>
                             </div>
                             <div class="flex items-center gap-3">

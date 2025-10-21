@@ -203,85 +203,96 @@ class WorkspaceController extends Controller
     /**
      * Store task in workspace
      */
-    public function storeTask(Request $request, Workspace $workspace)
-    {
-        $this->authorize('update', $workspace);
+   public function storeTask(Request $request, Workspace $workspace)
+{
+    $this->authorize('update', $workspace);
 
-        $validated = $request->validate([
-            'assign_to_all' => 'nullable|boolean',
-            'user_ids' => 'required_without:assign_to_all|array|min:1',
-            'user_ids.*' => 'exists:users,id',
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'status' => 'required|in:todo,in_progress,done',
-            'priority' => 'required|in:low,medium,high,urgent',
-            'due_date' => 'nullable|date_format:Y-m-d H:i:s', // Pastikan format benar
-            'file' => 'nullable|file|max:10240',
-            'link' => 'nullable|url',
+        \Log::info('Request all data:', $request->all());
+
+    // ✅ Gabungkan tanggal dan waktu sebelum validasi
+    if ($request->filled('due_date_date') && $request->filled('due_date_time')) {
+        $request->merge([
+            'due_date' => $request->due_date_date . ' ' . $request->due_date_time . ':00'
         ]);
-
-        // Debug log
-        \Log::info('Due Date Received:', ['due_date' => $request->due_date]);
-
-        // Determine user IDs based on assign_to_all flag
-        if ($request->assign_to_all) {
-            $userIds = User::where('role', 'user')->pluck('id')->toArray();
-        } else {
-            $userIds = $validated['user_ids'];
-        }
-
-        // Handle file upload
-        $filePath = null;
-        if ($request->hasFile('file')) {
-            $file = $request->file('file');
-            
-            if ($file->isValid()) {
-                $filePath = $file->store('task_files', 'public');
-                \Log::info('File uploaded successfully', [
-                    'path' => $filePath,
-                    'full_path' => storage_path('app/public/' . $filePath),
-                    'exists' => file_exists(storage_path('app/public/' . $filePath))
-                ]);
-            } else {
-                \Log::error('File upload failed - invalid file');
-                return back()->withErrors(['file' => 'File upload failed. Please try again.']);
-            }
-        }
-
-        // Create single task
-        $task = Task::create([
-            'workspace_id' => $workspace->id,
-            'created_by' => auth()->id(),
-            'title' => $validated['title'],
-            'description' => $validated['description'] ?? null,
-            'file_path' => $filePath,
-            'link' => $validated['link'] ?? null,
-            'status' => $validated['status'],
-            'priority' => $validated['priority'],
-            'due_date' => $validated['due_date'] ?? null, // Langsung gunakan value yang sudah digabungkan
-        ]);
-
-        // Debug log
-        \Log::info('Task Created:', [
-            'task_id' => $task->id,
-            'due_date_saved' => $task->due_date
-        ]);
-
-        // Attach users to task
-        $task->assignedUsers()->attach($userIds);
-
-        // Send notifications to all assigned users
-        foreach ($userIds as $userId) {
-            $assignedUser = User::find($userId);
-            if ($assignedUser) {
-                $assignedUser->notify(new TaskAssignedNotification($task));
-            }
-        }
-
-        $userCount = count($userIds);
-        return redirect()->route('workspaces.show', $workspace)
-            ->with('success', "Task created and assigned to {$userCount} user(s) successfully!");
     }
+
+    // ✅ Validasi setelah due_date digabungkan
+    $validated = $request->validate([
+        'assign_to_all' => 'nullable|boolean',
+        'user_ids' => 'required_without:assign_to_all|array|min:1',
+        'user_ids.*' => 'exists:users,id',
+        'title' => 'required|string|max:255',
+        'description' => 'nullable|string',
+        'status' => 'required|in:todo,in_progress,done',
+        'priority' => 'required|in:low,medium,high,urgent',
+        'due_date' => 'nullable|date_format:Y-m-d H:i:s', // Format wajib Y-m-d H:i:s
+        'file' => 'nullable|file|max:10240',
+        'link' => 'nullable|url',
+    ]);
+
+    // Debug log untuk memastikan data masuk dengan benar
+    \Log::info('Due Date After Merge:', ['due_date' => $request->due_date]);
+
+    // Tentukan user IDs
+    if ($request->assign_to_all) {
+        $userIds = User::where('role', 'user')->pluck('id')->toArray();
+    } else {
+        $userIds = $validated['user_ids'];
+    }
+
+    // Handle upload file
+    $filePath = null;
+    if ($request->hasFile('file')) {
+        $file = $request->file('file');
+
+        if ($file->isValid()) {
+            $filePath = $file->store('task_files', 'public');
+            \Log::info('File uploaded successfully', [
+                'path' => $filePath,
+                'full_path' => storage_path('app/public/' . $filePath),
+                'exists' => file_exists(storage_path('app/public/' . $filePath))
+            ]);
+        } else {
+            \Log::error('File upload failed - invalid file');
+            return back()->withErrors(['file' => 'File upload failed. Please try again.']);
+        }
+    }
+
+    // Buat task
+    $task = Task::create([
+        'workspace_id' => $workspace->id,
+        'created_by' => auth()->id(),
+        'title' => $validated['title'],
+        'description' => $validated['description'] ?? null,
+        'file_path' => $filePath,
+        'link' => $validated['link'] ?? null,
+        'status' => $validated['status'],
+        'priority' => $validated['priority'],
+        'due_date' => $validated['due_date'] ?? null, // Sudah digabung
+    ]);
+
+    \Log::info('Task Created:', [
+        'task_id' => $task->id,
+        'due_date_saved' => $task->due_date
+    ]);
+
+    // Attach user ke task
+    $task->assignedUsers()->attach($userIds);
+
+    // Kirim notifikasi
+    foreach ($userIds as $userId) {
+        $assignedUser = User::find($userId);
+        if ($assignedUser) {
+            $assignedUser->notify(new TaskAssignedNotification($task));
+        }
+    }
+
+    $userCount = count($userIds);
+
+    return redirect()->route('workspaces.show', $workspace)
+        ->with('success', "Task created and assigned to {$userCount} user(s) successfully!");
+}
+
 
     /**
      * Edit task in workspace

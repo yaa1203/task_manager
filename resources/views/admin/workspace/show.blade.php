@@ -135,11 +135,16 @@
                             <span class="text-xs text-gray-500">
                                 {{ $task->submissions->count() }}/{{ $task->assignedUsers->count() }} selesai
                             </span>
-                            @if($task->due_date)
-                            <span class="text-xs text-gray-500">
-                                Batas: {{ date('d M Y H:i', strtotime($task->due_date)) }}
-                            </span>
-                            @endif
+@if($task->due_date)
+    <span class="text-xs text-gray-500">
+        Batas: {{ $task->due_date->format('d M Y H:i') }}
+    </span>
+@endif
+
+
+
+
+
                         </div>
                     </div>
                 </div>

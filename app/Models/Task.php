@@ -16,24 +16,40 @@ class Task extends Model
         'created_by',
         'title',
         'description',
-        'file_path',      // ← TAMBAHKAN INI
-        'link',           // ← TAMBAHKAN INI
+        'file_path',
+        'link',
         'status',
         'priority',
         'due_date',
+        'due_time', // ✅ Tambahkan kolom waktu
         'completed_at'
     ];
 
     protected $casts = [
-        'due_date' => 'date',
+        'due_date' => 'datetime',
         'completed_at' => 'datetime',
     ];
 
-    // Relationships
+    /**
+     * ✅ Accessor gabungan (tanggal + waktu)
+     * Contoh: $task->full_due_datetime
+     */
+    public function getFullDueDatetimeAttribute()
+    {
+        if (!$this->due_date) {
+            return null;
+        }
+
+        $dateTimeString = $this->due_date->format('Y-m-d') . ' ' . ($this->due_time ?? '00:00:00');
+        return Carbon::parse($dateTimeString);
+    }
+
+    // ================================
+    // 🔗 Relationships
+    // ================================
     public function assignedUsers()
     {
-        return $this->belongsToMany(User::class, 'task_user')
-            ->withTimestamps();
+        return $this->belongsToMany(User::class, 'task_user')->withTimestamps();
     }
 
     public function workspace()
@@ -56,7 +72,9 @@ class Task extends Model
         return $this->hasMany(UserTaskSubmission::class);
     }
 
-    // Scopes
+    // ================================
+    // 🧩 Scopes
+    // ================================
     public function scopeTodo($query)
     {
         return $query->where('status', 'todo');
@@ -84,6 +102,9 @@ class Task extends Model
         });
     }
 
+    // ================================
+    // 🕒 Custom Methods
+    // ================================
     public function markAsCompleted()
     {
         $this->update([
@@ -94,9 +115,8 @@ class Task extends Model
 
     public function isOverdue()
     {
-        return $this->due_date && 
-               Carbon::parse($this->due_date)->isPast() && 
-               $this->status !== 'done';
+        $due = $this->full_due_datetime;
+        return $due && $due->isPast() && $this->status !== 'done';
     }
 
     public function isAssignedTo($userId)
@@ -104,34 +124,20 @@ class Task extends Model
         return $this->assignedUsers()->where('user_id', $userId)->exists();
     }
 
-    /**
-     * Calculate progress percentage of the task
-     */
     public function getProgressPercentage(): int
     {
         $totalUsers = $this->assignedUsers()->count();
-        
-        if ($totalUsers === 0) {
-            return 0;
-        }
+        if ($totalUsers === 0) return 0;
 
         $completedSubmissions = $this->submissions()->count();
-        $percentage = ($completedSubmissions / $totalUsers) * 100;
-        
-        return (int) round($percentage);
+        return (int) round(($completedSubmissions / $totalUsers) * 100);
     }
 
-    /**
-     * Check if task is completed
-     */
     public function isCompleted(): bool
     {
         return $this->getProgressPercentage() === 100;
     }
 
-    /**
-     * Check if task has attachments
-     */
     public function hasAttachments(): bool
     {
         return !empty($this->file_path) || !empty($this->link);
