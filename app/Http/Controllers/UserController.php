@@ -15,11 +15,20 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $sortBy = $request->get('sort_by', 'created_at');
+        $search = $request->get('search');
         
         // Ambil hanya user dengan role 'user' yang pernah di-assign ke task
         $query = User::where('role', 'user')
             ->whereHas('assignedTasks')
             ->withCount('assignedTasks');
+
+        // Tambahkan filter search jika ada
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                ->orWhere('email', 'like', '%' . $search . '%');
+            });
+        }
 
         // Terapkan sorting berdasarkan parameter
         switch ($sortBy) {
@@ -62,7 +71,11 @@ class UserController extends Controller
                 break;
         }
 
-        $users->appends(['sort_by' => $sortBy]);
+        // Append parameters ke pagination links
+        $users->appends([
+            'sort_by' => $sortBy,
+            'search' => $search
+        ]);
 
         // Hitung statistik kerajinan untuk setiap user dengan eager loading
         $userIds = $users->pluck('id');
@@ -99,7 +112,7 @@ class UserController extends Controller
             return $user;
         });
 
-        return view('admin.users.index', compact('users', 'sortBy'));
+        return view('admin.users.index', compact('users', 'sortBy', 'search'));
     }
 
     /**
