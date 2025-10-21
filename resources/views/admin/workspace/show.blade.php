@@ -137,7 +137,7 @@
                             </span>
 @if($task->due_date)
     <span class="text-xs text-gray-500">
-        Batas: {{ $task->due_date->format('d M Y H:i') }}
+        Batas: {{ \Carbon\Carbon::parse($task->due_date)->locale('id')->translatedFormat('d F Y H:i') }}
     </span>
 @endif
 

@@ -28,7 +28,7 @@ class Task extends Model
 
     protected $casts = [
         'submitted_at' => 'datetime',
-        'due_date' => 'date',
+        'due_date' => 'datetime',
         'completed_at' => 'datetime',
         'original_filename' => 'string',
         'file_path' => 'string',

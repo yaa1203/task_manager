@@ -245,7 +245,7 @@ use Illuminate\Support\Facades\Storage;
                         <div class="text-xs sm:text-sm font-medium text-gray-900">
                             @if($task->due_date)
                                 <span class="{{ \Carbon\Carbon::parse($task->due_date)->isPast() && !$hasUserSubmitted ? 'text-red-600' : '' }}">
-                                    {{ \Carbon\Carbon::parse($task->due_date)->format('d M Y H:i') }}
+                                  {{ \Carbon\Carbon::parse($task->due_date)->locale('id')->translatedFormat('d F Y H:i') }}
                                 </span>
                                 @if(\Carbon\Carbon::parse($task->due_date)->isPast() && !$hasUserSubmitted)
                                     <div class="text-xs text-red-600 mt-0.5">(Terlambat)</div>
@@ -332,7 +332,8 @@ use Illuminate\Support\Facades\Storage;
                             <div class="border border-gray-200 rounded-lg p-3 sm:p-4 hover:border-gray-300 transition-colors">
                                 <div class="flex items-center justify-between mb-3">
                                     <p class="text-xs sm:text-sm text-gray-500">
-                                        Dikirim {{ $submission->created_at->format('d M Y H:i') }}
+                                        Dikirim {{ $submission->created_at->locale('id')->translatedFormat('d F Y H:i') }}
+
                                     </p>
                                     @if($submission->status)
                                         <span class="px-2.5 py-1 text-xs font-semibold rounded-full border w-fit

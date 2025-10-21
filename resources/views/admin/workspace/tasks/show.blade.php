@@ -282,7 +282,8 @@
                                    @foreach($task->submissions as $submission)
     <p class="text-xs text-gray-500 mb-0.5">Dibuat</p>
     <p class="text-sm font-medium text-gray-900">
-          {{ \Carbon\Carbon::parse($submission->created_at)->format('d M Y H:i') }}
+       {{ \Carbon\Carbon::parse($submission->created_at)->locale('id')->translatedFormat('d F Y H:i') }}
+
     </p>
 @endforeach
                                 </div>
@@ -297,7 +298,8 @@
                                     <p class="text-xs text-gray-500 mb-0.5">Batas Waktu</p>
                                     @if($task->due_date)
                                         <p class="text-sm font-medium text-gray-900">
-                                            {{ \Carbon\Carbon::parse($task->due_date)->format('d M Y H:i') }}
+                                          {{ \Carbon\Carbon::parse($task->due_date)->locale('id')->translatedFormat('d F Y H:i') }}
+
                                         </p>
                                     @else
                                         <p class="text-sm text-gray-400">Tidak ada batas waktu</p>
@@ -434,7 +436,7 @@
                                         Dikumpulkan
                                     </div>
                                     <p class="text-xs text-gray-500 mt-1">
-                                        {{ \Carbon\Carbon::parse($submission->created_at)->format('d M Y H:i') }}
+                                      {{ \Carbon\Carbon::parse($submission->created_at)->locale('id')->translatedFormat('d F Y H:i') }}
                                     </p>
                                 </div>
                             </div>
