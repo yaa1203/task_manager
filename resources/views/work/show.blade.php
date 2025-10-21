@@ -242,7 +242,7 @@
                                         @if($task->due_date)
                                             <div class="flex flex-col">
                                                 <span class="{{ $isOverdue ? 'text-red-600 font-semibold' : 'text-gray-700 font-medium' }}">
-                                                    {{ \Carbon\Carbon::parse($task->due_date)->format('d M Y H:i') }}
+                                                    {{ \Carbon\Carbon::parse($task->due_date)->translatedFormat('d F Y H:i') }}
                                                 </span>
                                                 @if($isOverdue)
                                                     <span class="text-xs text-red-500 font-medium">
