@@ -236,6 +236,17 @@ class WorkspaceController extends Controller
             }
         }
 
+        if ($request->hasFile('file')) {
+            $file = $request->file('file');
+            if ($file->isValid()) {
+                $filePath = $file->store('task_files', 'public');
+                $originalFilename = $file->getClientOriginalName();
+                
+                // Simpan nama asli
+                $task->update(['original_filename' => $originalFilename]);
+            }
+        }
+
         // Create single task
         $task = Task::create([
             'workspace_id' => $workspace->id,
@@ -321,6 +332,22 @@ class WorkspaceController extends Controller
                 Storage::disk('public')->delete($task->file_path);
             }
             $filePath = $request->file('file')->store('task_files', 'public');
+        }
+
+        if ($request->hasFile('file')) {
+            // Delete old file if exists
+            if ($task->file_path) {
+                Storage::disk('public')->delete($task->file_path);
+            }
+            
+            $filePath = $request->file('file')->store('task_files', 'public');
+            $originalFilename = $request->file('file')->getClientOriginalName();
+            
+            // Update task dengan nama asli
+            $task->update([
+                'file_path' => $filePath,
+                'original_filename' => $originalFilename
+            ]);
         }
 
         $task->update([
@@ -437,47 +464,84 @@ class WorkspaceController extends Controller
     }
 
     /**
-     * User submit task
+     * User submit task - FIXED VERSION
+     * Ganti method submitTask di WorkspaceController dengan ini
      */
     public function submitTask(Request $request, Workspace $workspace, Task $task)
     {
+        // Cek apakah user diizinkan mengakses task ini
         $isAccessible = $task->assignedUsers()
             ->where('user_id', Auth::id())
             ->exists();
 
         abort_unless($isAccessible, 403);
 
+        // Cek apakah task ini milik workspace yang benar
         if ($task->workspace_id !== $workspace->id) {
             abort(404);
         }
 
+        // Validasi input
         $request->validate([
             'file' => 'nullable|file|max:10240',
             'link' => 'nullable|url',
             'notes' => 'nullable|string|max:1000',
         ]);
 
-        $filePath = null;
+        // Buat array data submission dasar
+        $submissionData = [
+            'link' => $request->link,
+            'notes' => $request->notes,
+            'status' => 'pending',
+            'submitted_at' => now(),
+        ];
+        
+        // Handle file upload
         if ($request->hasFile('file')) {
-            $filePath = $request->file('file')->store('submissions', 'public');
+            $file = $request->file('file');
+            
+            if ($file->isValid()) {
+                // PENTING: Simpan nama asli file
+                $originalFilename = $file->getClientOriginalName();
+                
+                // Buat nama file unik untuk penyimpanan
+                $extension = $file->getClientOriginalExtension();
+                $filename = uniqid() . '_' . time() . '.' . $extension;
+                
+                // Simpan file ke direktori submissions
+                $filePath = $file->storeAs('submissions', $filename, 'public');
+                
+                // PENTING: Tambahkan ke submission data
+                $submissionData['file_path'] = $filePath;
+                $submissionData['original_filename'] = $originalFilename;
+                
+                // Debug log untuk memastikan
+                \Log::info('Submission Upload:', [
+                    'original' => $originalFilename,
+                    'stored' => $filePath,
+                    'user' => Auth::id(),
+                    'task' => $task->id
+                ]);
+            }
         }
 
-        // Update or Create submission
+        // Update atau create submission
         $submission = UserTaskSubmission::updateOrCreate(
             [
                 'task_id' => $task->id,
                 'user_id' => Auth::id(),
             ],
-            [
-                'file_path' => $filePath,
-                'link' => $request->link,
-                'notes' => $request->notes,
-                'status' => 'pending',
-                'submitted_at' => now(),
-            ]
+            $submissionData
         );
 
-        // Send notification to workspace owner
+        // Verifikasi hasil save
+        \Log::info('Submission Result:', [
+            'id' => $submission->id,
+            'original_filename_saved' => $submission->original_filename,
+            'display_name' => $submission->display_name,
+        ]);
+
+        // Kirim notifikasi ke pemilik workspace
         $workspaceOwner = User::find($workspace->user_id);
         if ($workspaceOwner) {
             $workspaceOwner->notify(new \App\Notifications\TaskSubmittedNotification(
@@ -487,7 +551,7 @@ class WorkspaceController extends Controller
             ));
         }
 
-        return back()->with('success', 'Submission sent successfully!');
+        return back()->with('success', 'Pengumpulan berhasil dikirim!');
     }
 
     /**

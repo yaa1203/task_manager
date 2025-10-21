@@ -15,6 +15,7 @@ class Task extends Model
         'project_id',
         'created_by',
         'title',
+        'original_filename',
         'description',
         'file_path',      // ← TAMBAHKAN INI
         'link',           // ← TAMBAHKAN INI
@@ -25,8 +26,11 @@ class Task extends Model
     ];
 
     protected $casts = [
+        'submitted_at' => 'datetime',
         'due_date' => 'date',
         'completed_at' => 'datetime',
+        'original_filename' => 'string',
+        'file_path' => 'string',
     ];
 
     // Relationships
