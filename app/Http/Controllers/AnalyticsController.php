@@ -201,20 +201,21 @@ class AnalyticsController extends Controller
         return view('admin.analyticts.index');
     }
 
-    /**
-     * Get analytics data for admin (hanya user yang sudah diberi tugas)
-     * Menghitung berdasarkan TOTAL ASSIGNMENTS, bukan total tasks
-     */
     public function adminData()
     {
         try {
-            Log::info('Fetching admin analytics');
+            $adminId = Auth::id();
 
-            // Ambil semua tasks dengan submissions dan assigned users
-            $allTasks = Task::with(['submissions', 'assignedUsers'])->get();
-            
-            // LOGIKA BARU: Hitung berdasarkan TOTAL ASSIGNMENTS
-            // Setiap task * jumlah assigned users = total assignments
+            Log::info('Fetching admin analytics for admin: ' . $adminId);
+
+            // Ambil hanya workspace milik admin ini
+            $workspaces = Workspace::where('admin_id', $adminId)
+                ->with(['tasks.assignedUsers', 'tasks.submissions'])
+                ->get();
+
+            // Kumpulkan semua task milik admin
+            $allTasks = $workspaces->flatMap->tasks;
+
             $totalAssignments = 0;
             $completedAssignments = 0;
             $overdueAssignments = 0;
@@ -224,21 +225,15 @@ class AnalyticsController extends Controller
                 $assignedUserCount = $task->assignedUsers->count();
                 $totalAssignments += $assignedUserCount;
 
-                // Untuk setiap user yang di-assign, cek statusnya
                 foreach ($task->assignedUsers as $user) {
-                    // Cek apakah user ini sudah submit
                     $userSubmission = $task->submissions->where('user_id', $user->id)->first();
                     
                     if ($userSubmission) {
-                        // User sudah submit = completed
                         $completedAssignments++;
                     } else {
-                        // User belum submit, cek apakah overdue atau unfinished
                         if ($task->due_date && Carbon::parse($task->due_date)->isPast()) {
-                            // Overdue
                             $overdueAssignments++;
                         } else {
-                            // Unfinished (belum deadline)
                             $unfinishedAssignments++;
                         }
                     }
@@ -246,106 +241,64 @@ class AnalyticsController extends Controller
             }
 
             $taskStats = [
-                'overdue' => (int) $overdueAssignments,
-                'unfinished' => (int) $unfinishedAssignments,
-                'done' => (int) $completedAssignments,
+                'overdue' => $overdueAssignments,
+                'unfinished' => $unfinishedAssignments,
+                'done' => $completedAssignments,
             ];
 
-            // User statistics - HANYA user yang sudah pernah diberi tugas
+            // Hanya user dari workspace milik admin ini
             $totalUsers = User::where('role', 'user')
-                ->whereHas('assignedTasks')
+                ->whereHas('assignedTasks.workspace', function ($q) use ($adminId) {
+                    $q->where('admin_id', $adminId);
+                })
                 ->count();
-            
-            // Active users = users yang punya submission dalam 7 hari terakhir
-            // DAN sudah pernah diberi tugas
+
+            // Active users (dalam 7 hari terakhir)
             $activeUserIds = collect();
             foreach ($allTasks as $task) {
                 if (!$task->submissions) continue;
-                
+
                 $recentSubmissions = $task->submissions->filter(function($submission) {
-                    if (!$submission->submitted_at) return false;
-                    
-                    try {
-                        return Carbon::parse($submission->submitted_at)->gte(Carbon::now()->subDays(7));
-                    } catch (\Exception $e) {
-                        return false;
-                    }
+                    return $submission->submitted_at && Carbon::parse($submission->submitted_at)->gte(Carbon::now()->subDays(7));
                 });
-                
+
                 foreach ($recentSubmissions as $submission) {
                     $activeUserIds->push($submission->user_id);
                 }
             }
-            
-            // Pastikan active users juga termasuk dalam user yang pernah diberi tugas
+
             $activeUsers = User::where('role', 'user')
-                ->whereHas('assignedTasks')
+                ->whereHas('assignedTasks.workspace', function ($q) use ($adminId) {
+                    $q->where('admin_id', $adminId);
+                })
                 ->whereIn('id', $activeUserIds->unique())
                 ->count();
 
-            // Calculate completion rate berdasarkan ASSIGNMENTS
-            $completionRate = $totalAssignments > 0 
+            $completionRate = $totalAssignments > 0
                 ? round(($completedAssignments / $totalAssignments) * 100, 1)
                 : 0;
 
-            $response = [
+            return response()->json([
                 'tasks' => $taskStats,
                 'users' => [
-                    'total' => (int) $totalUsers,
-                    'active' => (int) $activeUsers,
+                    'total' => $totalUsers,
+                    'active' => $activeUsers,
                 ],
                 'summary' => [
-                    'total_tasks' => (int) $totalAssignments, // Total assignments, bukan total tasks
-                    'completion_rate' => (float) $completionRate,
-                    'unfinished_workload' => (int) $unfinishedAssignments,
-                    'overdue_workload' => (int) $overdueAssignments,
+                    'total_tasks' => $totalAssignments,
+                    'completion_rate' => $completionRate,
+                    'unfinished_workload' => $unfinishedAssignments,
+                    'overdue_workload' => $overdueAssignments,
                 ],
                 'timestamp' => time(),
-            ];
-
-            Log::info('Admin analytics data prepared successfully', [
-                'total_assignments' => $totalAssignments,
-                'completed_assignments' => $completedAssignments,
-                'total_users' => $totalUsers,
-                'active_users' => $activeUsers,
-                'completion_rate' => $completionRate
             ]);
-
-            return response()->json($response)
-                ->header('Content-Type', 'application/json; charset=utf-8')
-                ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
-                ->header('Pragma', 'no-cache')
-                ->header('Expires', 'Sat, 01 Jan 2000 00:00:00 GMT')
-                ->header('X-Content-Type-Options', 'nosniff')
-                ->header('X-Frame-Options', 'DENY');
 
         } catch (\Exception $e) {
-            Log::error('Admin analytics data error: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString()
-            ]);
-
+            Log::error('Admin analytics data error: ' . $e->getMessage());
             return response()->json([
                 'error' => 'Internal Server Error',
                 'message' => 'Failed to load admin analytics data',
-                'tasks' => [
-                    'overdue' => 0,
-                    'unfinished' => 0,
-                    'done' => 0
-                ],
-                'users' => [
-                    'total' => 0,
-                    'active' => 0
-                ],
-                'summary' => [
-                    'total_tasks' => 0,
-                    'completion_rate' => 0,
-                    'unfinished_workload' => 0,
-                    'overdue_workload' => 0
-                ]
-            ], 500)
-            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
-            ->header('Pragma', 'no-cache')
-            ->header('Expires', 'Sat, 01 Jan 2000 00:00:00 GMT');
+            ], 500);
         }
     }
 }

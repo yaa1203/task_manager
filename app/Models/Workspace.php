@@ -11,6 +11,7 @@ class Workspace extends Model
 
     protected $fillable = [
         'user_id',
+        'admin_id',
         'name',
         'description',
         'color',
@@ -27,6 +28,11 @@ class Workspace extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function admin()
+    {
+        return $this->belongsTo(User::class, 'admin_id');
     }
 
     // Ubah relasi tasks menjadi hasMany (bukan belongsToMany)

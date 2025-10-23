@@ -15,19 +15,20 @@ class DashboardController extends Controller
     public function index()
     {
         $userId = Auth::id();
-        
+
         // Ambil semua workspace yang user terlibat di dalamnya
         $workspaces = Workspace::whereHas('tasks.assignedUsers', function ($q) use ($userId) {
             $q->where('user_id', $userId);
-        })->with(['tasks' => function($q) use ($userId) {
+        })
+        ->with(['tasks' => function($q) use ($userId) {
             $q->whereHas('assignedUsers', function($query) use ($userId) {
                 $query->where('user_id', $userId);
             })->with(['submissions' => function($query) use ($userId) {
                 $query->where('user_id', $userId);
             }]);
-        }])->get();
+        }])
+        ->get();
 
-        // Kumpulkan semua tasks user
         $allMyTasks = collect();
         foreach ($workspaces as $workspace) {
             $allMyTasks = $allMyTasks->merge($workspace->tasks);
@@ -35,42 +36,27 @@ class DashboardController extends Controller
 
         $now = Carbon::now();
 
-        // Hitung overdue tasks (belum submit & melewati deadline)
         $overdueTasks = $allMyTasks->filter(function($task) use ($now) {
             $hasSubmission = $task->submissions->isNotEmpty();
-            if (!$hasSubmission && $task->due_date) {
-                return Carbon::parse($task->due_date)->lt($now);
-            }
-            return false;
+            return !$hasSubmission && $task->due_date && Carbon::parse($task->due_date)->lt($now);
         });
 
-        // Hitung tasks yang akan deadline dalam 24 jam ke depan (warning)
-        // Task harus: belum disubmit, punya due_date, belum overdue, dan deadline-nya dalam 24 jam
         $upcomingDeadlineTasks = $allMyTasks->filter(function($task) use ($now) {
             $hasSubmission = $task->submissions->isNotEmpty();
             if (!$hasSubmission && $task->due_date) {
                 $dueDate = Carbon::parse($task->due_date);
-                
-                // Deadline harus di masa depan (belum lewat)
-                // Dan selisihnya maksimal 24 jam dari sekarang
                 return $dueDate->gt($now) && $dueDate->lte($now->copy()->addHours(24));
             }
             return false;
         });
 
-        // Statistik
         $totalTasks = $allMyTasks->count();
-        $doneTasks = $allMyTasks->filter(function($task) {
-            return $task->submissions->isNotEmpty();
-        })->count();
-        
+        $doneTasks = $allMyTasks->filter(fn($task) => $task->submissions->isNotEmpty())->count();
         $overdueCount = $overdueTasks->count();
         $unfinishedTasks = $totalTasks - $doneTasks - $overdueCount;
-        
         $completionRate = $totalTasks > 0 ? round(($doneTasks / $totalTasks) * 100) : 0;
         $workspacesCount = $workspaces->count();
 
-        // Notifikasi terbaru
         $notifications = Auth::user()->notifications()->latest()->take(5)->get();
 
         return view('dashboard', compact(
@@ -89,79 +75,93 @@ class DashboardController extends Controller
 
     public function AdminIndex()
     {
-        // Ambil hanya user dengan role 'user' yang pernah di-assign ke task
+        $adminId = Auth::id();
+
+        // Ambil hanya user yang ditugaskan oleh admin ini
         $users = User::where('role', 'user')
-            ->whereHas('assignedTasks')
-            ->withCount('assignedTasks')
+            ->whereHas('assignedTasks', function ($q) use ($adminId) {
+                $q->whereHas('workspace', function ($w) use ($adminId) {
+                    $w->where('admin_id', $adminId);
+                });
+            })
+            ->withCount(['assignedTasks' => function ($q) use ($adminId) {
+                $q->whereHas('workspace', function ($w) use ($adminId) {
+                    $w->where('admin_id', $adminId);
+                });
+            }])
             ->latest()
             ->take(5)
             ->get();
 
-        // Hitung statistik untuk setiap user (konsisten dengan UserController)
-        $users->each(function ($user) {
-            $user->diligence_score = $this->calculateDiligenceScore($user);
-            $user->late_submissions_count = $this->countLateSubmissions($user);
-            $user->on_time_submissions_count = $this->countOnTimeSubmissions($user);
-            $user->completion_rate = $this->calculateCompletionRate($user);
+        // Hitung statistik tiap user (spesifik milik admin ini)
+        $users->each(function ($user) use ($adminId) {
+            $user->diligence_score = $this->calculateDiligenceScore($user, $adminId);
+            $user->late_submissions_count = $this->countLateSubmissions($user, $adminId);
+            $user->on_time_submissions_count = $this->countOnTimeSubmissions($user, $adminId);
+            $user->completion_rate = $this->calculateCompletionRate($user, $adminId);
         });
 
-        // Total users yang pernah diberi tugas
         $totalUsers = User::where('role', 'user')
-            ->whereHas('assignedTasks')
+            ->whereHas('assignedTasks', function ($q) use ($adminId) {
+                $q->whereHas('workspace', function ($w) use ($adminId) {
+                    $w->where('admin_id', $adminId);
+                });
+            })
             ->count();
+
+        $totalTasks = Task::whereHas('workspace', function ($w) use ($adminId) {
+            $w->where('admin_id', $adminId);
+        })->count();
 
         return view('admin.dashboard', [
             'totalUsers' => $totalUsers,
-            'totalTasks' => Task::count(),
+            'totalTasks' => $totalTasks,
             'users' => $users,
         ]);
     }
 
-    /**
-     * Calculate diligence score for a user
-     */
-    private function calculateDiligenceScore($user)
+    private function calculateDiligenceScore($user, $adminId)
     {
-        $onTimeCount = $this->countOnTimeSubmissions($user);
-        $lateCount = $this->countLateSubmissions($user);
-        return max(0, ($onTimeCount * 10) - ($lateCount * 5));
+        $onTime = $this->countOnTimeSubmissions($user, $adminId);
+        $late = $this->countLateSubmissions($user, $adminId);
+        return max(0, ($onTime * 10) - ($late * 5));
     }
 
-    /**
-     * Count late submissions for a user
-     */
-    private function countLateSubmissions($user)
+    private function countLateSubmissions($user, $adminId)
     {
         return DB::table('user_task_submissions')
             ->join('tasks', 'user_task_submissions.task_id', '=', 'tasks.id')
+            ->join('workspaces', 'tasks.workspace_id', '=', 'workspaces.id')
+            ->where('workspaces.admin_id', $adminId)
             ->where('user_task_submissions.user_id', $user->id)
             ->whereRaw('user_task_submissions.created_at > tasks.due_date')
             ->count();
     }
 
-    /**
-     * Count on-time submissions for a user
-     */
-    private function countOnTimeSubmissions($user)
+    private function countOnTimeSubmissions($user, $adminId)
     {
         return DB::table('user_task_submissions')
             ->join('tasks', 'user_task_submissions.task_id', '=', 'tasks.id')
+            ->join('workspaces', 'tasks.workspace_id', '=', 'workspaces.id')
+            ->where('workspaces.admin_id', $adminId)
             ->where('user_task_submissions.user_id', $user->id)
             ->whereRaw('user_task_submissions.created_at <= tasks.due_date')
             ->count();
     }
 
-    /**
-     * Calculate completion rate percentage
-     */
-    private function calculateCompletionRate($user)
+    private function calculateCompletionRate($user, $adminId)
     {
-        $totalAssigned = $user->assignedTasks()->count();
-        if ($totalAssigned === 0) {
-            return 0;
-        }
-        
-        $completed = $user->submissions()->distinct('task_id')->count();
+        $totalAssigned = $user->assignedTasks()
+            ->whereHas('workspace', fn($w) => $w->where('admin_id', $adminId))
+            ->count();
+
+        if ($totalAssigned === 0) return 0;
+
+        $completed = $user->submissions()
+            ->whereHas('task.workspace', fn($w) => $w->where('admin_id', $adminId))
+            ->distinct('task_id')
+            ->count();
+
         return round(($completed / $totalAssigned) * 100, 1);
     }
 }

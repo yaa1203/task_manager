@@ -2,12 +2,11 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use App\Notifications\AdminNotification;
 
 class User extends Authenticatable
@@ -15,21 +14,17 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
+     * Mass assignable attributes
      */
     protected $fillable = [
         'name',
         'email',
         'password',
-        'role',
+        'role', // 'admin' atau 'user'
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
+     * Hidden attributes
      */
     protected $hidden = [
         'password',
@@ -37,58 +32,19 @@ class User extends Authenticatable
     ];
 
     /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
+     * Attribute casting
      */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
-    }
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+    ];
+
+    // ---------------------------------------------------
+    // ---------------- RELATIONSHIPS -------------------
+    // ---------------------------------------------------
 
     /**
-     * Send an admin notification to this user.
-     *
-     * @param string $title
-     * @param string $message
-     * @param string|null $url
-     * @param int|null $taskId
-     * @return void
-     */
-    public function sendAdminNotification($title, $message, $url = null, $taskId = null)
-    {
-        $this->notify(new AdminNotification($title, $message, $url, $taskId));
-    }
-
-    /**
-     * Get all tasks created by this user (for backward compatibility)
-     */
-    public function tasks(): HasMany
-    {
-        return $this->hasMany(Task::class);
-    }
-
-    /**
-     * Get all projects owned by this user
-     */
-    public function projects(): HasMany
-    {
-        return $this->hasMany(Project::class);
-    }
-
-    /**
-     * Get all workspaces owned by this user
-     */
-    public function workspaces(): HasMany
-    {
-        return $this->hasMany(Workspace::class);
-    }
-
-    /**
-     * Get all tasks created by this user (as creator/admin)
+     * Tasks created by this user (as creator/admin)
      */
     public function createdTasks(): HasMany
     {
@@ -96,8 +52,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the tasks assigned to the user (many-to-many relationship)
-     * This is the main relationship for user task assignments
+     * Tasks assigned to this user (many-to-many)
      */
     public function assignedTasks(): BelongsToMany
     {
@@ -106,7 +61,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Get all submissions made by this user
+     * Submissions made by this user
      */
     public function submissions(): HasMany
     {
@@ -114,9 +69,35 @@ class User extends Authenticatable
     }
 
     /**
+     * Workspaces owned by this user
+     */
+    public function workspaces(): HasMany
+    {
+        return $this->hasMany(Workspace::class);
+    }
+
+    /**
+     * Projects owned by this user
+     */
+    public function projects(): HasMany
+    {
+        return $this->hasMany(Project::class);
+    }
+
+    // ---------------------------------------------------
+    // -------------------- HELPERS ---------------------
+    // ---------------------------------------------------
+
+    /**
+     * Send admin notification to this user
+     */
+    public function sendAdminNotification($title, $message, $url = null, $taskId = null)
+    {
+        $this->notify(new AdminNotification($title, $message, $url, $taskId));
+    }
+
+    /**
      * Check if user is admin
-     *
-     * @return bool
      */
     public function isAdmin(): bool
     {
@@ -125,18 +106,18 @@ class User extends Authenticatable
 
     /**
      * Check if user is regular user
-     *
-     * @return bool
      */
     public function isUser(): bool
     {
         return $this->role === 'user';
     }
 
+    // ---------------------------------------------------
+    // ------------------ STATISTICS --------------------
+    // ---------------------------------------------------
+
     /**
-     * Get total tasks assigned to this user
-     *
-     * @return int
+     * Total tasks assigned to this user
      */
     public function getTotalAssignedTasksAttribute(): int
     {
@@ -144,39 +125,61 @@ class User extends Authenticatable
     }
 
     /**
-     * Get completed tasks count
-     *
-     * @return int
+     * Completed tasks count (submitted)
      */
     public function getCompletedTasksCountAttribute(): int
     {
-        return $this->submissions()
-            ->distinct('task_id')
-            ->count('task_id');
+        return $this->submissions()->distinct('task_id')->count('task_id');
     }
 
     /**
-     * Get pending tasks count
-     *
-     * @return int
+     * Pending tasks count (assigned but not submitted)
      */
     public function getPendingTasksCountAttribute(): int
     {
-        return $this->submissions()
-            ->distinct('task_id')
-            ->count('task_id');
+        $assignedTaskIds = $this->assignedTasks()->pluck('tasks.id');
+        $submittedTaskIds = $this->submissions()->pluck('task_id');
+
+        return $assignedTaskIds->diff($submittedTaskIds)->count();
     }
 
     /**
-     * Get todo tasks count (not yet submitted)
-     *
-     * @return int
+     * Todo tasks (overdue or upcoming)
      */
     public function getTodoTasksCountAttribute(): int
     {
+        $now = now();
+
         $assignedTaskIds = $this->assignedTasks()->pluck('tasks.id');
         $submittedTaskIds = $this->submissions()->pluck('task_id');
-        
+
         return $assignedTaskIds->diff($submittedTaskIds)->count();
+    }
+
+    /**
+     * Completion rate in percentage
+     */
+    public function getCompletionRateAttribute(): float
+    {
+        $total = $this->total_assigned_tasks;
+        return $total > 0 ? round(($this->completed_tasks_count / $total) * 100, 1) : 0;
+    }
+
+    /**
+     * Diligence score: +10 for on-time, -5 for late
+     */
+    public function getDiligenceScoreAttribute(): int
+    {
+        $onTimeCount = $this->submissions()
+            ->join('tasks', 'user_task_submissions.task_id', '=', 'tasks.id')
+            ->whereColumn('user_task_submissions.created_at', '<=', 'tasks.due_date')
+            ->count();
+
+        $lateCount = $this->submissions()
+            ->join('tasks', 'user_task_submissions.task_id', '=', 'tasks.id')
+            ->whereColumn('user_task_submissions.created_at', '>', 'tasks.due_date')
+            ->count();
+
+        return max(0, ($onTimeCount * 10) - ($lateCount * 5));
     }
 }

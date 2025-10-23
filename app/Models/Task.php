@@ -12,7 +12,7 @@ class Task extends Model
 
     protected $fillable = [
         'workspace_id',
-        'project_id',
+        'admin_id',
         'created_by',
         'title',
         'original_filename',
@@ -54,6 +54,11 @@ class Task extends Model
     public function assignedUsers()
     {
         return $this->belongsToMany(User::class, 'task_user')->withTimestamps();
+    }
+
+    public function admin()
+    {
+        return $this->belongsTo(User::class, 'admin_id');
     }
 
     public function workspace()

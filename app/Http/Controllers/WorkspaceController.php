@@ -18,13 +18,13 @@ class WorkspaceController extends Controller
      */
     public function index()
     {
-        $workspaces = Workspace::where('user_id', Auth::id())
+        $workspaces = Workspace::where('admin_id', Auth::id())
             ->active()
             ->withCount(['tasks'])
             ->latest()
             ->get();
 
-        $archivedWorkspaces = Workspace::where('user_id', Auth::id())
+        $archivedWorkspaces = Workspace::where('admin_id', Auth::id())
             ->archived()
             ->withCount(['tasks'])
             ->latest()
@@ -79,6 +79,8 @@ class WorkspaceController extends Controller
 
         $validated['user_id'] = Auth::id();
 
+        $validated['admin_id'] = Auth::id();
+
         $workspace = Workspace::create($validated);
 
         return redirect()->route('workspaces.show', $workspace)
@@ -91,6 +93,10 @@ class WorkspaceController extends Controller
     public function show(Workspace $workspace)
     {
         $this->authorize('view', $workspace);
+
+        if ($workspace->admin_id !== Auth::id()) {
+            abort(403, 'Anda tidak memiliki akses ke workspace ini.');
+        }
 
         // Load tasks with their assigned users and submissions
         $workspace->load(['tasks.assignedUsers', 'tasks.submissions']);
@@ -107,6 +113,10 @@ class WorkspaceController extends Controller
     public function edit(Workspace $workspace)
     {
         $this->authorize('update', $workspace);
+
+        if ($workspace->admin_id !== Auth::id()) {
+            abort(403, 'Anda tidak memiliki akses ke workspace ini.');
+        }
 
         $colors = [
             '#6366f1' => 'Indigo',
@@ -141,6 +151,10 @@ class WorkspaceController extends Controller
     public function update(Request $request, Workspace $workspace)
     {
         $this->authorize('update', $workspace);
+
+        if ($workspace->admin_id !== Auth::id()) {
+            abort(403, 'Anda tidak memiliki akses ke workspace ini.');
+        }
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -180,6 +194,10 @@ class WorkspaceController extends Controller
     public function destroy(Workspace $workspace)
     {
         $this->authorize('delete', $workspace);
+
+        if ($workspace->admin_id !== Auth::id()) {
+            abort(403, 'Anda tidak memiliki akses ke workspace ini.');
+        }
 
         $workspace->delete();
 
@@ -249,6 +267,7 @@ class WorkspaceController extends Controller
 
         // Create single task
         $task = Task::create([
+            'admin_id' => Auth::id(),
             'workspace_id' => $workspace->id,
             'created_by' => auth()->id(),
             'title' => $validated['title'],
@@ -282,6 +301,10 @@ class WorkspaceController extends Controller
     public function editTask(Workspace $workspace, Task $task)
     {
         $this->authorize('update', $workspace);
+
+        if ($task->admin_id !== Auth::id()) {
+            abort(403, 'Anda tidak memiliki akses ke task ini.');
+        }
         
         if ($task->workspace_id !== $workspace->id) {
             abort(404);
@@ -298,6 +321,10 @@ class WorkspaceController extends Controller
     public function updateTask(Request $request, Workspace $workspace, Task $task)
     {
         $this->authorize('update', $workspace);
+
+        if ($task->admin_id !== Auth::id()) {
+            abort(403, 'Anda tidak memiliki akses ke task ini.');
+        }
 
         if ($task->workspace_id !== $workspace->id) {
             abort(404);
@@ -373,6 +400,10 @@ class WorkspaceController extends Controller
     public function showTask(Workspace $workspace, Task $task)
     {
         $this->authorize('view', $workspace);
+
+        if ($task->admin_id !== Auth::id()) {
+            abort(403, 'Anda tidak memiliki akses ke task ini.');
+        }
         
         if ($task->workspace_id !== $workspace->id) {
             abort(404);
@@ -389,6 +420,10 @@ class WorkspaceController extends Controller
     public function destroyTask(Workspace $workspace, Task $task)
     {
         $this->authorize('update', $workspace);
+
+        if ($task->admin_id !== Auth::id()) {
+            abort(403, 'Anda tidak memiliki akses ke task ini.');
+        }
 
         if ($task->workspace_id !== $workspace->id) {
             abort(404);

@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use App\Http\Middleware\RoleMiddleware;
+use App\Http\Middleware\AdminOwnsData;
 use Illuminate\Foundation\Configuration\Middleware;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -15,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // daftar alias middleware
         $middleware->alias([
             'role' => RoleMiddleware::class,
+            'admin.owns' => \App\Http\Middleware\AdminOwnsData::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

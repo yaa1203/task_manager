@@ -1,142 +1,155 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\AdminNotificationController;
-use App\Http\Controllers\AnalyticsController;
-use App\Http\Controllers\AdminRegisterController;
-use App\Http\Controllers\ProjectController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\TaskController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\WorkspaceController;
+use App\Http\Controllers\{
+    ProfileController,
+    AdminNotificationController,
+    AnalyticsController,
+    AdminRegisterController,
+    ProjectController,
+    DashboardController,
+    TaskController,
+    UserController,
+    NotificationController,
+    WorkspaceController
+};
 use Illuminate\Support\Facades\Route;
 
-// Root route - redirect berdasarkan status login dan role
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+| Struktur sudah disesuaikan agar lebih rapi dan Laravel 11 friendly.
+| Tidak ada route yang dihapus, hanya dikelompokkan ulang agar mudah dibaca.
+|--------------------------------------------------------------------------
+*/
+
+// 🔹 Root Route (redirect berdasarkan role)
 Route::get('/', function () {
     if (auth()->check()) {
-        // Jika user admin, arahkan ke admin dashboard
-        if (auth()->user()->role === 'admin') {
-            return redirect()->route('admin.dashboard');
-        }
-        // Jika user biasa, ke dashboard biasa
-        return redirect()->route('dashboard');
+        return auth()->user()->role === 'admin'
+            ? redirect()->route('admin.dashboard')
+            : redirect()->route('dashboard');
     }
-    
-    // Jika belum login, tampilkan halaman welcome
+
     return view('welcome');
 })->name('home');
 
+// =============================================================
+// 🔸 Routes untuk User yang Sudah Login (auth umum)
+// =============================================================
 Route::middleware(['auth'])->group(function () {
     Route::view('/offline', 'offline')->name('offline');
+
+    // Task dan Project umum (bukan admin)
     Route::resource('tasks', TaskController::class);
     Route::resource('projects', ProjectController::class);
+
+    // Analytics (user biasa)
     Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
     Route::get('/analytics/data', [AnalyticsController::class, 'data'])->name('analytics.data');
+
+    // Notifikasi user biasa
     Route::get('/notifikasi', [NotificationController::class, 'index'])->name('notifikasi.index');
     Route::post('/notifikasi/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifikasi.read');
     Route::post('/notifikasi/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])->name('notifikasi.markAllAsRead');
-    Route::get('/my-workspaces', [WorkspaceController::class, 'userIndex'])->name('my-workspaces.index');
-    Route::get('/my-workspaces/{workspace}', [WorkspaceController::class, 'userShow'])->name('my-workspaces.show');
-    Route::post('/my-workspaces/{workspace}/task/{task}/submit', [WorkspaceController::class, 'submitTask'])->name('my-workspaces.task.submit');
-    Route::get('/my-workspaces/{workspace}/task/{task}', [WorkspaceController::class, 'userShowTask'])->name('my-workspaces.task.show');
-    // View task file
-    Route::get('/workspaces/{workspace}/tasks/{task}/view-file', [WorkspaceController::class, 'viewTaskFile'])
-        ->name('my-workspaces.task.view-file');
-    
-    // Download task file
-    Route::get('{workspace}/tasks/{task}/download', [WorkspaceController::class, 'downloadTaskFile'])
-        ->name('my-workspaces.task.download');
-    
-    // View submission file
-    Route::get('{workspace}/tasks/{task}/submissions/{submission}/view', 
-        [WorkspaceController::class, 'viewSubmissionFile'])
-        ->name('my-workspaces.submission.view-file');
-    
-    // Download submission file
-    Route::get('{workspace}/tasks/{task}/submissions/{submission}/download', 
-        [WorkspaceController::class, 'downloadSubmissionFile'])
-        ->name('my-workspaces.submission.download');
-    // Calendar view
-    Route::get('/calendar', [WorkspaceController::class, 'userCalendar'])
-        ->name('calendar.index');
+
+    // Workspace user
+    Route::prefix('my-workspaces')->name('my-workspaces.')->group(function () {
+        Route::get('/', [WorkspaceController::class, 'userIndex'])->name('index');
+        Route::get('/{workspace}', [WorkspaceController::class, 'userShow'])->name('show');
+        Route::get('/{workspace}/task/{task}', [WorkspaceController::class, 'userShowTask'])->name('task.show');
+        Route::post('/{workspace}/task/{task}/submit', [WorkspaceController::class, 'submitTask'])->name('task.submit');
+
+        // File (task/submission)
+        Route::get('/{workspace}/tasks/{task}/view-file', [WorkspaceController::class, 'viewTaskFile'])->name('task.view-file');
+        Route::get('{workspace}/tasks/{task}/download', [WorkspaceController::class, 'downloadTaskFile'])->name('task.download');
+        Route::get('{workspace}/tasks/{task}/submissions/{submission}/view', [WorkspaceController::class, 'viewSubmissionFile'])->name('submission.view-file');
+        Route::get('{workspace}/tasks/{task}/submissions/{submission}/download', [WorkspaceController::class, 'downloadSubmissionFile'])->name('submission.download');
+    });
+
+    // Calendar (user)
+    Route::get('/calendar', [WorkspaceController::class, 'userCalendar'])->name('calendar.index');
 });
 
-Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])
+// =============================================================
+// 🔸 Dashboard Umum (User biasa)
+// =============================================================
+Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth'])
     ->name('dashboard');
 
-Route::get('/register/admin', [AdminRegisterController::class, 'create'])
-    ->middleware('guest')
-    ->name('register.admin');
+// =============================================================
+// 🔸 Admin Register (Guest only)
+// =============================================================
+Route::middleware('guest')->group(function () {
+    Route::get('/register/admin', [AdminRegisterController::class, 'create'])->name('register.admin');
+    Route::post('/register/admin', [AdminRegisterController::class, 'store']);
+});
 
-Route::post('/register/admin', [AdminRegisterController::class, 'store'])
-    ->middleware('guest');
-
+// =============================================================
+// 🔸 Admin Area (hanya untuk role admin)
+// =============================================================
 Route::middleware(['auth', 'role:admin'])->group(function () {
-    // User Management
-    Route::get('/users', [UserController::class, 'index'])->name('users.index');
-    Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
-    Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
 
-    Route::get('/analytict', [AnalyticsController::class, 'adminIndex'])->name('analytict.index');
-    Route::get('/analytict/data', [AnalyticsController::class, 'adminData'])->name('analytict.data');
+    // 🔹 Dashboard Admin
+    Route::get('/admin/dashboard', [DashboardController::class, 'AdminIndex'])->name('admin.dashboard');
+
+    // 🔹 User Management
+    Route::prefix('users')->name('users.')->group(function () {
+        Route::get('/', [UserController::class, 'index'])->name('index');
+        Route::get('/{user}', [UserController::class, 'show'])->name('show');
+        Route::delete('/{user}', [UserController::class, 'destroy'])->name('destroy');
+    });
+
+    // 🔹 Analytics Admin
+    Route::prefix('analytict')->name('analytict.')->group(function () {
+        Route::get('/', [AnalyticsController::class, 'adminIndex'])->name('index');
+        Route::get('/data', [AnalyticsController::class, 'adminData'])->name('data');
+    });
     Route::post('/analytics/export', [AnalyticsController::class, 'exportReport'])->name('analytics.export');
 
-    Route::get('/notifications', [AdminNotificationController::class, 'index'])->name('notifications.index');
-    Route::post('/notifications/{id}/read', [AdminNotificationController::class, 'markAsRead'])->name('notifications.read');
-    Route::post('/notifications/read-all', [AdminNotificationController::class, 'markAllAsRead'])->name('notifications.readAll');
+    // 🔹 Notifikasi Admin
+    Route::prefix('notifications')->name('notifications.')->group(function () {
+        Route::get('/', [AdminNotificationController::class, 'index'])->name('index');
+        Route::post('/{id}/read', [AdminNotificationController::class, 'markAsRead'])->name('read');
+        Route::post('/read-all', [AdminNotificationController::class, 'markAllAsRead'])->name('readAll');
+    });
 
-    // Workspaces Routes
-    Route::get('/workspaces', [WorkspaceController::class, 'index'])->name('workspaces.index');
-    Route::get('/workspaces/create', [WorkspaceController::class, 'create'])->name('workspaces.create');
-    Route::post('/workspaces', [WorkspaceController::class, 'store'])->name('workspaces.store');
-    Route::get('/workspaces/{workspace}', [WorkspaceController::class, 'show'])->name('workspaces.show');
-    Route::get('/workspaces/{workspace}/edit', [WorkspaceController::class, 'edit'])->name('workspaces.edit');
-    Route::put('/workspaces/{workspace}', [WorkspaceController::class, 'update'])->name('workspaces.update');
-    Route::delete('/workspaces/{workspace}', [WorkspaceController::class, 'destroy'])->name('workspaces.destroy');
-    Route::post('/workspaces/{workspace}/toggle-archive', [WorkspaceController::class, 'toggleArchive'])->name('workspaces.toggle-archive');
-    
-    Route::get('/workspaces/{workspace}/tasks/create', [WorkspaceController::class, 'createTask'])
-        ->name('workspace.tasks.create');
-    Route::get('/workspaces/{workspace}/tasks/{task}/edit', [WorkspaceController::class, 'editTask'])
-        ->name('workspace.tasks.edit');
-    Route::put('/workspaces/{workspace}/tasks/{task}', [WorkspaceController::class, 'updateTask'])
-        ->name('workspace.tasks.update');
-    Route::post('/workspaces/{workspace}/tasks', [WorkspaceController::class, 'storeTask'])
-        ->name('workspace.tasks.store');
-    Route::delete('/workspaces/{workspace}/tasks/{task}', [WorkspaceController::class, 'destroyTask'])
-        ->name('workspace.tasks.destroy');
-    Route::get('/workspaces/{workspace}/tasks/{task}', [WorkspaceController::class, 'showTask'])
-        ->name('workspace.tasks.show');
-    /// View task file
-    Route::get('workspaces/{workspace}/tasks/{task}/view', [WorkspaceController::class, 'viewTaskFile'])
-        ->name('workspace.tasks.view-file');
-    
-    // Download task file
-    Route::get('workspaces/{workspace}/tasks/{task}/download', [WorkspaceController::class, 'downloadTaskFile'])
-        ->name('workspace.tasks.download');
-    
-    // View submission file
-    Route::get('workspaces/{workspace}/tasks/{task}/submissions/{submission}/view', 
-        [WorkspaceController::class, 'viewSubmissionFile'])
-        ->name('workspace.submissions.view');
-    
-    // Download submission file
-    Route::get('workspaces/{workspace}/tasks/{task}/submissions/{submission}/download', 
-        [WorkspaceController::class, 'downloadSubmissionFile'])
-        ->name('workspace.submissions.download');
+    // 🔹 Workspace Admin (dengan middleware admin.owns)
+    Route::middleware('admin.owns')->group(function () {
+        Route::resource('workspaces', WorkspaceController::class);
+        Route::post('/workspaces/{workspace}/toggle-archive', [WorkspaceController::class, 'toggleArchive'])->name('workspaces.toggle-archive');
+
+        // Tasks di dalam Workspace
+        Route::prefix('workspaces/{workspace}/tasks')->name('workspace.tasks.')->group(function () {
+            Route::get('/create', [WorkspaceController::class, 'createTask'])->name('create');
+            Route::post('/', [WorkspaceController::class, 'storeTask'])->name('store');
+            Route::get('/{task}/edit', [WorkspaceController::class, 'editTask'])->name('edit');
+            Route::put('/{task}', [WorkspaceController::class, 'updateTask'])->name('update');
+            Route::delete('/{task}', [WorkspaceController::class, 'destroyTask'])->name('destroy');
+            Route::get('/{task}', [WorkspaceController::class, 'showTask'])->name('show');
+
+            // File akses
+            Route::get('/{task}/view', [WorkspaceController::class, 'viewTaskFile'])->name('view-file');
+            Route::get('/{task}/download', [WorkspaceController::class, 'downloadTaskFile'])->name('download');
+
+            // Submission
+            Route::get('/{task}/submissions/{submission}/view', [WorkspaceController::class, 'viewSubmissionFile'])->name('submissions.view');
+            Route::get('/{task}/submissions/{submission}/download', [WorkspaceController::class, 'downloadSubmissionFile'])->name('submissions.download');
+        });
+    });
 });
 
-Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::get('/admin/dashboard', [DashboardController::class, 'AdminIndex'])
-        ->name('admin.dashboard');
-});
-
+// =============================================================
+// 🔸 Profile Routes
+// =============================================================
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-require __DIR__.'/auth.php';
+// =============================================================
+// 🔸 Auth Scaffolding
+// =============================================================
+require __DIR__ . '/auth.php';
