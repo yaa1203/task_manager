@@ -271,6 +271,30 @@ use Illuminate\Support\Facades\Storage;
                                         $subStoragePath = storage_path('app/public/' . $submission->file_path);
                                         $subFileExists = file_exists($subStoragePath);
                                         $subDisplayName = $submission->original_filename ?? basename($submission->file_path);
+                                        
+                                        // Tentukan apakah file bisa di-preview
+                                        $subPreviewableExts = ['pdf', 'txt', 'md', 'csv', 'html', 'htm', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'zip', 'rar', '7z'];
+                                        $subIsPreviewable = in_array($subFileExt, $subPreviewableExts);
+                                        
+                                        // Tentukan ikon dan warna
+                                        $subFileIcon = 'document';
+                                        $subIconColor = 'gray';
+                                        if (in_array($subFileExt, ['pdf'])) {
+                                            $subFileIcon = 'pdf';
+                                            $subIconColor = 'red';
+                                        } elseif (in_array($subFileExt, ['doc', 'docx'])) {
+                                            $subFileIcon = 'word';
+                                            $subIconColor = 'blue';
+                                        } elseif (in_array($subFileExt, ['xls', 'xlsx'])) {
+                                            $subFileIcon = 'excel';
+                                            $subIconColor = 'green';
+                                        } elseif (in_array($subFileExt, ['ppt', 'pptx'])) {
+                                            $subFileIcon = 'powerpoint';
+                                            $subIconColor = 'orange';
+                                        } elseif (in_array($subFileExt, ['zip', 'rar', '7z'])) {
+                                            $subFileIcon = 'archive';
+                                            $subIconColor = 'yellow';
+                                        }
                                     @endphp
 
                                     @if($subFileExists)
@@ -283,7 +307,7 @@ use Illuminate\Support\Facades\Storage;
                                             </p>
                                             
                                             @if($subIsImage)
-                                                <div class="bg-white rounded-lg overflow-hidden border border-gray-200">
+                                                <div class="bg-white rounded-lg overflow-hidden border border-gray-200 mb-3">
                                                     <button type="button" 
                                                             onclick="openFileModal('{{ asset('storage/' . $submission->file_path) }}', 'image', '{{ addslashes($subDisplayName) }}')" 
                                                             class="block w-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg overflow-hidden">
@@ -293,17 +317,72 @@ use Illuminate\Support\Facades\Storage;
                                                             loading="lazy">
                                                     </button>
                                                 </div>
-                                            @else
-                                                <div class="flex items-center gap-3 bg-white p-3 rounded-lg border border-gray-200">
-                                                    <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                                                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                                                <p class="text-xs text-gray-600 text-center mb-2">
+                                                    <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                                    </svg>
+                                                    Klik gambar untuk melihat ukuran penuh
+                                                </p>
+                                                <!-- Tombol untuk gambar -->
+                                                <div class="flex gap-2">
+                                                    <button onclick="openFileModal('{{ asset('storage/' . $submission->file_path) }}', 'image', '{{ addslashes($subDisplayName) }}')"
+                                                            class="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-xs font-medium shadow-sm">
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                                                         </svg>
+                                                        Lihat
+                                                    </button>
+                                                    <a href="{{ asset('storage/' . $submission->file_path) }}" 
+                                                    download="{{ $subDisplayName }}"
+                                                    class="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition-all text-xs font-medium shadow-sm">
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                                        </svg>
+                                                        Unduh
+                                                    </a>
+                                                </div>
+                                            @else
+                                                <div class="flex items-center gap-3 bg-white p-3 rounded-lg border border-gray-200 mb-3">
+                                                    <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-{{ $subIconColor }}-100 flex items-center justify-center">
+                                                        @if($subFileIcon === 'pdf')
+                                                            <svg class="w-5 h-5 text-{{ $subIconColor }}-600" fill="currentColor" viewBox="0 0 20 20">
+                                                                <path d="M4 18h12V6h-4V2H4v16zm-2 1V0h10l4 4v16H2v-1z"/>
+                                                                <text x="10" y="14" font-size="6" text-anchor="middle" fill="currentColor">PDF</text>
+                                                            </svg>
+                                                        @else
+                                                            <svg class="w-5 h-5 text-{{ $subIconColor }}-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                                                            </svg>
+                                                        @endif
                                                     </div>
                                                     <div class="flex-1 min-w-0">
                                                         <p class="text-sm font-medium text-gray-900 truncate">{{ $subDisplayName }}</p>
                                                         <p class="text-xs text-gray-500 uppercase">{{ $subFileExt }} file</p>
                                                     </div>
+                                                </div>
+                                                <!-- Tombol Lihat dan Unduh untuk file non-gambar -->
+                                                <div class="flex gap-2">
+                                                    @if($subIsPreviewable)
+                                                        <button onclick="openFileModal('{{ asset('storage/' . $submission->file_path) }}', '{{ $subFileExt }}', '{{ addslashes($subDisplayName) }}')"
+                                                                class="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-xs font-medium shadow-sm">
+                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                                            </svg>
+                                                            Lihat
+                                                        </button>
+                                                    @endif
+                                                    
+                                                    <a href="{{ asset('storage/' . $submission->file_path) }}" 
+                                                    download="{{ $subDisplayName }}"
+                                                    class="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition-all text-xs font-medium shadow-sm">
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                                        </svg>
+                                                        Unduh
+                                                    </a>
                                                 </div>
                                             @endif
                                         </div>

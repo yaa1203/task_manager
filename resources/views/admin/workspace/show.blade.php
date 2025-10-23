@@ -135,16 +135,11 @@
                             <span class="text-xs text-gray-500">
                                 {{ $task->submissions->count() }}/{{ $task->assignedUsers->count() }} selesai
                             </span>
-@if($task->due_date)
-    <span class="text-xs text-gray-500">
-        Batas: {{ \Carbon\Carbon::parse($task->due_date)->locale('id')->translatedFormat('d F Y H:i') }}
-    </span>
-@endif
-
-
-
-
-
+                            @if($task->due_date)
+                                <span class="text-xs text-gray-500">
+                                    Batas: {{ \Carbon\Carbon::parse($task->due_date)->locale('id')->translatedFormat('d F Y H:i') }}
+                                </span>
+                            @endif
                         </div>
                     </div>
                 </div>

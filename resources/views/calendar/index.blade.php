@@ -167,19 +167,19 @@
                 <div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-4">
                     <div class="flex items-center gap-2">
                         <div class="w-3 h-3 rounded-full bg-red-500 flex-shrink-0"></div>
-                        <span class="text-xs sm:text-sm text-gray-700">Urgent</span>
+                        <span class="text-xs sm:text-sm text-gray-700">Segera</span>
                     </div>
                     <div class="flex items-center gap-2">
                         <div class="w-3 h-3 rounded-full bg-orange-500 flex-shrink-0"></div>
-                        <span class="text-xs sm:text-sm text-gray-700">High</span>
+                        <span class="text-xs sm:text-sm text-gray-700">Tinggi</span>
                     </div>
                     <div class="flex items-center gap-2">
                         <div class="w-3 h-3 rounded-full bg-yellow-500 flex-shrink-0"></div>
-                        <span class="text-xs sm:text-sm text-gray-700">Medium</span>
+                        <span class="text-xs sm:text-sm text-gray-700">Sedang</span>
                     </div>
                     <div class="flex items-center gap-2">
                         <div class="w-3 h-3 rounded-full bg-gray-400 flex-shrink-0"></div>
-                        <span class="text-xs sm:text-sm text-gray-700">Low</span>
+                        <span class="text-xs sm:text-sm text-gray-700">Rendah</span>
                     </div>
                     <div class="flex items-center gap-2">
                         <div class="w-3 h-3 rounded-full bg-green-500 flex-shrink-0"></div>
@@ -511,7 +511,7 @@ function createTaskCard(task) {
                 <p class="text-xs sm:text-sm text-gray-600 mb-3 line-clamp-2">${task.description}</p>
             ` : ''}
             
-            <a href="/my-workspaces/${task.workspace_id}/tasks/${task.id}" 
+            <a href="/my-workspaces/${task.workspace_id}/task/${task.id}" 
                class="flex items-center justify-center gap-2 w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs sm:text-sm font-medium shadow-sm">
                 <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
