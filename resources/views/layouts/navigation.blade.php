@@ -14,7 +14,7 @@
                 </div>
 
                 <!-- Tautan Navigasi - Desktop -->
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                <div class="hidden space-x-8 sm:-my-px sm:ms-10 lg:flex">
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
@@ -43,19 +43,19 @@
             </div>
 
             <div class="flex items-center">
-                <!-- Dropdown Notifikasi - Desktop & Mobile -->
-                <div class="flex items-center sm:ms-4">
+                <!-- Dropdown Notifikasi - Desktop & Tablet -->
+                <div class="hidden md:flex items-center md:ms-4">
                     <div class="relative" x-data="{ open: false }" @click.away="open = false">
                         <button @click="open = !open" 
-                                class="inline-flex items-center p-2 text-sm font-medium text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
+                                class="relative inline-flex items-center p-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
                                 type="button"
                                 aria-expanded="false"
                                 aria-label="Lihat notifikasi">
                             <span class="sr-only">Lihat notifikasi</span>
                             @if (Auth::user()->unreadNotifications->count() > 0)
-                                <span class="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 flex items-center justify-center">
+                                <span class="absolute top-0 right-0 h-5 w-5 rounded-full bg-red-500 flex items-center justify-center ring-2 ring-white">
                                     <span class="text-xs text-white font-bold">
-                                        {{ Auth::user()->unreadNotifications->count() }}
+                                        {{ Auth::user()->unreadNotifications->count() > 9 ? '9+' : Auth::user()->unreadNotifications->count() }}
                                     </span>
                                 </span>
                             @endif
@@ -75,109 +75,116 @@
                              x-transition:leave="transition ease-in duration-75"
                              x-transition:leave-start="opacity-100 scale-100"
                              x-transition:leave-end="opacity-0 scale-95"
-                             class="absolute right-0 mt-2 w-80 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50"
+                             class="absolute right-0 mt-2 w-80 sm:w-96 rounded-lg shadow-xl bg-white ring-1 ring-black ring-opacity-5 z-50"
                              style="display: none;">
-                            <div class="py-1">
+                            <div class="rounded-lg overflow-hidden">
                                 <!-- Header -->
-                                <div class="px-4 py-2 border-b border-gray-200">
-                                    <h3 class="text-sm font-medium text-gray-900">{{ __('Notifications') }}</h3>
-                                    @if (Auth::user()->unreadNotifications()->count() > 0)
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                            {{ Auth::user()->unreadNotifications()->count() }}
-                                        </span>
-                                    @endif
+                                <div class="px-4 py-3 bg-gradient-to-r from-indigo-500 to-indigo-600 border-b border-indigo-700">
+                                    <div class="flex items-center justify-between">
+                                        <h3 class="text-sm font-semibold text-white">{{ __('Notifications') }}</h3>
+                                        @if (Auth::user()->unreadNotifications()->count() > 0)
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-white text-indigo-600">
+                                                {{ Auth::user()->unreadNotifications()->count() }} Baru
+                                            </span>
+                                        @endif
+                                    </div>
                                 </div>
                                 
                                 @php
                                     $unreadNotifications = Auth::user()->unreadNotifications()->latest()->take(5)->get();
-                                    $readNotifications = Auth::user()->readNotifications()->latest()->take(5)->get();
+                                    $readNotifications = Auth::user()->readNotifications()->latest()->take(3)->get();
                                 @endphp
                                 
                                 <!-- Notifikasi Belum Dibaca -->
                                 @if ($unreadNotifications->count() > 0)
-                                    <div class="max-h-60 overflow-y-auto">
+                                    <div class="max-h-72 overflow-y-auto">
                                         @foreach ($unreadNotifications as $notification)
                                             <a href="@if (isset($notification->data['task_id']) && isset($notification->data['workspace_id'])){{ route('my-workspaces.task.show', ['workspace' => $notification->data['workspace_id'], 'task' => $notification->data['task_id']]) }}@else#@endif"
-                                               class="block px-4 py-3 hover:bg-gray-50 border-b border-gray-100 relative">
-                                                <div class="flex items-start">
-                                                    <div class="flex-shrink-0">
-                                                        <span class="h-2 w-2 rounded-full bg-indigo-600"></span>
+                                               onclick="event.preventDefault(); markAsReadAndRedirect('{{ route('notifikasi.read', $notification) }}', '{{ isset($notification->data['task_id']) && isset($notification->data['workspace_id']) ? route('my-workspaces.task.show', ['workspace' => $notification->data['workspace_id'], 'task' => $notification->data['task_id']]) : '#' }}')"
+                                               class="block px-4 py-3 hover:bg-indigo-50 border-b border-gray-100 transition-colors">
+                                                <div class="flex items-start gap-3">
+                                                    <div class="flex-shrink-0 mt-1">
+                                                        <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                                                            <svg class="h-5 w-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                                            </svg>
+                                                        </div>
                                                     </div>
-                                                    <div class="ml-3 flex-1 min-w-0">
-                                                        <p class="text-sm font-medium text-gray-900">
-                                                            {{ $notification->data['title'] ?? __('Notification') }}
-                                                        </p>
-                                                        <p class="text-sm text-gray-500 truncate">
+                                                    <div class="flex-1 min-w-0">
+                                                        <div class="flex items-start justify-between gap-2">
+                                                            <p class="text-sm font-semibold text-gray-900">
+                                                                {{ $notification->data['title'] ?? __('Notification') }}
+                                                            </p>
+                                                            <span class="flex-shrink-0 h-2 w-2 rounded-full bg-indigo-600 mt-1.5"></span>
+                                                        </div>
+                                                        <p class="text-xs text-gray-600 mt-1 line-clamp-2">
                                                             {{ $notification->data['message'] ?? __('You have a new notification') }}
                                                         </p>
                                                         
-                                                        @if (isset($notification->data['task_name']))
-                                                            <div class="mt-1">
-                                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                                                                    {{ $notification->data['task_name'] }}
+                                                        <div class="flex items-center gap-2 mt-2">
+                                                            @if (isset($notification->data['task_title']))
+                                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">
+                                                                    📋 {{ Str::limit($notification->data['task_title'], 20) }}
                                                                 </span>
-                                                            </div>
-                                                        @endif
-                                                        
-                                                        <p class="text-xs text-gray-400 mt-1">
-                                                            {{ $notification->created_at->diffForHumans() }}
-                                                        </p>
+                                                            @endif
+                                                            <span class="text-xs text-gray-500">
+                                                                {{ $notification->created_at->diffForHumans() }}
+                                                            </span>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                
-                                                @if (isset($notification->data['task_id']) && isset($notification->data['workspace_id']))
-                                                    <div class="absolute right-2 top-2">
-                                                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">
-                                                            Task
-                                                        </span>
-                                                    </div>
-                                                @endif
                                             </a>
                                         @endforeach
                                     </div>
                                 @else
-                                    <div class="px-4 py-3 text-center text-sm text-gray-500">
-                                        {{ __('No unread notifications') }}
+                                    <div class="px-4 py-8 text-center">
+                                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                                        </svg>
+                                        <p class="mt-2 text-sm text-gray-500">{{ __('No unread notifications') }}</p>
                                     </div>
                                 @endif
                                 
                                 <!-- Notifikasi Sudah Dibaca -->
                                 @if ($readNotifications->count() > 0)
-                                    <div class="px-4 py-2 border-t border-gray-200">
-                                        <h4 class="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            {{ __('Earlier') }}
-                                        </h4>
-                                    </div>
-                                    <div class="max-h-40 overflow-y-auto">
-                                        @foreach ($readNotifications as $notification)
-                                            <a href="@if (isset($notification->data['task_id']) && isset($notification->data['workspace_id'])){{ route('my-workspaces.task.show', ['workspace' => $notification->data['workspace_id'], 'task' => $notification->data['task_id']]) }}@else#@endif"
-                                               class="block px-4 py-3 hover:bg-gray-50 border-b border-gray-100 opacity-75">
-                                                <div class="flex items-start">
-                                                    <div class="flex-shrink-0">
-                                                        <span class="h-2 w-2 rounded-full bg-gray-300"></span>
+                                    <div class="bg-gray-50">
+                                        <div class="px-4 py-2 border-t border-gray-200">
+                                            <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                                {{ __('Earlier') }}
+                                            </h4>
+                                        </div>
+                                        <div class="max-h-48 overflow-y-auto">
+                                            @foreach ($readNotifications as $notification)
+                                                <a href="@if (isset($notification->data['task_id']) && isset($notification->data['workspace_id'])){{ route('my-workspaces.task.show', ['workspace' => $notification->data['workspace_id'], 'task' => $notification->data['task_id']]) }}@else#@endif"
+                                                   class="block px-4 py-3 hover:bg-gray-100 border-b border-gray-200 transition-colors">
+                                                    <div class="flex items-start gap-3 opacity-75">
+                                                        <div class="flex-shrink-0 mt-1">
+                                                            <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+                                                                <svg class="h-4 w-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                                                </svg>
+                                                            </div>
+                                                        </div>
+                                                        <div class="flex-1 min-w-0">
+                                                            <p class="text-sm font-medium text-gray-700">
+                                                                {{ $notification->data['title'] ?? __('Notification') }}
+                                                            </p>
+                                                            <p class="text-xs text-gray-500 mt-1">
+                                                                {{ $notification->created_at->diffForHumans() }}
+                                                            </p>
+                                                        </div>
                                                     </div>
-                                                    <div class="ml-3 flex-1 min-w-0">
-                                                        <p class="text-sm font-medium text-gray-700">
-                                                            {{ $notification->data['title'] ?? __('Notification') }}
-                                                        </p>
-                                                        <p class="text-sm text-gray-500 truncate">
-                                                            {{ $notification->data['message'] ?? __('You have a new notification') }}
-                                                        </p>
-                                                        <p class="text-xs text-gray-400 mt-1">
-                                                            {{ $notification->created_at->diffForHumans() }}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </a>
-                                        @endforeach
+                                                </a>
+                                            @endforeach
+                                        </div>
                                     </div>
                                 @endif
                                 
                                 <!-- Footer -->
-                                <div class="px-4 py-3 border-t border-gray-200">
+                                <div class="px-4 py-3 bg-gray-50 border-t border-gray-200">
                                     <a href="{{ route('notifikasi.index') }}" 
-                                       class="block text-center text-sm font-medium text-indigo-600 hover:text-indigo-500">
-                                        {{ __('View all notifications') }}
+                                       class="block text-center text-sm font-semibold text-indigo-600 hover:text-indigo-700 transition">
+                                        {{ __('View all notifications') }} →
                                     </a>
                                 </div>
                             </div>
@@ -185,8 +192,8 @@
                     </div>
                 </div>
 
-                <!-- Dropdown Pengaturan - Desktop -->
-                <div class="hidden sm:flex sm:items-center sm:ms-6">
+                <!-- Dropdown Pengaturan - Desktop & Tablet -->
+                <div class="hidden md:flex md:items-center md:ms-4">
                     <div class="relative" x-data="{ open: false }" @click.away="open = false">
                         <button @click="open = !open" 
                                 class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition ease-in-out duration-150"
@@ -228,8 +235,157 @@
                     </div>
                 </div>
 
-                <!-- Hamburger - Mobile -->
-                <div class="flex items-center sm:hidden ms-2">
+                <!-- Notifikasi Mobile - Tampil di luar hamburger -->
+                <div class="flex items-center md:hidden">
+                    <div class="relative" x-data="{ open: false }" @click.away="open = false">
+                        <button @click="open = !open" 
+                                class="relative inline-flex items-center p-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
+                                type="button"
+                                aria-expanded="false"
+                                aria-label="Lihat notifikasi">
+                            <span class="sr-only">Lihat notifikasi</span>
+                            @if (Auth::user()->unreadNotifications->count() > 0)
+                                <span class="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 flex items-center justify-center ring-2 ring-white">
+                                    <span class="text-xs text-white font-bold">
+                                        {{ Auth::user()->unreadNotifications->count() > 9 ? '9+' : Auth::user()->unreadNotifications->count() }}
+                                    </span>
+                                </span>
+                            @endif
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" 
+                                      stroke-linejoin="round" 
+                                      stroke-width="2" 
+                                      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                            </svg>
+                        </button>
+
+                        <!-- Menu Dropdown Mobile -->
+                        <div x-show="open"
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 scale-95"
+                             x-transition:enter-end="opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-75"
+                             x-transition:leave-start="opacity-100 scale-100"
+                             x-transition:leave-end="opacity-0 scale-95"
+                             class="absolute right-0 mt-2 w-80 rounded-lg shadow-xl bg-white ring-1 ring-black ring-opacity-5 z-50"
+                             style="display: none;">
+                            <div class="rounded-lg overflow-hidden">
+                                <!-- Header -->
+                                <div class="px-4 py-3 bg-gradient-to-r from-indigo-500 to-indigo-600 border-b border-indigo-700">
+                                    <div class="flex items-center justify-between">
+                                        <h3 class="text-sm font-semibold text-white">{{ __('Notifications') }}</h3>
+                                        @if (Auth::user()->unreadNotifications()->count() > 0)
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-white text-indigo-600">
+                                                {{ Auth::user()->unreadNotifications()->count() }} Baru
+                                            </span>
+                                        @endif
+                                    </div>
+                                </div>
+                                
+                                @php
+                                    $unreadNotifications = Auth::user()->unreadNotifications()->latest()->take(5)->get();
+                                    $readNotifications = Auth::user()->readNotifications()->latest()->take(3)->get();
+                                @endphp
+                                
+                                <!-- Notifikasi Belum Dibaca -->
+                                @if ($unreadNotifications->count() > 0)
+                                    <div class="max-h-72 overflow-y-auto">
+                                        @foreach ($unreadNotifications as $notification)
+                                            <a href="@if (isset($notification->data['task_id']) && isset($notification->data['workspace_id'])){{ route('my-workspaces.task.show', ['workspace' => $notification->data['workspace_id'], 'task' => $notification->data['task_id']]) }}@else#@endif"
+                                               onclick="event.preventDefault(); markAsReadAndRedirect('{{ route('notifikasi.read', $notification) }}', '{{ isset($notification->data['task_id']) && isset($notification->data['workspace_id']) ? route('my-workspaces.task.show', ['workspace' => $notification->data['workspace_id'], 'task' => $notification->data['task_id']]) : '#' }}')"
+                                               class="block px-4 py-3 hover:bg-indigo-50 border-b border-gray-100 transition-colors">
+                                                <div class="flex items-start gap-3">
+                                                    <div class="flex-shrink-0 mt-1">
+                                                        <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                                                            <svg class="h-5 w-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                                            </svg>
+                                                        </div>
+                                                    </div>
+                                                    <div class="flex-1 min-w-0">
+                                                        <div class="flex items-start justify-between gap-2">
+                                                            <p class="text-sm font-semibold text-gray-900">
+                                                                {{ $notification->data['title'] ?? __('Notification') }}
+                                                            </p>
+                                                            <span class="flex-shrink-0 h-2 w-2 rounded-full bg-indigo-600 mt-1.5"></span>
+                                                        </div>
+                                                        <p class="text-xs text-gray-600 mt-1 line-clamp-2">
+                                                            {{ $notification->data['message'] ?? __('You have a new notification') }}
+                                                        </p>
+                                                        
+                                                        <div class="flex items-center gap-2 mt-2">
+                                                            @if (isset($notification->data['task_title']))
+                                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">
+                                                                    📋 {{ Str::limit($notification->data['task_title'], 20) }}
+                                                                </span>
+                                                            @endif
+                                                            <span class="text-xs text-gray-500">
+                                                                {{ $notification->created_at->diffForHumans() }}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <div class="px-4 py-8 text-center">
+                                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                                        </svg>
+                                        <p class="mt-2 text-sm text-gray-500">{{ __('No unread notifications') }}</p>
+                                    </div>
+                                @endif
+                                
+                                <!-- Notifikasi Sudah Dibaca -->
+                                @if ($readNotifications->count() > 0)
+                                    <div class="bg-gray-50">
+                                        <div class="px-4 py-2 border-t border-gray-200">
+                                            <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                                {{ __('Earlier') }}
+                                            </h4>
+                                        </div>
+                                        <div class="max-h-48 overflow-y-auto">
+                                            @foreach ($readNotifications as $notification)
+                                                <a href="@if (isset($notification->data['task_id']) && isset($notification->data['workspace_id'])){{ route('my-workspaces.task.show', ['workspace' => $notification->data['workspace_id'], 'task' => $notification->data['task_id']]) }}@else#@endif"
+                                                   class="block px-4 py-3 hover:bg-gray-100 border-b border-gray-200 transition-colors">
+                                                    <div class="flex items-start gap-3 opacity-75">
+                                                        <div class="flex-shrink-0 mt-1">
+                                                            <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+                                                                <svg class="h-4 w-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                                                </svg>
+                                                            </div>
+                                                        </div>
+                                                        <div class="flex-1 min-w-0">
+                                                            <p class="text-sm font-medium text-gray-700">
+                                                                {{ $notification->data['title'] ?? __('Notification') }}
+                                                            </p>
+                                                            <p class="text-xs text-gray-500 mt-1">
+                                                                {{ $notification->created_at->diffForHumans() }}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </a>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endif
+                                
+                                <!-- Footer -->
+                                <div class="px-4 py-3 bg-gray-50 border-t border-gray-200">
+                                    <a href="{{ route('notifikasi.index') }}" 
+                                       class="block text-center text-sm font-semibold text-indigo-600 hover:text-indigo-700 transition">
+                                        {{ __('View all notifications') }} →
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hamburger - Mobile & Tablet -->
+                <div class="flex items-center md:hidden ms-2">
                     <button id="mobile-menu-button" 
                             class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-indigo-500 transition duration-150 ease-in-out"
                             type="button"
@@ -253,8 +409,8 @@
         </div>
     </div>
 
-    <!-- Menu Navigasi Responsif - Mobile -->
-    <div id="mobile-menu" class="hidden sm:hidden">
+    <!-- Menu Navigasi Responsif - Mobile & Tablet -->
+    <div id="mobile-menu" class="hidden md:hidden">
         <div class="pt-2 pb-3 space-y-1">
             <a href="{{ route('dashboard') }}" 
                class="block pl-3 pr-4 py-2 border-l-4 {{ request()->routeIs('dashboard') ? 'border-indigo-400 text-indigo-700 bg-indigo-50' : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300' }} text-base font-medium transition">
@@ -274,6 +430,11 @@
             <a href="{{ url('analytics') }}" 
                class="block pl-3 pr-4 py-2 border-l-4 {{ request()->routeIs('analytics.*') ? 'border-indigo-400 text-indigo-700 bg-indigo-50' : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300' }} text-base font-medium transition">
                 {{ __('Analytics') }}
+            </a>
+
+            <a href="{{ url('notifikasi') }}" 
+               class="block pl-3 pr-4 py-2 border-l-4 {{ request()->routeIs('notifikasi.*') ? 'border-indigo-400 text-indigo-700 bg-indigo-50' : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300' }} text-base font-medium transition">
+                {{ __('All Notifications') }}
             </a>
         </div>
 
@@ -300,6 +461,12 @@
             </div>
         </div>
     </div>
+
+    <!-- Hidden form for marking as read -->
+    <form id="markAsReadForm" method="POST" class="hidden">
+        @csrf
+        @method('PUT')
+    </form>
 </nav>
 
 <script>
@@ -364,7 +531,7 @@ document.addEventListener('DOMContentLoaded', function() {
         window.addEventListener('resize', function() {
             clearTimeout(resizeTimer);
             resizeTimer = setTimeout(function() {
-                if (window.innerWidth >= 640) {
+                if (window.innerWidth >= 768) {
                     mobileMenu.classList.add('hidden');
                     hamburgerIcon.classList.remove('hidden');
                     hamburgerIcon.classList.add('inline-flex');
@@ -376,4 +543,35 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// Function for marking notification as read
+function markAsReadAndRedirect(markAsReadUrl, redirectUrl) {
+    if (redirectUrl === '#') {
+        return;
+    }
+
+    fetch(markAsReadUrl, {
+        method: 'PUT',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+            'Accept': 'application/json',
+        },
+    })
+    .then(() => {
+        window.location.href = redirectUrl;
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        window.location.href = redirectUrl;
+    });
+}
 </script>
+
+<style>
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+</style>

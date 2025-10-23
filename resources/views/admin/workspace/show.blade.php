@@ -146,10 +146,12 @@
 
                 <!-- Detail Tugas -->
                 <div class="p-5">
-                    <!-- Pengguna yang Diberi Tugas dengan Status -->
+                    <!-- Pengguna yang Diberi Tugas dengan Status dan Scroll -->
                     <div class="mb-4">
-                        <h4 class="text-sm font-medium text-gray-700 mb-2">Pengguna yang Diberi Tugas</h4>
-                        <div class="space-y-2">
+                        <h4 class="text-sm font-medium text-gray-700 mb-2">
+                            Pengguna yang Diberi Tugas ({{ $task->assignedUsers->count() }})
+                        </h4>
+                        <div class="space-y-2 max-h-[200px] overflow-y-auto custom-scrollbar pr-1">
                             @foreach($task->assignedUsers as $user)
                                 @php
                                     // Periksa apakah pengguna ini telah mengirimkan
@@ -177,7 +179,7 @@
                                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                             </svg>
-                                            Belum Selesai
+                                            Belum
                                         </span>
                                     @endif
                                 </div>
@@ -291,6 +293,31 @@
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Firefox */
+.custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 #f1f5f9;
 }
 </style>
 @endsection
