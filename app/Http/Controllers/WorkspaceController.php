@@ -685,4 +685,42 @@ class WorkspaceController extends Controller
 
         return Storage::disk('public')->download($submission->file_path);
     }
+
+    /**
+     * User calendar view - Show all tasks in calendar format
+     */
+    public function userCalendar()
+    {
+        // Get all tasks assigned to the current user with workspace and submissions
+        $tasks = Task::whereHas('assignedUsers', function ($q) {
+                $q->where('user_id', Auth::id());
+            })
+            ->with([
+                'workspace:id,name,color,icon',
+                'submissions' => function($q) {
+                    $q->where('user_id', Auth::id());
+                }
+            ])
+            ->whereNotNull('due_date')
+            ->orderBy('due_date', 'asc')
+            ->get()
+            ->map(function($task) {
+                return [
+                    'id' => $task->id,
+                    'workspace_id' => $task->workspace_id,
+                    'title' => $task->title,
+                    'description' => $task->description,
+                    'priority' => $task->priority,
+                    'due_date' => $task->due_date,
+                    'workspace' => $task->workspace ? [
+                        'name' => $task->workspace->name,
+                        'color' => $task->workspace->color,
+                        'icon' => $task->workspace->icon,
+                    ] : null,
+                    'submissions' => $task->submissions,
+                ];
+            });
+
+        return view('calendar.index', compact('tasks'));
+    }
 }

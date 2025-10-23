@@ -2,401 +2,663 @@
     <x-slot name="header">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div>
-                <h2 class="font-semibold text-xl text-gray-800">📅 Kalender</h2>
-                <p class="text-sm text-gray-600 mt-1">Lihat jadwal tugas Anda</p>
+                <h2 class="font-semibold text-xl text-gray-800">📅 Kalender Tugas</h2>
+                <p class="text-sm text-gray-600 mt-1">Lihat jadwal dan kelola tugas Anda dalam tampilan kalender</p>
             </div>
+            <a href="{{ route('my-workspaces.index') }}" 
+               class="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+                Kembali
+            </a>
         </div>
     </x-slot>
 
     <div class="py-4 sm:py-6">
         <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 space-y-4 sm:space-y-6">
             
-            {{-- Kartu Statistik --}}
+            <!-- Quick Stats Cards -->
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 @php
-                $statCards = [
-                    ['label' => 'Total Tugas', 'value' => $stats['total_tasks'], 'color' => 'blue', 'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2'],
-                    ['label' => 'Selesai', 'value' => $stats['completed_tasks'], 'color' => 'green', 'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'],
-                    ['label' => 'Terlambat', 'value' => $stats['overdue_tasks'], 'color' => 'red', 'icon' => 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
-                    ['label' => 'Belum Selesai', 'value' => $stats['unfinished_tasks'], 'color' => 'gray', 'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z']
-                ];
+                    $allTasks = collect($tasks);
+                    $todayTasks = $allTasks->filter(function($task) {
+                        if (!$task['due_date']) return false;
+                        $taskDate = \Carbon\Carbon::parse($task['due_date']);
+                        return $taskDate->isToday();
+                    })->count();
+                    
+                    $thisWeekTasks = $allTasks->filter(function($task) {
+                        if (!$task['due_date']) return false;
+                        $taskDate = \Carbon\Carbon::parse($task['due_date']);
+                        return $taskDate->isCurrentWeek();
+                    })->count();
+                    
+                    $upcomingTasks = $allTasks->filter(function($task) {
+                        if (!$task['due_date']) return false;
+                        $taskDate = \Carbon\Carbon::parse($task['due_date']);
+                        $hasSubmission = isset($task['submissions']) && count($task['submissions']) > 0;
+                        return $taskDate->isFuture() && !$hasSubmission;
+                    })->count();
+                    
+                    $overdueTasks = $allTasks->filter(function($task) {
+                        if (!$task['due_date']) return false;
+                        $taskDate = \Carbon\Carbon::parse($task['due_date']);
+                        $hasSubmission = isset($task['submissions']) && count($task['submissions']) > 0;
+                        return $taskDate->isPast() && !$hasSubmission;
+                    })->count();
                 @endphp
 
-                @foreach($statCards as $card)
-                <div class="bg-white rounded-lg shadow p-3 sm:p-4 border-l-4 border-{{ $card['color'] }}-500 transition-all hover:shadow-md">
+                <div class="bg-white rounded-lg shadow-sm p-3 sm:p-4 border-l-4 border-blue-500 hover:shadow-md transition-all">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-xs sm:text-sm text-gray-600 font-medium">{{ $card['label'] }}</p>
-                            <p class="text-xl sm:text-2xl font-bold text-gray-800 mt-1">{{ $card['value'] }}</p>
+                            <p id="selectedDateLabel" class="text-xs sm:text-sm text-gray-600 font-medium">Hari Ini</p>
+                            <p id="selectedDateCount" class="text-xl sm:text-2xl font-bold text-gray-800 mt-1">{{ $todayTasks }}</p>
                         </div>
-                        <div class="bg-{{ $card['color'] }}-100 p-2 sm:p-3 rounded-full">
-                            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-{{ $card['color'] }}-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $card['icon'] }}"/>
+                        <div class="bg-blue-100 p-2 sm:p-3 rounded-full">
+                            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                             </svg>
                         </div>
                     </div>
                 </div>
-                @endforeach
+
+                <div class="bg-white rounded-lg shadow-sm p-3 sm:p-4 border-l-4 border-purple-500 hover:shadow-md transition-all">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs sm:text-sm text-gray-600 font-medium">Minggu Ini</p>
+                            <p class="text-xl sm:text-2xl font-bold text-gray-800 mt-1">{{ $thisWeekTasks }}</p>
+                        </div>
+                        <div class="bg-purple-100 p-2 sm:p-3 rounded-full">
+                            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-sm p-3 sm:p-4 border-l-4 border-green-500 hover:shadow-md transition-all">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs sm:text-sm text-gray-600 font-medium">Mendatang</p>
+                            <p class="text-xl sm:text-2xl font-bold text-gray-800 mt-1">{{ $upcomingTasks }}</p>
+                        </div>
+                        <div class="bg-green-100 p-2 sm:p-3 rounded-full">
+                            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-sm p-3 sm:p-4 border-l-4 border-red-500 hover:shadow-md transition-all">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs sm:text-sm text-gray-600 font-medium">Terlambat</p>
+                            <p class="text-xl sm:text-2xl font-bold text-gray-800 mt-1">{{ $overdueTasks }}</p>
+                        </div>
+                        <div class="bg-red-100 p-2 sm:p-3 rounded-full">
+                            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            {{-- Panel Filter --}}
-            <div class="bg-white rounded-lg shadow p-3 sm:p-4">
-                <div class="flex flex-col sm:flex-row flex-wrap gap-3 items-start sm:items-center">
-                    <span class="text-sm font-semibold text-gray-700">Filter:</span>
-                    
-                    <div class="flex flex-wrap gap-3">
-                        @foreach([
-                            ['id' => 'filter-done', 'label' => 'Selesai', 'color' => 'green'],
-                            ['id' => 'filter-unfinished', 'label' => 'Belum Selesai', 'color' => 'gray'],
-                            ['id' => 'filter-overdue', 'label' => 'Terlambat', 'color' => 'red']
-                        ] as $filter)
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" id="{{ $filter['id'] }}" checked class="rounded text-{{ $filter['color'] }}-600 focus:ring-{{ $filter['color'] }}-500">
-                            <span class="text-xs sm:text-sm text-gray-700">{{ $filter['label'] }}</span>
-                        </label>
-                        @endforeach
+            <!-- Calendar Card -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <!-- Calendar Header -->
+                <div class="bg-gradient-to-r from-blue-600 to-indigo-600 p-4 sm:p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <button type="button" 
+                                onclick="previousMonth()"
+                                class="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors">
+                            <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                        </button>
+                        
+                        <div class="text-center">
+                            <h2 id="currentMonth" class="text-xl sm:text-2xl font-bold text-white"></h2>
+                            <p id="currentYear" class="text-sm sm:text-base text-blue-100"></p>
+                        </div>
+                        
+                        <button type="button" 
+                                onclick="nextMonth()"
+                                class="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors">
+                            <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </button>
                     </div>
-
-                    <button onclick="calendar.today()" class="ml-auto text-xs sm:text-sm text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                        </svg>
-                        Hari Ini
+                    
+                    <button type="button" 
+                            onclick="goToToday()"
+                            id="todayButton"
+                            class="w-full py-2 px-4 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors font-medium text-sm sm:text-base">
+                            <span id="todayButtonText">Hari Ini</span>
                     </button>
                 </div>
-            </div>
 
-            {{-- Kalender --}}
-            <div class="bg-white shadow-lg rounded-lg overflow-hidden">
-                <div class="bg-gradient-to-r from-indigo-600 to-blue-600 p-4 text-white">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                        <div class="flex items-center gap-2">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                            </svg>
-                            <h3 id="calendar-title" class="text-lg sm:text-xl font-semibold">Kalender</h3>
-                        </div>
-                        <div class="flex gap-2">
-                            <button onclick="calendar.prev()" class="bg-white bg-opacity-20 hover:bg-opacity-30 p-2 rounded-md transition">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-                                </svg>
-                            </button>
-                            <button onclick="calendar.today()" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-1 rounded-md text-sm font-medium transition">
-                                Hari Ini
-                            </button>
-                            <button onclick="calendar.next()" class="bg-white bg-opacity-20 hover:bg-opacity-30 p-2 rounded-md transition">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                                </svg>
-                            </button>
-                        </div>
+                <!-- Calendar Grid -->
+                <div class="p-3 sm:p-6">
+                    <!-- Days of Week -->
+                    <div class="grid grid-cols-7 gap-1 sm:gap-2 mb-2">
+                        <div class="text-center py-2 text-xs sm:text-sm font-bold text-gray-700">Min</div>
+                        <div class="text-center py-2 text-xs sm:text-sm font-bold text-gray-700">Sen</div>
+                        <div class="text-center py-2 text-xs sm:text-sm font-bold text-gray-700">Sel</div>
+                        <div class="text-center py-2 text-xs sm:text-sm font-bold text-gray-700">Rab</div>
+                        <div class="text-center py-2 text-xs sm:text-sm font-bold text-gray-700">Kam</div>
+                        <div class="text-center py-2 text-xs sm:text-sm font-bold text-gray-700">Jum</div>
+                        <div class="text-center py-2 text-xs sm:text-sm font-bold text-gray-700">Sab</div>
+                    </div>
+
+                    <!-- Calendar Days -->
+                    <div id="calendarDays" class="grid grid-cols-7 gap-1 sm:gap-2">
+                        <!-- Days will be generated by JavaScript -->
                     </div>
                 </div>
-                <div id="calendar" class="p-3 sm:p-6"></div>
             </div>
 
-            {{-- Legenda --}}
-           
+            <!-- Legend -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-3 sm:p-4">
+                <h3 class="text-sm font-semibold text-gray-900 mb-3">Keterangan:</h3>
+                <div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-4">
+                    <div class="flex items-center gap-2">
+                        <div class="w-3 h-3 rounded-full bg-red-500 flex-shrink-0"></div>
+                        <span class="text-xs sm:text-sm text-gray-700">Urgent</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-3 h-3 rounded-full bg-orange-500 flex-shrink-0"></div>
+                        <span class="text-xs sm:text-sm text-gray-700">High</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-3 h-3 rounded-full bg-yellow-500 flex-shrink-0"></div>
+                        <span class="text-xs sm:text-sm text-gray-700">Medium</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-3 h-3 rounded-full bg-gray-400 flex-shrink-0"></div>
+                        <span class="text-xs sm:text-sm text-gray-700">Low</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-3 h-3 rounded-full bg-green-500 flex-shrink-0"></div>
+                        <span class="text-xs sm:text-sm text-gray-700">Selesai</span>
+                    </div>
+                </div>
+            </div>
 
-    {{-- Modal Detail Kegiatan --}}
-    <div id="eventModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 p-4">
-        <div class="relative top-10 sm:top-20 mx-auto p-4 sm:p-5 border w-full max-w-md shadow-lg rounded-lg bg-white">
-            <div class="flex justify-between items-center mb-4">
-                <h3 id="eventModalTitle" class="text-base sm:text-lg font-semibold text-gray-900 pr-4"></h3>
-                <button onclick="closeEventModal()" class="text-gray-400 hover:text-gray-600 flex-shrink-0">
-                    <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            <!-- Task Details Section -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-base sm:text-lg font-bold text-gray-900 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                        <span id="selectedDateTitle" class="truncate">Tugas Hari Ini</span>
+                    </h3>
+                    <span id="taskCount" class="text-xs sm:text-sm font-semibold text-gray-600 bg-gray-100 px-3 py-1 rounded-full flex-shrink-0">0 tugas</span>
+                </div>
+
+                <!-- Task List -->
+                <div id="taskList" class="space-y-3">
+                    <!-- Tasks will be populated by JavaScript -->
+                </div>
+
+                <!-- Empty State -->
+                <div id="emptyState" class="text-center py-8 sm:py-12 hidden">
+                    <svg class="mx-auto h-12 w-12 sm:h-16 sm:w-16 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
                     </svg>
-                </button>
-            </div>
-            
-            <div id="eventModalContent" class="space-y-3 text-sm"></div>
-
-            <div class="mt-6 flex gap-2 sm:gap-3">
-                <a id="eventModalLink" href="#" class="flex-1 text-center bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-lg transition text-sm">
-                    Lihat Detail
-                </a>
-                <button onclick="closeEventModal()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 px-4 rounded-lg transition text-sm">
-                    Tutup
-                </button>
+                    <p class="text-gray-500 font-medium text-sm sm:text-base">Tidak ada tugas pada tanggal ini</p>
+                    <p class="text-gray-400 text-xs sm:text-sm mt-1">Pilih tanggal lain untuk melihat tugas</p>
+                </div>
             </div>
         </div>
     </div>
 
-    {{-- Notifikasi Toast --}}
-    <div id="toast" class="hidden fixed bottom-4 right-4 left-4 sm:left-auto bg-gray-800 text-white px-4 sm:px-6 py-3 rounded-lg shadow-lg z-50 text-sm sm:text-base"></div>
+<script>
+// Task data from backend
+const tasks = @json($tasks);
+const today = new Date();
+let currentDate = new Date();
+let selectedDate = new Date();
 
-    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+// Month names in Indonesian
+const monthNames = [
+    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+];
 
-    <style>
-        #calendar { font-family: 'Inter', sans-serif; }
+// Initialize calendar
+document.addEventListener('DOMContentLoaded', function() {
+    renderCalendar();
+    displayTasksForDate(today);
+});
+
+function renderCalendar() {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    
+    // Update header
+    document.getElementById('currentMonth').textContent = monthNames[month];
+    document.getElementById('currentYear').textContent = year;
+    
+    // Get first day of month and number of days
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const daysInPrevMonth = new Date(year, month, 0).getDate();
+    
+    const calendarDays = document.getElementById('calendarDays');
+    calendarDays.innerHTML = '';
+    
+    // Previous month days
+    for (let i = firstDay - 1; i >= 0; i--) {
+        const day = daysInPrevMonth - i;
+        const dayElement = createDayElement(day, month - 1, year, true);
+        calendarDays.appendChild(dayElement);
+    }
+    
+    // Current month days
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dayElement = createDayElement(day, month, year, false);
+        calendarDays.appendChild(dayElement);
+    }
+    
+    // Next month days
+    const totalCells = calendarDays.children.length;
+    const remainingCells = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+    for (let day = 1; day <= remainingCells; day++) {
+        const dayElement = createDayElement(day, month + 1, year, true);
+        calendarDays.appendChild(dayElement);
+    }
+}
+
+function createDayElement(day, month, year, isOtherMonth) {
+    const div = document.createElement('div');
+    const date = new Date(year, month, day);
+    const dateStr = formatDateToString(date);
+    
+    // Get tasks for this date
+    const dayTasks = getTasksForDate(date);
+    
+    // Check if it's today
+    const isToday = date.toDateString() === today.toDateString();
+    
+    // Check if it's selected date
+    const isSelected = date.toDateString() === selectedDate.toDateString();
+    
+    // Base classes - Optimized for mobile
+    let classes = 'relative rounded-lg transition-all cursor-pointer ';
+    classes += 'min-h-[50px] sm:min-h-[70px] '; // Responsive height
+    
+    if (isOtherMonth) {
+        classes += 'text-gray-300 hover:bg-gray-50 ';
+    } else {
+        classes += 'text-gray-900 hover:bg-blue-50 hover:shadow-sm ';
+    }
+    
+    if (isToday && !isOtherMonth) {
+        classes += 'bg-blue-100 font-bold border-2 border-blue-500 ';
+    } else if (isSelected) {
+        classes += 'bg-blue-50 border-2 border-blue-300 ';
+    } else {
+        classes += 'border border-gray-200 ';
+    }
+    
+    div.className = classes;
+    div.onclick = () => selectDate(date);
+    
+    // Day number
+    const dayNumber = document.createElement('div');
+    dayNumber.className = 'absolute top-1 left-1 sm:top-2 sm:left-2 text-xs sm:text-sm font-semibold';
+    dayNumber.textContent = day;
+    div.appendChild(dayNumber);
+    
+    // Task indicators
+    if (dayTasks.length > 0 && !isOtherMonth) {
+        const indicators = document.createElement('div');
+        indicators.className = 'absolute bottom-1 left-1/2 transform -translate-x-1/2 flex gap-0.5 sm:gap-1';
         
-        .fc .fc-button {
-            background-color: #4f46e5;
-            border: none;
-            padding: 0.4rem 0.8rem;
-            text-transform: capitalize;
-            font-weight: 500;
-            font-size: 0.875rem;
-            border-radius: 6px;
-        }
-        .fc .fc-button:hover { 
-            background-color: #4338ca; 
-        }
-        .fc .fc-button-active { 
-            background-color: #4338ca !important; 
-        }
-        .fc-theme-standard td, .fc-theme-standard th { 
-            border-color: #e5e7eb; 
-        }
-        .fc-day-today { 
-            background-color: #ede9fe !important; 
-        }
-        .fc-event {
-            cursor: pointer;
-            border-radius: 6px;
-            padding: 2px 4px;
-            font-size: 0.75rem;
-            font-weight: 500;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-        }
-        .fc-event:hover { 
-            transform: translateY(-1px);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-        .fc-daygrid-event { 
-            white-space: normal; 
-        }
-        .fc .fc-toolbar-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #1f2937;
-        }
-        .fc-col-header-cell {
-            background-color: #f9fafb;
-            font-weight: 600;
-            color: #6b7280;
-            padding: 0.75rem 0;
-            font-size: 0.875rem;
+        // Show max 3 indicators on mobile, 4 on desktop
+        const isMobile = window.innerWidth < 640;
+        const maxIndicators = Math.min(dayTasks.length, isMobile ? 3 : 4);
+        
+        for (let i = 0; i < maxIndicators; i++) {
+            const task = dayTasks[i];
+            const indicator = document.createElement('div');
+            indicator.className = 'w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ' + getPriorityColor(task);
+            indicators.appendChild(indicator);
         }
         
-        @media (max-width: 640px) {
-            .fc .fc-toolbar { 
-                flex-direction: column; 
-                gap: 0.5rem; 
-            }
-            .fc .fc-toolbar-chunk { 
-                width: 100%; 
-            }
-            .fc .fc-toolbar-title { 
-                font-size: 1rem; 
-                text-align: center; 
-            }
-            .fc-header-toolbar { 
-                margin-bottom: 1rem !important; 
-            }
-            .fc .fc-button { 
-                padding: 0.375rem 0.75rem; 
-                font-size: 0.75rem; 
-            }
-            .fc-daygrid-day-number { 
-                font-size: 0.875rem; 
-            }
+        // Show count if more than max
+        if (dayTasks.length > maxIndicators) {
+            const moreCount = document.createElement('div');
+            moreCount.className = 'text-[10px] sm:text-xs font-bold text-gray-600';
+            moreCount.textContent = '+' + (dayTasks.length - maxIndicators);
+            indicators.appendChild(moreCount);
         }
-    </style>
+        
+        div.appendChild(indicators);
+    }
+    
+    return div;
+}
 
-    <script>
-        let calendar, allEvents = [];
+function getTasksForDate(date) {
+    const dateStr = formatDateToString(date);
+    return tasks.filter(task => {
+        if (!task.due_date) return false;
+        const taskDate = new Date(task.due_date);
+        return formatDateToString(taskDate) === dateStr;
+    });
+}
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const calendarEl = document.getElementById('calendar');
-            
-            calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: window.innerWidth < 768 ? 'listWeek' : 'dayGridMonth',
-                headerToolbar: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'dayGridMonth,listWeek'
-                },
-                height: 'auto',
-                navLinks: true,
-                editable: false,
-                selectable: false,
-                dayMaxEvents: 3,
-                
-                events: function(info, successCallback, failureCallback) {
-                    fetch(`${window.location.origin}/calendar/events`)
-                        .then(res => res.json())
-                        .then(data => {
-                            allEvents = data;
-                            applyFilters();
-                        })
-                        .catch(err => {
-                            console.error('Gagal memuat kegiatan:', err);
-                            failureCallback(err);
-                        });
-                },
+function formatDateToString(date) {
+    return date.getFullYear() + '-' + 
+           String(date.getMonth() + 1).padStart(2, '0') + '-' + 
+           String(date.getDate()).padStart(2, '0');
+}
 
-                eventClick: function(info) {
-                    info.jsEvent.preventDefault();
-                    showEventModal(info.event);
-                },
+function getPriorityColor(task) {
+    // Check if completed
+    const userSubmission = task.submissions && task.submissions.length > 0;
+    if (userSubmission) {
+        return 'bg-green-500';
+    }
+    
+    // Check priority
+    switch(task.priority) {
+        case 'urgent': return 'bg-red-500';
+        case 'high': return 'bg-orange-500';
+        case 'medium': return 'bg-yellow-500';
+        default: return 'bg-gray-400';
+    }
+}
 
-                eventContent: function(arg) {
-                    const props = arg.event.extendedProps;
-                    let icon = '';
-                    
-                    if (props.isDone) {
-                        icon = '✓ ';
-                    } else if (props.isOverdue) {
-                        icon = '⚠️ ';
-                    }
-                    
-                    return { html: `<div class="fc-event-title">${icon}${arg.event.title}</div>` };
-                }
-            });
+function selectDate(date) {
+    selectedDate = date;
+    renderCalendar();
+    displayTasksForDate(date);
+}
 
-            calendar.render();
-            setupFilters();
-            
-            // Update judul kalender
-            updateCalendarTitle();
-            
-            // Responsive view switch
-            window.addEventListener('resize', () => {
-                if (window.innerWidth < 768 && calendar.view.type === 'dayGridMonth') {
-                    calendar.changeView('listWeek');
-                }
-            });
-        });
+function updateTodayButton(date) {
+    const todayButtonText = document.getElementById('todayButtonText');
+    const isToday = date.toDateString() === today.toDateString();
+    
+    if (isToday) {
+        todayButtonText.textContent = 'Hari Ini';
+    } else {
+        // Format tanggal singkat
+        const options = { day: 'numeric', month: 'short' };
+        const formattedDate = date.toLocaleDateString('id-ID', options);
+        todayButtonText.textContent = formattedDate;
+    }
+}
 
-        function updateCalendarTitle() {
-            const titleElement = document.getElementById('calendar-title');
-            const currentDate = calendar.getDate();
-            const options = { year: 'numeric', month: 'long' };
-            
-            if (calendar.view.type === 'dayGridMonth') {
-                titleElement.textContent = currentDate.toLocaleDateString(undefined, options);
-            } else if (calendar.view.type === 'listWeek') {
-                const weekStart = new Date(currentDate);
-                weekStart.setDate(weekStart.getDate() - currentDate.getDay());
-                const weekEnd = new Date(weekStart);
-                weekEnd.setDate(weekEnd.getDate() + 6);
-                
-                titleElement.textContent = `${weekStart.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} - ${weekEnd.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}`;
-            }
-        }
+function displayTasksForDate(date) {
+    const dateStr = formatDateToString(date);
+    const dayTasks = getTasksForDate(date);
+    
+    // Update title - Format tanggal sesuai yang diklik
+    const titleElement = document.getElementById('selectedDateTitle');
+    const taskCountElement = document.getElementById('taskCount');
+    
+    // Format tanggal dalam bahasa Indonesia
+    const options = { 
+        weekday: 'long',
+        day: 'numeric', 
+        month: 'long', 
+        year: 'numeric'
+    };
+    const formattedDate = date.toLocaleDateString('id-ID', options);
+    
+    // Update judul dengan tanggal yang dipilih
+    titleElement.textContent = formattedDate;
+    
+    // Update task count
+    taskCountElement.textContent = dayTasks.length + ' tugas';
+    
+    // Update card "Hari Ini"
+    const selectedDateLabel = document.getElementById('selectedDateLabel');
+    const selectedDateCount = document.getElementById('selectedDateCount');
+    
+    // Cek apakah tanggal yang dipilih adalah hari ini
+    const isToday = date.toDateString() === today.toDateString();
+    
+    if (isToday) {
+        selectedDateLabel.textContent = 'Hari Ini';
+    } else {
+        // Format singkat untuk label card
+        const shortOptions = { day: 'numeric', month: 'short' };
+        selectedDateLabel.textContent = date.toLocaleDateString('id-ID', shortOptions);
+    }
+    
+    selectedDateCount.textContent = dayTasks.length;
+    
+    // Update button "Hari Ini"
+    updateTodayButton(date);
+    
+    // Display tasks
+    const taskList = document.getElementById('taskList');
+    const emptyState = document.getElementById('emptyState');
+    
+    if (dayTasks.length === 0) {
+        taskList.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+    } else {
+        taskList.classList.remove('hidden');
+        emptyState.classList.add('hidden');
+        
+        taskList.innerHTML = dayTasks.map(task => createTaskCard(task)).join('');
+    }
+}
 
-        function applyFilters() {
-            const filters = {
-                done: document.getElementById('filter-done').checked,
-                unfinished: document.getElementById('filter-unfinished').checked,
-                overdue: document.getElementById('filter-overdue').checked
-            };
-
-            const filtered = allEvents.filter(e => {
-                const p = e.extendedProps;
-                
-                if (p.isDone && !filters.done) return false;
-                if (p.isOverdue && !filters.overdue) return false;
-                if (!p.isDone && !p.isOverdue && !filters.unfinished) return false;
-                
-                return true;
-            });
-
-            calendar.getEventSources().forEach(s => s.remove());
-            calendar.addEventSource(filtered);
-        }
-
-        function setupFilters() {
-            ['filter-done', 'filter-unfinished', 'filter-overdue'].forEach(id => {
-                document.getElementById(id).addEventListener('change', applyFilters);
-            });
-        }
-
-        function showEventModal(event) {
-            const p = event.extendedProps;
-            
-            document.getElementById('eventModalTitle').textContent = event.title;
-            document.getElementById('eventModalLink').href = event.url;
-            
-            const priorityColors = {
-                urgent: 'bg-red-100 text-red-800',
-                high: 'bg-orange-100 text-orange-800',
-                medium: 'bg-yellow-100 text-yellow-800',
-                low: 'bg-green-100 text-green-800'
-            };
-            
-            let content = `
-                <div class="space-y-3">
-                    <div class="flex items-center gap-2">
-                        <span class="font-medium text-gray-700">Ruang Kerja:</span>
-                        <span class="text-gray-800">${p.workspaceName || 'N/A'}</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="font-medium text-gray-700">Status:</span>
-                        ${p.isDone ? 
-                            '<span class="px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">✓ SELESAI</span>' : 
-                            p.isOverdue ? 
-                                '<span class="px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800">⚠️ TERLAMBAT</span>' :
-                                '<span class="px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800">BELUM SELESAI</span>'
-                        }
-                    </div>
-                    ${p.dueDate ? `
-                    <div class="flex items-center gap-2">
-                        <span class="font-medium text-gray-700">Tanggal Jatuh Tempo:</span>
-                        <span class="text-gray-800">${p.dueDate}</span>
-                    </div>
-                    ` : ''}
-                    ${p.priority ? `
-                    <div class="flex items-center gap-2">
-                        <span class="font-medium text-gray-700">Prioritas:</span>
-                        <span class="px-2 py-1 rounded text-xs font-medium ${priorityColors[p.priority] || 'bg-gray-100 text-gray-800'}">
-                            ${p.priority.toUpperCase()}
+function createTaskCard(task) {
+    const hasSubmitted = task.submissions && task.submissions.length > 0;
+    const dueDate = new Date(task.due_date);
+    const isPast = dueDate < today && !hasSubmitted;
+    
+    // Priority colors
+    let priorityClass = '';
+    switch(task.priority) {
+        case 'urgent':
+            priorityClass = 'text-red-800 bg-red-100 border-red-200';
+            break;
+        case 'high':
+            priorityClass = 'text-orange-800 bg-orange-100 border-orange-200';
+            break;
+        case 'medium':
+            priorityClass = 'text-yellow-800 bg-yellow-100 border-yellow-200';
+            break;
+        default:
+            priorityClass = 'text-gray-800 bg-gray-100 border-gray-200';
+    }
+    
+    return `
+        <div class="border border-gray-200 rounded-lg p-3 sm:p-4 hover:border-gray-300 transition-all hover:shadow-sm">
+            <div class="flex items-start justify-between gap-2 sm:gap-3 mb-3">
+                <div class="flex-1 min-w-0">
+                    <h4 class="font-semibold text-gray-900 mb-1 text-sm sm:text-base truncate">${task.title}</h4>
+                    <p class="text-xs sm:text-sm text-gray-600 truncate">${task.workspace ? task.workspace.name : 'Workspace'}</p>
+                </div>
+                <div class="flex flex-col gap-1.5 items-end flex-shrink-0">
+                    <span class="px-2 sm:px-2.5 py-0.5 sm:py-1 text-xs font-bold rounded-full border ${priorityClass}">
+                        ${task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+                    </span>
+                    ${hasSubmitted ? `
+                        <span class="px-2 sm:px-2.5 py-0.5 sm:py-1 text-xs font-bold rounded-full bg-green-100 text-green-800 border border-green-200">
+                            <svg class="w-3 h-3 inline mr-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                            Selesai
                         </span>
-                    </div>
-                    ` : ''}
-                    ${p.isOverdue ? `
-                    <div class="mt-2 p-3 bg-red-50 text-red-700 rounded-lg flex items-center gap-2">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                        </svg>
-                        <span class="font-medium">Tugas ini terlambat!</span>
-                    </div>
-                    ` : ''}
-                    ${p.description ? `
-                    <div class="mt-3">
-                        <h4 class="font-medium text-gray-700 mb-1">Deskripsi</h4>
-                        <p class="text-gray-600 text-sm">${p.description}</p>
-                    </div>
                     ` : ''}
                 </div>
-            `;
+            </div>
             
-            document.getElementById('eventModalContent').innerHTML = content;
-            document.getElementById('eventModal').classList.remove('hidden');
-        }
+            <div class="flex items-center gap-2 text-xs sm:text-sm text-gray-600 mb-3 pb-3 border-b border-gray-100">
+                <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="${isPast ? 'text-red-600 font-semibold' : ''} truncate">
+                    ${formatDateTime(task.due_date)}
+                    ${isPast ? ' (Terlambat)' : ''}
+                </span>
+            </div>
+            
+            ${task.description ? `
+                <p class="text-xs sm:text-sm text-gray-600 mb-3 line-clamp-2">${task.description}</p>
+            ` : ''}
+            
+            <a href="/my-workspaces/${task.workspace_id}/tasks/${task.id}" 
+               class="flex items-center justify-center gap-2 w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs sm:text-sm font-medium shadow-sm">
+                <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+                Lihat Detail
+            </a>
+        </div>
+    `;
+}
 
-        function closeEventModal() {
-            document.getElementById('eventModal').classList.add('hidden');
-        }
+function formatDateTime(dateTimeStr) {
+    const date = new Date(dateTimeStr);
+    const isMobile = window.innerWidth < 640;
+    
+    if (isMobile) {
+        // Format lebih ringkas untuk mobile
+        const options = { 
+            day: 'numeric', 
+            month: 'short',
+            hour: '2-digit',
+            minute: '2-digit'
+        };
+        return date.toLocaleDateString('id-ID', options);
+    } else {
+        const options = { 
+            day: 'numeric', 
+            month: 'short', 
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        };
+        return date.toLocaleDateString('id-ID', options);
+    }
+}
 
-        function showToast(msg, type = 'success') {
-            const toast = document.getElementById('toast');
-            toast.textContent = msg;
-            toast.className = `fixed bottom-4 right-4 left-4 sm:left-auto px-4 sm:px-6 py-3 rounded-lg shadow-lg z-50 text-sm ${
-                type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
-            }`;
-            toast.classList.remove('hidden');
-            setTimeout(() => toast.classList.add('hidden'), 3000);
-        }
+function previousMonth() {
+    currentDate.setMonth(currentDate.getMonth() - 1);
+    renderCalendar();
+}
 
-        document.addEventListener('keydown', e => {
-            if (e.key === 'Escape') {
-                closeEventModal();
-            }
-        });
-    </script>
+function nextMonth() {
+    currentDate.setMonth(currentDate.getMonth() + 1);
+    renderCalendar();
+}
+
+function goToToday() {
+    currentDate = new Date();
+    selectedDate = new Date();
+    renderCalendar();
+    displayTasksForDate(today);
+}
+
+// Handle window resize for responsive calendar
+let resizeTimer;
+window.addEventListener('resize', function() {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function() {
+        renderCalendar();
+        displayTasksForDate(selectedDate);
+    }, 250);
+});
+</script>
+
+<style>
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Calendar day hover effect */
+#calendarDays > div:hover {
+    transform: translateY(-2px);
+}
+
+/* Smooth transitions */
+#calendarDays > div {
+    transition: all 0.2s ease;
+}
+
+/* Task card animation */
+#taskList > div {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Optimize touch targets for mobile */
+@media (max-width: 640px) {
+    #calendarDays > div {
+        min-height: 50px;
+    }
+    
+    button {
+        min-height: 44px;
+        min-width: 44px;
+    }
+}
+
+/* Smooth scroll behavior */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Loading animation */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Improve text readability on mobile */
+@media (max-width: 640px) {
+    body {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+}
+
+/* Stats card hover effect */
+.hover\:shadow-md:hover {
+    transform: translateY(-2px);
+    transition: all 0.2s ease-in-out;
+}
+</style>
 </x-app-layout>

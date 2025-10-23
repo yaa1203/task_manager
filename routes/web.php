@@ -3,7 +3,6 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AdminNotificationController;
 use App\Http\Controllers\AnalyticsController;
-use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\AdminRegisterController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\DashboardController;
@@ -32,11 +31,6 @@ Route::middleware(['auth'])->group(function () {
     Route::view('/offline', 'offline')->name('offline');
     Route::resource('tasks', TaskController::class);
     Route::resource('projects', ProjectController::class);
-    Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index');
-    Route::get('/calendar/events', [CalendarController::class, 'events'])->name('calendar.events');
-    Route::post('/calendar/quick-create', [CalendarController::class, 'quickCreateTask'])->name('calendar.quick-create');
-    Route::put('/calendar/tasks/{task}/update-date', [CalendarController::class, 'updateTaskDate'])->name('calendar.tasks.update-date');
-    Route::put('/calendar/projects/{project}/update-date', [CalendarController::class, 'updateProjectDate'])->name('calendar.projects.update-date');
     Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
     Route::get('/analytics/data', [AnalyticsController::class, 'data'])->name('analytics.data');
     Route::get('/notifikasi', [NotificationController::class, 'index'])->name('notifikasi.index');
@@ -63,7 +57,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('{workspace}/tasks/{task}/submissions/{submission}/download', 
         [WorkspaceController::class, 'downloadSubmissionFile'])
         ->name('my-workspaces.submission.download');
-
+    // Calendar view
+    Route::get('/calendar', [WorkspaceController::class, 'userCalendar'])
+        ->name('calendar.index');
 });
 
 Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])

@@ -262,6 +262,71 @@ use Illuminate\Support\Facades\Storage;
                                     </div>
                                 @endif
 
+                                {{-- Tampilkan File yang Disubmit --}}
+                                @if($submission->file_path)
+                                    @php
+                                        $subFileExt = strtolower(pathinfo($submission->file_path, PATHINFO_EXTENSION));
+                                        $subImageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp'];
+                                        $subIsImage = in_array($subFileExt, $subImageExts);
+                                        $subStoragePath = storage_path('app/public/' . $submission->file_path);
+                                        $subFileExists = file_exists($subStoragePath);
+                                        $subDisplayName = $submission->original_filename ?? basename($submission->file_path);
+                                    @endphp
+
+                                    @if($subFileExists)
+                                        <div class="mt-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                                            <p class="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-1">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+                                                </svg>
+                                                File Terlampir:
+                                            </p>
+                                            
+                                            @if($subIsImage)
+                                                <div class="bg-white rounded-lg overflow-hidden border border-gray-200">
+                                                    <button type="button" 
+                                                            onclick="openFileModal('{{ asset('storage/' . $submission->file_path) }}', 'image', '{{ addslashes($subDisplayName) }}')" 
+                                                            class="block w-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg overflow-hidden">
+                                                        <img src="{{ asset('storage/' . $submission->file_path) }}" 
+                                                            alt="{{ $subDisplayName }}"
+                                                            class="w-full h-auto max-h-[200px] object-contain hover:opacity-95 transition-opacity"
+                                                            loading="lazy">
+                                                    </button>
+                                                </div>
+                                            @else
+                                                <div class="flex items-center gap-3 bg-white p-3 rounded-lg border border-gray-200">
+                                                    <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                                                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                                                        </svg>
+                                                    </div>
+                                                    <div class="flex-1 min-w-0">
+                                                        <p class="text-sm font-medium text-gray-900 truncate">{{ $subDisplayName }}</p>
+                                                        <p class="text-xs text-gray-500 uppercase">{{ $subFileExt }} file</p>
+                                                    </div>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @endif
+                                @endif
+
+                                {{-- Tampilkan Link yang Disubmit --}}
+                                @if($submission->link)
+                                    <div class="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                        <p class="text-xs font-semibold text-blue-900 mb-2 flex items-center gap-1">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                                            </svg>
+                                            Link Terlampir:
+                                        </p>
+                                        <a href="{{ $submission->link }}" 
+                                           target="_blank"
+                                           class="text-sm text-blue-600 hover:text-blue-800 hover:underline break-all">
+                                            {{ $submission->link }}
+                                        </a>
+                                    </div>
+                                @endif
+
                                 @if($submission->admin_notes)
                                     <div class="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                                         <p class="text-xs font-semibold text-amber-900 mb-1 flex items-center gap-1">
@@ -333,7 +398,8 @@ use Illuminate\Support\Facades\Storage;
                 <form action="{{ route('my-workspaces.task.submit', [$workspace, $task]) }}" 
                       method="POST" 
                       enctype="multipart/form-data"
-                      class="space-y-6">
+                      class="space-y-6"
+                      id="submitForm">
                     @csrf
 
                     <!-- Upload File Section -->
@@ -346,7 +412,37 @@ use Illuminate\Support\Facades\Storage;
                                 Unggah File Tugas
                             </span>
                         </label>
-                        <div class="mt-2 flex justify-center px-6 pt-8 pb-8 border-3 border-dashed rounded-xl transition-all {{ $hasUserSubmitted ? 'bg-gray-100 border-gray-300' : 'bg-white border-blue-300 hover:border-blue-500 hover:bg-blue-50' }}">
+                        
+                        <!-- File Preview Area -->
+                        <div id="filePreviewArea" class="hidden mb-3">
+                            <div class="bg-white border-2 border-green-300 rounded-xl p-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="flex-shrink-0 w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-bold text-gray-900 truncate" id="selectedFileName">File dipilih</p>
+                                        <p class="text-xs text-gray-600" id="selectedFileSize"></p>
+                                    </div>
+                                    <button type="button" 
+                                            onclick="removeSelectedFile()"
+                                            class="flex-shrink-0 text-red-600 hover:text-red-800 transition-colors"
+                                            {{ $hasUserSubmitted ? 'disabled' : '' }}>
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <!-- Image Preview -->
+                                <div id="imagePreview" class="hidden mt-3">
+                                    <img src="" alt="Preview" class="w-full h-auto max-h-[200px] object-contain rounded-lg border border-gray-200">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="uploadArea" class="mt-2 flex justify-center px-6 pt-8 pb-8 border-3 border-dashed rounded-xl transition-all {{ $hasUserSubmitted ? 'bg-gray-100 border-gray-300' : 'bg-white border-blue-300 hover:border-blue-500 hover:bg-blue-50' }}">
                             <div class="space-y-3 text-center">
                                 @if(!$hasUserSubmitted)
                                     <svg class="mx-auto h-16 w-16 text-blue-500" stroke="currentColor" fill="none" viewBox="0 0 48 48">
@@ -360,7 +456,7 @@ use Illuminate\Support\Facades\Storage;
                                 <div class="flex flex-col items-center">
                                     <label for="file" class="relative cursor-pointer bg-transparent rounded-lg font-bold text-base {{ $hasUserSubmitted ? 'text-gray-500 pointer-events-none' : 'text-blue-600 hover:text-blue-700' }}">
                                         <span class="block mb-1">{{ $hasUserSubmitted ? '✓ File Sudah Diunggah' : 'Klik untuk pilih file' }}</span>
-                                        <input id="file" name="file" type="file" class="sr-only" {{ $hasUserSubmitted ? 'disabled' : '' }}>
+                                        <input id="file" name="file" type="file" class="sr-only" {{ $hasUserSubmitted ? 'disabled' : '' }} onchange="handleFileSelect(this)">
                                     </label>
                                     <p class="text-sm text-gray-600 mt-1">atau seret dan letakkan di sini</p>
                                 </div>
@@ -525,6 +621,111 @@ use Illuminate\Support\Facades\Storage;
 </div>
 
 <script>
+// Handle file selection and preview
+function handleFileSelect(input) {
+    const file = input.files[0];
+    if (!file) return;
+    
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+        alert('Ukuran file terlalu besar! Maksimal 10MB.');
+        input.value = '';
+        return;
+    }
+    
+    // Show file preview area
+    const uploadArea = document.getElementById('uploadArea');
+    const filePreviewArea = document.getElementById('filePreviewArea');
+    const selectedFileName = document.getElementById('selectedFileName');
+    const selectedFileSize = document.getElementById('selectedFileSize');
+    const imagePreview = document.getElementById('imagePreview');
+    const imagePreviewImg = imagePreview.querySelector('img');
+    
+    uploadArea.classList.add('hidden');
+    filePreviewArea.classList.remove('hidden');
+    
+    // Set file name and size
+    selectedFileName.textContent = file.name;
+    selectedFileSize.textContent = formatFileSize(file.size);
+    
+    // Show image preview if it's an image
+    const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp'];
+    const fileExtension = file.name.split('.').pop().toLowerCase();
+    
+    if (imageExtensions.includes(fileExtension)) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            imagePreviewImg.src = e.target.result;
+            imagePreview.classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+    } else {
+        imagePreview.classList.add('hidden');
+    }
+}
+
+// Remove selected file
+function removeSelectedFile() {
+    const fileInput = document.getElementById('file');
+    const uploadArea = document.getElementById('uploadArea');
+    const filePreviewArea = document.getElementById('filePreviewArea');
+    const imagePreview = document.getElementById('imagePreview');
+    
+    fileInput.value = '';
+    uploadArea.classList.remove('hidden');
+    filePreviewArea.classList.add('hidden');
+    imagePreview.classList.add('hidden');
+}
+
+// Format file size
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+}
+
+// Drag and drop functionality
+(function() {
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('file');
+    
+    if (!uploadArea || !fileInput || fileInput.disabled) return;
+    
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    
+    ['dragenter', 'dragover'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, () => {
+            uploadArea.classList.add('border-blue-500', 'bg-blue-100');
+        }, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, () => {
+            uploadArea.classList.remove('border-blue-500', 'bg-blue-100');
+        }, false);
+    });
+    
+    uploadArea.addEventListener('drop', function(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        
+        if (files.length > 0) {
+            fileInput.files = files;
+            handleFileSelect(fileInput);
+        }
+    }, false);
+})();
+
+// File modal functions
 function openFileModal(fileUrl, fileType, fileName) {
     const modal = document.getElementById('fileModal');
     const modalImage = document.getElementById('modalImage');
@@ -693,6 +894,28 @@ textarea::-webkit-scrollbar-thumb {
 
 textarea::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
+}
+
+/* File preview animations */
+#filePreviewArea {
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Drag and drop hover effect */
+#uploadArea.border-blue-500 {
+    transform: scale(1.02);
+    transition: all 0.2s ease;
 }
 </style>
 </x-app-layout>
