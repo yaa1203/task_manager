@@ -10,7 +10,8 @@ use App\Http\Controllers\{
     TaskController,
     UserController,
     NotificationController,
-    WorkspaceController
+    WorkspaceController,
+    SuperAdminRegisterController
 };
 use Illuminate\Support\Facades\Route;
 
@@ -26,13 +27,16 @@ use Illuminate\Support\Facades\Route;
 // 🔹 Root Route (redirect berdasarkan role)
 Route::get('/', function () {
     if (auth()->check()) {
-        return auth()->user()->role === 'admin'
-            ? redirect()->route('admin.dashboard')
-            : redirect()->route('dashboard');
+        return match (auth()->user()->role) {
+            'superadmin' => redirect()->route('superadmin.dashboard'),
+            'admin'      => redirect()->route('admin.dashboard'),
+            default      => redirect()->route('dashboard'), // user biasa
+        };
     }
 
     return view('welcome');
 })->name('home');
+
 
 // =============================================================
 // 🔸 Routes untuk User yang Sudah Login (auth umum)
@@ -138,6 +142,15 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
             Route::get('/{task}/submissions/{submission}/download', [WorkspaceController::class, 'downloadSubmissionFile'])->name('submissions.download');
         });
     });
+});
+
+Route::middleware('guest')->group(function () {
+    Route::get('/register/superadmin', [SuperAdminRegisterController::class, 'create'])->name('register.superadmin');
+    Route::post('/register/superadmin', [SuperAdminRegisterController::class, 'store']);
+});
+
+Route::middleware(['auth', 'role:superadmin'])->group(function () {
+    Route::get('/superadmin/dashboard', [DashboardController::class, 'superAdminDashboard'])->name('superadmin.dashboard');
 });
 
 // =============================================================

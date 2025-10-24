@@ -164,4 +164,29 @@ class DashboardController extends Controller
 
         return round(($completed / $totalAssigned) * 100, 1);
     }
+
+    public function superAdminDashboard()
+    {
+        $totalUsers = User::where('role', 'user')->count();
+        $totalAdmins = User::where('role', 'admin')->count();
+        $totalSuperAdmins = User::where('role', 'superadmin')->count();
+        $totalWorkspaces = Workspace::count();
+
+        $recentUsers = User::latest()->take(5)->get();
+
+        $completedTasks = [
+            'users' => User::where('role', 'user')->get()->sum->completed_tasks_count,
+            'admins' => User::where('role', 'admin')->get()->sum->completed_tasks_count,
+            'superadmins' => User::where('role', 'superadmin')->get()->sum->completed_tasks_count,
+        ];
+
+        return view('superadmin.dashboard', compact(
+            'totalUsers',
+            'totalAdmins',
+            'totalSuperAdmins',
+            'totalWorkspaces',
+            'recentUsers',
+            'completedTasks'
+        ));
+    }
 }
