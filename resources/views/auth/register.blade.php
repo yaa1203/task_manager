@@ -57,6 +57,25 @@
                         @enderror
                     </div>
 
+                    <div>
+    <label for="category_id" class="block text-sm font-semibold text-gray-900 mb-2">
+        Pilih Kategori
+    </label>
+    <select name="category_id" id="category_id" required
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg">
+        <option value="">-- Pilih Kategori --</option>
+        @foreach($categories as $category)
+            <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
+                {{ $category->name }}
+            </option>
+        @endforeach
+    </select>
+    @error('category_id')
+        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+    @enderror
+</div>
+
+
                     <!-- Email -->
                     <div>
                         <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">

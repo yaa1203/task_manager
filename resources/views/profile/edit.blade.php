@@ -242,6 +242,27 @@
                         </div>
                     </div>
 
+
+                    <div class="max-w-md mx-auto bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 transform transition duration-300 hover:shadow-2xl hover:-translate-y-1">
+    <div class="bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 px-6 py-5">
+        <div class="flex items-center gap-3">
+            <div class="bg-white bg-opacity-20 p-2 rounded-full">
+                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <div>
+                <p class="text-sm text-blue-100 font-medium">Kategori Pengguna</p>
+                <h3 class="text-2xl font-extrabold text-white tracking-wide">
+                    {{ $user->category->name ?? 'Tidak ada kategori' }}
+                </h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+
                     {{-- Kartu Hapus Akun --}}
                     <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 transform transition-all duration-300 hover:shadow-xl">
                         <div class="bg-gradient-to-r from-red-500 to-rose-600 px-6 py-5">
@@ -252,7 +273,8 @@
                                 Hapus Akun
                             </h2>
                         </div>
-                        
+
+    
                         <div class="p-6">
                             <p class="text-gray-600 mb-4 text-sm">
                                 Setelah akun Anda dihapus, semua sumber daya dan datanya akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan.
@@ -271,6 +293,8 @@
             </div>
         </div>
     </div>
+
+    
 
     {{-- Modal Hapus --}}
     <div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">

@@ -59,6 +59,9 @@ class DashboardController extends Controller
 
         $notifications = Auth::user()->notifications()->latest()->take(5)->get();
 
+         $user = auth()->user();
+    $category = $user->category ? $user->category->name : 'Belum memilih kategori';
+
         return view('dashboard', compact(
             'workspaces',
             'totalTasks',
@@ -69,7 +72,9 @@ class DashboardController extends Controller
             'workspacesCount',
             'overdueTasks',
             'upcomingDeadlineTasks',
-            'notifications'
+            'notifications',
+            'category',
+            'user'
         ));
     }
 

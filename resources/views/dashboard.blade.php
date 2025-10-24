@@ -180,7 +180,8 @@
                 <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full"></div>
                 <div class="absolute bottom-0 left-0 -mb-8 -ml-8 w-40 h-40 bg-white opacity-10 rounded-full"></div>
                 <div class="relative">
-                    <h3 class="text-lg sm:text-xl font-bold mb-1">Selamat datang kembali, {{ auth()->user()->name }}! 👋</h3>
+                    <h3 class="text-lg sm:text-xl font-bold mb-1">Selamat datang kembali, {{ auth()->user()->name }}! -<p>{{ $category }}</p>
+👋</h3>
                     <p class="text-blue-100 text-sm">Berikut ringkasan aktivitas Anda</p>
                 </div>
             </div>

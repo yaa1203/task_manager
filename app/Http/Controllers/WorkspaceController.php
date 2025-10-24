@@ -30,7 +30,12 @@ class WorkspaceController extends Controller
             ->latest()
             ->get();
 
-        return view('admin.workspace.index', compact('workspaces', 'archivedWorkspaces'));
+            
+         $user = auth()->user();
+    $category = $user->category ? $user->category->name : 'Belum memilih kategori';
+
+
+        return view('admin.workspace.index', compact('workspaces', 'archivedWorkspaces', 'category', 'user'));
     }
 
     /**

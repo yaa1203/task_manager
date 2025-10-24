@@ -13,6 +13,8 @@ use App\Http\Controllers\{
     WorkspaceController,
     SuperAdminRegisterController
 };
+use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\SuperAdminCategoryController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -151,8 +153,8 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware(['auth', 'role:superadmin'])->group(function () {
     Route::get('/superadmin/dashboard', [DashboardController::class, 'superAdminDashboard'])->name('superadmin.dashboard');
+    Route::resource('categories',SuperAdminCategoryController::class);
 });
-
 // =============================================================
 // 🔸 Profile Routes
 // =============================================================

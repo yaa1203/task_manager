@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,7 +13,8 @@ class AdminRegisterController extends Controller
 {
     public function create()
     {
-        return view('auth.register-admin');
+        $categories = Category::all();
+        return view('auth.register-admin', compact('categories'));
     }
 
     public function store(Request $request)
@@ -21,14 +23,18 @@ class AdminRegisterController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'category_id' => ['required', 'exists:categories,id'], // validasi kategori
         ]);
 
+        // ✅ Simpan dengan category_id
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => 'admin', // 👈 penting
+            'role' => 'admin',
+            'category_id' => $request->category_id, // <-- tambahkan ini
         ]);
+
 
         Auth::login($user);
 

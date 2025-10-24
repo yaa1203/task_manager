@@ -21,6 +21,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role', // 'admin' atau 'user'
+        'category_id', // Kategori pengguna
     ];
 
     /**
@@ -75,6 +76,13 @@ class User extends Authenticatable
     {
         return $this->hasMany(Workspace::class);
     }
+
+
+    public function category()
+{
+    return $this->belongsTo(Category::class);
+}
+
 
     /**
      * Projects owned by this user
