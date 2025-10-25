@@ -42,10 +42,24 @@
                             'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>'
                         ],
                         [
-                            'route' => 'pengguna.index', 
-                            'url' => 'pengguna', 
+                            'route' => 'pengguna', 
+                            'url' => null, 
                             'label' => 'Pengguna', 
-                            'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>'
+                            'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>',
+                            'submenu' => [
+                                [
+                                    'route' => 'pengguna.admin', 
+                                    'url' => null, 
+                                    'label' => 'Admin', 
+                                    'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>'
+                                ],
+                                [
+                                    'route' => 'pengguna.user', 
+                                    'url' => null, 
+                                    'label' => 'User', 
+                                    'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>'
+                                ]
+                            ]
                         ],
                         [
                             'route' => 'superadmin.workspaces', 
@@ -59,28 +73,65 @@
                             'label' => 'Kategori Pengguna', 
                             'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>'
                         ],
-                       [
-                        'route' => 'analytict.*', 
-                        'url' => 'analytict', 
-                        'label' => 'Analiticts', 
-                        'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>'
-                    ],
+                        [
+                            'route' => 'analytict.*', 
+                            'url' => 'analytict', 
+                            'label' => 'Analitiks', 
+                            'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>'
+                        ],
                     ];
                 @endphp
 
                 @foreach($menuItems as $item)
-                    <a href="{{ $item['url'] ? url($item['url']) : route($item['route']) }}"
-                       class="group flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs($item['route']) ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100' }}">
-                        <span class="flex items-center gap-3">
-                            <svg class="w-5 h-5 {{ request()->routeIs($item['route']) ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-600' }}" 
-                                 fill="none" 
-                                 stroke="currentColor" 
-                                 viewBox="0 0 24 24">
-                                {!! $item['icon'] !!}
-                            </svg>
-                            <span>{{ $item['label'] }}</span>
-                        </span>
-                    </a>
+                    @if(isset($item['submenu']))
+                        {{-- Menu dengan submenu --}}
+                        <div class="relative">
+                            <button class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 {{ (request()->is('pengguna/admin') || request()->is('pengguna/admin/*') || request()->is('pengguna/user') || request()->is('pengguna/user/*')) ? 'bg-purple-50 text-purple-700' : 'text-gray-700 hover:bg-gray-100' }}"
+                                    onclick="toggleSubmenu('submenu-{{ $loop->index }}')">
+                                <span class="flex items-center gap-3">
+                                    <svg class="w-5 h-5 {{ (request()->is('pengguna/admin') || request()->is('pengguna/admin/*') || request()->is('pengguna/user') || request()->is('pengguna/user/*')) ? 'text-purple-600' : 'text-gray-400' }}" 
+                                        fill="none" 
+                                        stroke="currentColor" 
+                                        viewBox="0 0 24 24">
+                                        {!! $item['icon'] !!}
+                                    </svg>
+                                    <span>{{ $item['label'] }}</span>
+                                </span>
+                                <svg id="submenu-arrow-{{ $loop->index }}" class="w-4 h-4 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </button>
+                            
+                            <div id="submenu-{{ $loop->index }}" class="hidden mt-1 ml-4 space-y-1">
+                                @foreach($item['submenu'] as $subitem)
+                                    <a href="{{ route($subitem['route']) }}"
+                                    class="group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->is('pengguna/admin') || request()->is('pengguna/admin/*') ? 'bg-purple-100 text-purple-700' : (request()->is('pengguna/user') || request()->is('pengguna/user/*') ? 'bg-purple-100 text-purple-700' : 'text-gray-700 hover:bg-gray-100') }}">
+                                        <svg class="w-4 h-4 {{ request()->is('pengguna/admin') || request()->is('pengguna/admin/*') ? 'text-purple-600' : (request()->is('pengguna/user') || request()->is('pengguna/user/*') ? 'text-purple-600' : 'text-gray-400 group-hover:text-gray-600') }}" 
+                                            fill="none" 
+                                            stroke="currentColor" 
+                                            viewBox="0 0 24 24">
+                                            {!! $subitem['icon'] !!}
+                                        </svg>
+                                        <span>{{ $subitem['label'] }}</span>
+                                    </a>
+                                @endforeach
+                            </div>
+                        </div>
+                    @else
+                        {{-- Menu tanpa submenu --}}
+                        <a href="{{ $item['url'] ? url($item['url']) : route($item['route']) }}"
+                           class="group flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs($item['route']) || (isset($item['route']) && str_contains($item['route'], '*') && request()->is($item['route'])) ? 'bg-purple-50 text-purple-700' : 'text-gray-700 hover:bg-gray-100' }}">
+                            <span class="flex items-center gap-3">
+                                <svg class="w-5 h-5 {{ request()->routeIs($item['route']) || (isset($item['route']) && str_contains($item['route'], '*') && request()->is($item['route'])) ? 'text-purple-600' : 'text-gray-400 group-hover:text-gray-600' }}" 
+                                     fill="none" 
+                                     stroke="currentColor" 
+                                     viewBox="0 0 24 24">
+                                    {!! $item['icon'] !!}
+                                </svg>
+                                <span>{{ $item['label'] }}</span>
+                            </span>
+                        </a>
+                    @endif
                 @endforeach
             </div>
         </nav>
@@ -122,5 +173,22 @@
         </main>
     </div>
 </div>
+
+{{-- JavaScript untuk toggle submenu --}}
+<script>
+    function toggleSubmenu(id) {
+        const submenu = document.getElementById(id);
+        const arrow = document.getElementById('submenu-arrow-' + id.split('-')[1]);
+        
+        if (submenu.classList.contains('hidden')) {
+            submenu.classList.remove('hidden');
+            arrow.classList.add('rotate-180');
+        } else {
+            submenu.classList.add('hidden');
+            arrow.classList.remove('rotate-180');
+        }
+    }
+</script>
+
 </body>
 </html>

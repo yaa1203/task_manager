@@ -198,4 +198,74 @@ class User extends Authenticatable
 
         return max(0, ($onTimeCount * 10) - ($lateCount * 5));
     }
+
+    // Di dalam Model User (App\Models\User.php)
+    // Tambahkan method relasi ini jika belum ada
+
+    /**
+     * Tasks created by this admin (untuk admin yang membuat task)
+     * Relasi untuk mengambil semua task yang dibuat oleh admin ini
+     */
+    public function adminCreatedTasks(): HasMany
+    {
+        return $this->hasMany(Task::class, 'admin_id');
+    }
+
+    /**
+     * Workspaces created by this admin
+     * Relasi untuk mengambil workspace yang dimiliki admin
+     */
+    public function adminWorkspaces(): HasMany
+    {
+        return $this->hasMany(Workspace::class, 'admin_id');
+    }
+
+    /**
+     * Get all team members (users) who have been assigned tasks by this admin
+     * Method helper untuk mendapatkan anggota tim
+     */
+    public function getTeamMembersAttribute()
+    {
+        if ($this->role !== 'admin') {
+            return collect([]);
+        }
+
+        return User::where('role', 'user')
+            ->whereHas('assignedTasks', function($query) {
+                $query->where('admin_id', $this->id);
+            })
+            ->get();
+    }
+
+    /**
+     * Count total tasks created by this admin
+     */
+    public function getTotalTasksCreatedAttribute(): int
+    {
+        return $this->adminCreatedTasks()->count();
+    }
+
+    /**
+     * Count total workspaces owned by this admin
+     */
+    public function getTotalWorkspacesAttribute(): int
+    {
+        return $this->adminWorkspaces()->count();
+    }
+
+    /**
+     * Count total team members (unique users assigned to this admin's tasks)
+     */
+    public function getTotalTeamMembersAttribute(): int
+    {
+        if ($this->role !== 'admin') {
+            return 0;
+        }
+
+        return User::where('role', 'user')
+            ->whereHas('assignedTasks', function($query) {
+                $query->where('admin_id', $this->id);
+            })
+            ->count();
+    }
 }

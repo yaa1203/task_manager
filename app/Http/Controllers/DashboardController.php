@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Task;
 use App\Models\User;
 use App\Models\Workspace;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -167,26 +168,48 @@ class DashboardController extends Controller
         return round(($completed / $totalAssigned) * 100, 1);
     }
 
+    // Dashboard Super Admin
     public function superAdminDashboard()
     {
         $totalUsers = User::where('role', 'user')->count();
+        // Hitung total admin dan superadmin
         $totalAdmins = User::where('role', 'admin')->count();
         $totalSuperAdmins = User::where('role', 'superadmin')->count();
+        $totalAdminsAndSuperAdmins = $totalAdmins + $totalSuperAdmins;
+        
+        // Hitung total workspace
         $totalWorkspaces = Workspace::count();
-
+        
+        // Hitung total kategori
+        $totalCategories = Category::count();
+        
+        // Ambil admin dan superadmin terbaru (tidak termasuk superadmin yang sedang login)
+        $recentAdmins = User::whereIn('role', ['admin', 'superadmin'])
+                             ->where('id', '!=', auth()->id())
+                             ->latest()
+                             ->take(5)
+                             ->get();
+        
         $recentUsers = User::latest()->take(5)->get();
-
+             
+        // Hitung tugas selesai untuk admin dan superadmin
         $completedTasks = [
-            'users' => User::where('role', 'user')->get()->sum->completed_tasks_count,
-            'admins' => User::where('role', 'admin')->get()->sum->completed_tasks_count,
-            'superadmins' => User::where('role', 'superadmin')->get()->sum->completed_tasks_count,
+            'admins' => User::where('role', 'admin')->get()->sum(function($user) {
+                return $user->completed_tasks_count ?? 0;
+            }),
+            'superadmins' => User::where('role', 'superadmin')->get()->sum(function($user) {
+                return $user->completed_tasks_count ?? 0;
+            }),
         ];
-
+        
         return view('superadmin.dashboard', compact(
-            'totalUsers',
             'totalAdmins',
+            'totalUsers',
             'totalSuperAdmins',
+            'totalAdminsAndSuperAdmins',
             'totalWorkspaces',
+            'totalCategories',
+            'recentAdmins',
             'recentUsers',
             'completedTasks'
         ));

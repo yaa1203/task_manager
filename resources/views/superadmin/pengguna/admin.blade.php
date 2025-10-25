@@ -9,7 +9,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Manajemen Admin</h1>
-                <p class="text-sm sm:text-base text-gray-600">Pantau dan kelola semua pengguna di seluruh sistem</p>
+                <p class="text-sm sm:text-base text-gray-600">Pantau dan kelola semua Admin di seluruh sistem</p>
             </div>
         </div>
         {{-- Info Global --}}
@@ -20,7 +20,7 @@
                 </svg>
                 <div>
                     <p class="text-sm font-semibold text-purple-900">Tampilan Global Super Admin</p>
-                    <p class="text-xs text-purple-700 mt-0.5">Menampilkan semua pengguna dari seluruh kategori di sistem</p>
+                    <p class="text-xs text-purple-700 mt-0.5">Menampilkan semua Admin dari seluruh kategori di sistem</p>
                 </div>
             </div>
         </div>
@@ -101,7 +101,7 @@
 
     {{-- Filter & Search Section --}}
     <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 sm:p-5 mb-6">
-        <form method="GET" action="{{ route('pengguna.index') }}" class="flex flex-col sm:flex-row gap-3">
+        <form method="GET" action="{{ route('pengguna.admin') }}" class="flex flex-col sm:flex-row gap-3">
             {{-- Hidden input untuk maintain sort_by dan category_filter --}}
             <input type="hidden" name="sort_by" value="{{ $sortBy }}">
             <input type="hidden" name="category_filter" value="{{ $categoryFilter }}">
@@ -126,7 +126,7 @@
                 
                 {{-- Tombol Reset --}}
                 @if($search || $categoryFilter)
-                <a href="{{ route('pengguna.index', ['sort_by' => $sortBy]) }}" 
+                <a href="{{ route('pengguna.admin', ['sort_by' => $sortBy]) }}" 
                    class="px-5 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-colors whitespace-nowrap font-medium text-sm">
                     Reset
                 </a>
@@ -243,7 +243,7 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm">
                             <div class="flex items-center gap-2">
-                                <a href="{{ route('pengguna.show', $admin->id) }}" 
+                                <a href="{{ route('pengguna.admin.show', $admin->id) }}" 
                                    class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all text-xs font-semibold shadow-sm hover:shadow-md">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -251,7 +251,7 @@
                                     </svg>
                                     Detail
                                 </a>
-                                <form action="{{ route('pengguna.destroy', $admin->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus admin ini? Tindakan ini tidak dapat dibatalkan.');">
+                                <form action="{{ route('pengguna.admin.destroy', $admin->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus admin ini? Tindakan ini tidak dapat dibatalkan.');">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-all text-xs font-semibold shadow-sm hover:shadow-md">
@@ -341,7 +341,7 @@
 
                 {{-- Action Buttons --}}
                 <div class="flex gap-2">
-                    <a href="{{ route('pengguna.show', $admin->id) }}" 
+                    <a href="{{ route('pengguna.admin.show', $admin->id) }}" 
                        class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-all font-semibold text-sm shadow-sm hover:shadow-md">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -349,7 +349,7 @@
                         </svg>
                         Detail
                     </a>
-                    <form action="{{ route('pengguna.destroy', $admin->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus admin ini? Tindakan ini tidak dapat dibatalkan.');" class="flex-1">
+                    <form action="{{ route('pengguna.admin.destroy', $admin->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus admin ini? Tindakan ini tidak dapat dibatalkan.');" class="flex-1">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-rose-600 text-white rounded-xl hover:bg-rose-700 transition-all font-semibold text-sm shadow-sm hover:shadow-md">

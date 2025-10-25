@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Task;
+use App\Models\Workspace;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -314,7 +317,7 @@ class UserController extends Controller
         // Ambil semua kategori untuk filter
         $categories = \App\Models\Category::all();
 
-        return view('superadmin.pengguna.index', compact('admins', 'sortBy', 'search', 'categoryFilter', 'categories'));
+        return view('superadmin.pengguna.admin', compact('admins', 'sortBy', 'search', 'categoryFilter', 'categories'));
     }
 
     /**
@@ -337,15 +340,120 @@ class UserController extends Controller
     }
 
     /**
-     * SUPER ADMIN: Show detail admin (GLOBAL)
+     * SUPER ADMIN: Show detail admin dengan anggota tim
+     * Menampilkan user-user yang pernah ditugaskan oleh admin ini
      */
     public function superAdminShow(User $user)
     {
         // Pastikan hanya admin yang bisa dilihat detailnya
         if ($user->role !== 'admin') {
-            return redirect()->route('pengguna.index')->with('error', 'Akses ditolak.');
+            return redirect()->route('pengguna.admin')->with('error', 'Akses ditolak.');
         }
 
-        return view('superadmin.pengguna.show', compact('user'));
+        // Ambil semua user yang pernah ditugaskan oleh admin ini
+        // Menggunakan relasi assignedTasks dan filter berdasarkan admin_id
+        $teamMembers = User::where('role', 'user')
+            ->whereHas('assignedTasks', function($query) use ($user) {
+                // Filter task yang dibuat oleh admin ini
+                $query->where('tasks.admin_id', $user->id);
+            })
+            ->withCount(['assignedTasks as tasks_count' => function($query) use ($user) {
+                // Hitung jumlah task yang diterima dari admin ini
+                $query->where('tasks.admin_id', $user->id);
+            }])
+            ->with(['assignedTasks' => function($query) use ($user) {
+                // Ambil task pertama untuk mengetahui kapan user pertama kali ditugaskan
+                $query->where('tasks.admin_id', $user->id)
+                    ->oldest('tasks.created_at')
+                    ->limit(1);
+            }])
+            ->get()
+            ->map(function($member) {
+                // Ambil tanggal pertama kali user ditugaskan oleh admin ini
+                $firstTask = $member->assignedTasks->first();
+                $member->first_assigned_at = $firstTask ? $firstTask->created_at : now();
+                unset($member->assignedTasks); // Hapus relasi setelah digunakan
+                return $member;
+            })
+            ->sortBy('first_assigned_at');
+
+        // Hitung total task yang dibuat oleh admin ini
+        // Menggunakan relasi createdTasks dengan filter admin_id
+        $totalTasks = Task::where('admin_id', $user->id)->count();
+
+        // Hitung total workspace yang dimiliki admin ini
+        // Menggunakan relasi workspaces dengan filter admin_id
+        $workspaceCount = Workspace::where('admin_id', $user->id)->count();
+
+        return view('superadmin.pengguna.show', compact(
+            'user', 
+            'teamMembers', 
+            'totalTasks', 
+            'workspaceCount'
+        ));
+    }
+
+    /**
+     * SUPER ADMIN: Tampilkan semua user biasa dari seluruh kategori (GLOBAL)
+     */
+    public function superUserIndex(Request $request)
+    {
+        $sortBy = $request->get('sort_by', 'created_at');
+        $search = $request->get('search');
+        $categoryFilter = $request->get('category_filter');
+
+        // ✅ Ambil SEMUA user dengan role 'user' (tidak termasuk admin)
+        $query = User::where('role', 'user');
+
+        // Filter berdasarkan kategori (opsional)
+        if ($categoryFilter) {
+            $query->where('category_id', $categoryFilter);
+        }
+
+        // Filter pencarian
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        // Sorting
+        switch ($sortBy) {
+            case 'name':
+                $users = $query->orderBy('name', 'asc')->paginate(15);
+                break;
+            case 'email':
+                $users = $query->orderBy('email', 'asc')->paginate(15);
+                break;
+            default:
+                $users = $query->orderBy('created_at', 'desc')->paginate(15);
+        }
+
+        $users->appends(['sort_by' => $sortBy, 'search' => $search, 'category_filter' => $categoryFilter]);
+
+        // Ambil semua kategori untuk filter
+        $categories = Category::all();
+
+        return view('superadmin.pengguna.user', compact('users', 'sortBy', 'search', 'categoryFilter', 'categories'));
+    }
+
+    /**
+     * SUPER ADMIN: Hapus user (GLOBAL)
+     */
+    public function superUserDestroy(User $user)
+    {
+        // Cegah hapus akun superadmin
+        if ($user->role === 'superadmin') {
+            return back()->with('error', 'Tidak dapat menghapus akun Super Admin.');
+        }
+
+        // Cegah hapus akun admin dari halaman ini
+        if ($user->role === 'admin') {
+            return back()->with('error', 'Tidak dapat menghapus admin dari halaman ini.');
+        }
+
+        $user->delete();
+        return back()->with('success', 'User berhasil dihapus dari sistem.');
     }
 }

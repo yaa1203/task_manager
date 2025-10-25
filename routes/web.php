@@ -156,9 +156,13 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
     Route::resource('categories',SuperAdminCategoryController::class);
 
     // User Management (Global)
-    Route::get('/pengguna', [UserController::class, 'superAdminIndex'])->name('pengguna.index');
-    Route::get('/pengguna/{user}', [UserController::class, 'superAdminShow'])->name('pengguna.show');
-    Route::delete('/pengguna/{user}', [UserController::class, 'superAdminDestroy'])->name('pengguna.destroy');
+    Route::get('/pengguna/admin', [UserController::class, 'superAdminIndex'])->name('pengguna.admin');
+    Route::get('/pengguna/admin/{user}', [UserController::class, 'superAdminShow'])->name('pengguna.admin.show');
+    Route::delete('/pengguna/admin/{user}', [UserController::class, 'superAdminDestroy'])->name('pengguna.admin.destroy');
+
+    Route::get('/pengguna/user', [UserController::class, 'superUserIndex'])->name('pengguna.user');
+    Route::get('/pengguna/user/{user}', [UserController::class, 'superUserShow'])->name('pengguna.user.show');
+    Route::delete('/pengguna/user/{user}', [UserController::class, 'superUserDestroy'])->name('pengguna.user.destroy');
 });
 // =============================================================
 // 🔸 Profile Routes
