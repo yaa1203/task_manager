@@ -56,7 +56,7 @@
                     @endphp
 
                     @foreach($statCards as $card)
-                    <div class="bg-white rounded-lg shadow p-3 sm:p-4 border-l-4 border-{{ $card['color'] }}-500 transition-all hover:shadow-md">
+                    <div class="bg-white rounded-lg shadow-sm p-3 sm:p-4 border-l-4 border-{{ $card['color'] }}-500 transition-all hover:shadow-md">
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-xs sm:text-sm text-gray-600 font-medium">{{ $card['label'] }}</p>
@@ -109,24 +109,58 @@
                         @endphp
                         
                         <a href="{{ route('my-workspaces.show', $workspace) }}" 
-                           class="block bg-white rounded-lg shadow hover:shadow-lg transition group">
+                           class="block bg-white rounded-lg shadow-sm hover:shadow-lg transition-all group border border-gray-200">
                             
-                            {{-- Header dengan Ikon dan Badge Tipe --}}
+                            {{-- Header dengan Ikon dan Info Admin --}}
                             <div class="p-4 sm:p-5 border-b border-gray-100" 
                                  style="background: linear-gradient(135deg, {{ $workspace->color }}15 0%, {{ $workspace->color }}05 100%);">
                                 <div class="flex items-start gap-3 mb-3">
-                                    <div class="w-12 h-12 flex items-center justify-center rounded-xl shadow-sm flex-shrink-0 text-white" 
-                                         style="background-color: {{ $workspace->color }};">
+                                    <div class="w-14 h-14 mt-3 rounded-lg flex items-center justify-center flex-shrink-0 bg-white border border-gray-200 text-gray-700 group-hover:border-indigo-300 transition-all duration-200">
+                                        @php
+                                        $iconSvgs = [
+                                            'folder' => '<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>',
+                                            'briefcase' => '<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>',
+                                            'chart' => '<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>',
+                                            'target' => '<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+                                            'cog' => '<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>',
+                                            'clipboard' => '<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>',
+                                        ];
+                                        @endphp
                                         {!! $iconSvgs[$workspace->icon] ?? $iconSvgs['folder'] !!}
                                     </div>
                                     <div class="flex-1 min-w-0">
-                                        <h3 class="font-bold text-gray-900 text-base sm:text-lg mt-3 mb-1 truncate">{{ $workspace->name }}</h3>
+                                        <h3 class="font-bold text-gray-900 text-base sm:text-lg mb-2 line-clamp-2">
+                                            {{ $workspace->name }}
+                                        </h3>
+                                        
+                                        {{-- Info PIC/Admin --}}
+                                        <div class="flex items-center gap-2 text-xs">
+                                            <div class="flex items-center gap-1.5 px-2.5 py-1 bg-white/80 backdrop-blur-sm rounded-lg border border-gray-200/50 shadow-sm">
+                                                <div class="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
+                                                     style="background-color: {{ $workspace->color }}20;">
+                                                    <span class="text-[10px] font-bold" style="color: {{ $workspace->color }};">
+                                                        {{ strtoupper(substr($workspace->admin->name ?? 'A', 0, 1)) }}
+                                                    </span>
+                                                </div>
+                                                <div class="flex flex-col">
+                                                    <span class="font-semibold text-gray-900 leading-tight truncate max-w-[150px]">
+                                                        {{ $workspace->admin->name ?? 'Admin' }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            
+                                            @if($workspace->admin && $workspace->admin->category)
+                                            <div class="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-medium"
+                                                 style="background-color: {{ $workspace->color }}15; color: {{ $workspace->color }};">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                                                </svg>
+                                                <span>{{ $workspace->admin->category->name }}</span>
+                                            </div>
+                                            @endif
+                                        </div>
                                     </div>
                                 </div>
-                                
-                                @if($workspace->description)
-                                    <p class="text-xs sm:text-sm text-gray-600 line-clamp-2">{{ $workspace->description }}</p>
-                                @endif
                             </div>
 
                             {{-- Bagian Statistik --}}
@@ -184,7 +218,7 @@
                                 <div class="pt-3 border-t border-gray-100">
                                     <div class="flex items-center justify-between">
                                         <span class="text-sm text-gray-600">Total Tugas</span>
-                                        <span class="text-sm font-bold text-gray-900">{{ $totalTasks }} tugas{{ $totalTasks !== 1 ? '' : '' }}</span>
+                                        <span class="text-sm font-bold text-gray-900">{{ $totalTasks }} tugas</span>
                                     </div>
                                 </div>
 
@@ -204,7 +238,7 @@
                 </div>
             @else
                 {{-- State Kosong --}}
-                <div class="bg-white rounded-lg shadow p-8 sm:p-12 text-center">
+                <div class="bg-white rounded-lg shadow-sm p-8 sm:p-12 text-center border border-gray-200">
                     <div class="max-w-md mx-auto">
                         <div class="bg-gray-100 w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center mx-auto mb-4">
                             <svg class="w-10 h-10 sm:w-12 sm:h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -250,6 +284,11 @@
         .truncate {
             max-width: 100%;
         }
+    }
+
+    /* Smooth backdrop blur effect */
+    .backdrop-blur-sm {
+        backdrop-filter: blur(4px);
     }
     </style>
 </x-app-layout>

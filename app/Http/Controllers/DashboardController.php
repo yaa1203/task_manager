@@ -59,8 +59,8 @@ class DashboardController extends Controller
 
         $notifications = Auth::user()->notifications()->latest()->take(5)->get();
 
-         $user = auth()->user();
-    $category = $user->category ? $user->category->name : 'Belum memilih kategori';
+        $user = auth()->user();
+        $category = $user->category ? $user->category->name : 'Belum memilih kategori';
 
         return view('dashboard', compact(
             'workspaces',
@@ -80,15 +80,14 @@ class DashboardController extends Controller
 
     public function AdminIndex()
     {
-        $adminId = Auth::id();
+        $admin = Auth::user();
+        $adminId = $admin->id;
+        $adminCategoryId = $admin->category_id;
+        $category = $admin->category->name ?? 'Admin';
 
-        // Ambil hanya user yang ditugaskan oleh admin ini
+        // ✅ Ambil hanya user dengan kategori yang sama dengan admin ini
         $users = User::where('role', 'user')
-            ->whereHas('assignedTasks', function ($q) use ($adminId) {
-                $q->whereHas('workspace', function ($w) use ($adminId) {
-                    $w->where('admin_id', $adminId);
-                });
-            })
+            ->where('category_id', $adminCategoryId) // Filter berdasarkan kategori
             ->withCount(['assignedTasks' => function ($q) use ($adminId) {
                 $q->whereHas('workspace', function ($w) use ($adminId) {
                     $w->where('admin_id', $adminId);
@@ -106,12 +105,9 @@ class DashboardController extends Controller
             $user->completion_rate = $this->calculateCompletionRate($user, $adminId);
         });
 
+        // ✅ Total user dengan kategori yang sama
         $totalUsers = User::where('role', 'user')
-            ->whereHas('assignedTasks', function ($q) use ($adminId) {
-                $q->whereHas('workspace', function ($w) use ($adminId) {
-                    $w->where('admin_id', $adminId);
-                });
-            })
+            ->where('category_id', $adminCategoryId)
             ->count();
 
         $totalTasks = Task::whereHas('workspace', function ($w) use ($adminId) {
@@ -122,6 +118,7 @@ class DashboardController extends Controller
             'totalUsers' => $totalUsers,
             'totalTasks' => $totalTasks,
             'users' => $users,
+            'category' => $category,
         ]);
     }
 

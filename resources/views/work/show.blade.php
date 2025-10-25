@@ -21,14 +21,7 @@
                         <!-- Judul & Badge -->
                         <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-3">
                             <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">{{ $workspace->name }}</h1>
-                            <span class="px-3 py-1 text-xs font-semibold rounded-full bg-white text-gray-700 shadow-sm border border-gray-200 w-fit">
-                                {{ ucfirst($workspace->type) }}
-                            </span>
                         </div>
-                        
-                        @if($workspace->description)
-                            <p class="text-gray-600 mb-4 text-sm sm:text-base">{{ $workspace->description }}</p>
-                        @endif
                         
                         @php
                             $myTasks = $tasks;

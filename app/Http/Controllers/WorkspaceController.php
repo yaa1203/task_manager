@@ -217,17 +217,28 @@ class WorkspaceController extends Controller
     {
         $this->authorize('update', $workspace);
         
-        $users = User::where('role', 'user')->get();
+        $admin = Auth::user();
+        $adminCategoryId = $admin->category_id;
+        $categoryName = $admin->category->name ?? 'Tidak ada kategori';
+        
+        // ✅ Hanya ambil user dengan kategori yang sama dengan admin
+        $users = User::where('role', 'user')
+            ->where('category_id', $adminCategoryId)
+            ->orderBy('name', 'asc')
+            ->get();
 
-        return view('admin.workspace.tasks.create', compact('workspace', 'users'));
+        return view('admin.workspace.tasks.create', compact('workspace', 'users', 'categoryName'));
     }
 
     /**
      * Store task in workspace
      */
-    public function storeTask(Request $request, Workspace $workspace,Task $task)
+    public function storeTask(Request $request, Workspace $workspace, Task $task)
     {
         $this->authorize('update', $workspace);
+
+        $admin = Auth::user();
+        $adminCategoryId = $admin->category_id;
 
         $validated = $request->validate([
             'assign_to_all' => 'nullable|boolean',
@@ -242,11 +253,25 @@ class WorkspaceController extends Controller
             'link' => 'nullable|url',
         ]);
 
-        // Determine user IDs based on assign_to_all flag
+        // ✅ Determine user IDs - hanya user dengan kategori yang sama
         if ($request->assign_to_all) {
-            $userIds = User::where('role', 'user')->pluck('id')->toArray();
+            $userIds = User::where('role', 'user')
+                ->where('category_id', $adminCategoryId)
+                ->pluck('id')
+                ->toArray();
         } else {
-            $userIds = $validated['user_ids'];
+            // Validasi bahwa semua user_ids memiliki kategori yang sama dengan admin
+            $validUserIds = User::where('role', 'user')
+                ->where('category_id', $adminCategoryId)
+                ->whereIn('id', $validated['user_ids'])
+                ->pluck('id')
+                ->toArray();
+            
+            if (count($validUserIds) !== count($validated['user_ids'])) {
+                return back()->withErrors(['user_ids' => 'Beberapa user yang dipilih tidak termasuk dalam kategori Anda.']);
+            }
+            
+            $userIds = $validUserIds;
         }
 
         // Handle file upload
@@ -256,17 +281,7 @@ class WorkspaceController extends Controller
             
             if ($file->isValid()) {
                 $filePath = $file->store('task_files', 'public');
-            }
-        }
-
-        if ($request->hasFile('file')) {
-            $file = $request->file('file');
-            if ($file->isValid()) {
-                $filePath = $file->store('task_files', 'public');
                 $originalFilename = $file->getClientOriginalName();
-                
-                // Simpan nama asli
-                $task->update(['original_filename' => $originalFilename]);
             }
         }
 
@@ -278,6 +293,7 @@ class WorkspaceController extends Controller
             'title' => $validated['title'],
             'description' => $validated['description'] ?? null,
             'file_path' => $filePath,
+            'original_filename' => $originalFilename ?? null,
             'link' => $validated['link'] ?? null,
             'status' => $validated['status'],
             'priority' => $validated['priority'],
@@ -315,9 +331,17 @@ class WorkspaceController extends Controller
             abort(404);
         }
 
-        $users = User::where('role', 'user')->get();
+        $admin = Auth::user();
+        $adminCategoryId = $admin->category_id;
+        $categoryName = $admin->category->name ?? 'Tidak ada kategori';
+        
+        // ✅ Hanya ambil user dengan kategori yang sama dengan admin
+        $users = User::where('role', 'user')
+            ->where('category_id', $adminCategoryId)
+            ->orderBy('name', 'asc')
+            ->get();
 
-        return view('admin.workspace.tasks.edit', compact('workspace', 'task', 'users'));
+        return view('admin.workspace.tasks.edit', compact('workspace', 'task', 'users', 'categoryName'));
     }
 
     /**
@@ -335,6 +359,9 @@ class WorkspaceController extends Controller
             abort(404);
         }
 
+        $admin = Auth::user();
+        $adminCategoryId = $admin->category_id;
+
         $validated = $request->validate([
             'user_ids' => 'required|array|min:1',
             'user_ids.*' => 'exists:users,id',
@@ -348,13 +375,26 @@ class WorkspaceController extends Controller
             'remove_file' => 'nullable|boolean',
         ]);
 
+        // ✅ Validasi bahwa semua user_ids memiliki kategori yang sama dengan admin
+        $validUserIds = User::where('role', 'user')
+            ->where('category_id', $adminCategoryId)
+            ->whereIn('id', $validated['user_ids'])
+            ->pluck('id')
+            ->toArray();
+        
+        if (count($validUserIds) !== count($validated['user_ids'])) {
+            return back()->withErrors(['user_ids' => 'Beberapa user yang dipilih tidak termasuk dalam kategori Anda.']);
+        }
+
         // Handle file upload
         $filePath = $task->file_path;
+        $originalFilename = $task->original_filename;
         
         // Remove old file if requested
         if ($request->remove_file && $task->file_path) {
             Storage::disk('public')->delete($task->file_path);
             $filePath = null;
+            $originalFilename = null;
         }
         
         // Upload new file if provided
@@ -363,37 +403,25 @@ class WorkspaceController extends Controller
             if ($task->file_path) {
                 Storage::disk('public')->delete($task->file_path);
             }
-            $filePath = $request->file('file')->store('task_files', 'public');
-        }
-
-        if ($request->hasFile('file')) {
-            // Delete old file if exists
-            if ($task->file_path) {
-                Storage::disk('public')->delete($task->file_path);
-            }
             
-            $filePath = $request->file('file')->store('task_files', 'public');
-            $originalFilename = $request->file('file')->getClientOriginalName();
-            
-            // Update task dengan nama asli
-            $task->update([
-                'file_path' => $filePath,
-                'original_filename' => $originalFilename
-            ]);
+            $file = $request->file('file');
+            $filePath = $file->store('task_files', 'public');
+            $originalFilename = $file->getClientOriginalName();
         }
 
         $task->update([
             'title' => $validated['title'],
             'description' => $validated['description'] ?? null,
             'file_path' => $filePath,
+            'original_filename' => $originalFilename,
             'link' => $validated['link'] ?? null,
             'status' => $validated['status'],
             'priority' => $validated['priority'],
             'due_date' => $validated['due_date'] ?? null,
         ]);
 
-        // Sync assigned users
-        $task->assignedUsers()->sync($validated['user_ids']);
+        // Sync assigned users (hanya yang valid)
+        $task->assignedUsers()->sync($validUserIds);
 
         return redirect()->route('workspaces.show', $workspace)
             ->with('success', 'Task updated successfully!');

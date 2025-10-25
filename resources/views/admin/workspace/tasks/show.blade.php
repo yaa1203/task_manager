@@ -279,13 +279,13 @@
                                     </svg>
                                 </div>
                                 <div>
-                                   @foreach($task->submissions as $submission)
-    <p class="text-xs text-gray-500 mb-0.5">Dibuat</p>
-    <p class="text-sm font-medium text-gray-900">
-       {{ \Carbon\Carbon::parse($submission->created_at)->locale('id')->translatedFormat('d F Y H:i') }}
+                                    @foreach($task->submissions as $submission)
+                                        <p class="text-xs text-gray-500 mb-0.5">Dibuat</p>
+                                        <p class="text-sm font-medium text-gray-900">
+                                        {{ \Carbon\Carbon::parse($submission->created_at)->locale('id')->translatedFormat('d F Y H:i') }}
 
-    </p>
-@endforeach
+                                        </p>
+                                    @endforeach
                                 </div>
                             </div>
                             <div class="flex items-center gap-3">

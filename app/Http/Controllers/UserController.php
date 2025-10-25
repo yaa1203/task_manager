@@ -11,22 +11,21 @@ use Illuminate\Support\Facades\Auth;
 class UserController extends Controller
 {
     /**
-     * Tampilkan semua user untuk monitoring (per admin)
+     * Tampilkan semua user untuk monitoring (per admin berdasarkan kategori yang sama)
      */
     public function index(Request $request)
     {
-        $adminId = Auth::id();
+        $admin = Auth::user();
+        $adminId = $admin->id;
+        $adminCategoryId = $admin->category_id;
+        
         $sortBy = $request->get('sort_by', 'created_at');
         $search = $request->get('search');
 
-        // Hanya ambil user 'user' yang diberi tugas oleh admin ini
+        // ✅ Hanya ambil user 'user' yang memiliki kategori SAMA dengan admin ini
         $query = User::where('role', 'user')
-            ->whereHas('assignedTasks.workspace', function ($q) use ($adminId) {
-                $q->where('admin_id', $adminId);
-            })
-            ->withCount(['assignedTasks' => function ($q) use ($adminId) {
-                $q->whereHas('workspace', fn($w) => $w->where('admin_id', $adminId));
-            }]);
+            ->where('category_id', $adminCategoryId) // Filter berdasarkan kategori yang sama
+            ->withCount('assignedTasks');
 
         // Filter pencarian
         if ($search) {
@@ -217,20 +216,18 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
-        $adminId = Auth::id();
+        $admin = Auth::user();
+        $adminId = $admin->id;
+        $adminCategoryId = $admin->category_id;
 
         // Cegah admin hapus dirinya sendiri
         if ($adminId === $user->id) {
             return back()->with('error', 'Anda tidak dapat menghapus akun sendiri.');
         }
 
-        // Pastikan admin hanya bisa menghapus user miliknya
-        $hasTaskFromThisAdmin = $user->assignedTasks()
-            ->whereHas('workspace', fn($w) => $w->where('admin_id', $adminId))
-            ->exists();
-
-        if (!$hasTaskFromThisAdmin) {
-            return back()->with('error', 'Anda tidak memiliki izin untuk menghapus user ini.');
+        // ✅ Pastikan user memiliki kategori yang sama dengan admin
+        if ($user->category_id !== $adminCategoryId) {
+            return back()->with('error', 'Anda tidak memiliki izin untuk menghapus user dari kategori lain.');
         }
 
         $user->delete();
@@ -239,15 +236,13 @@ class UserController extends Controller
 
     public function show(User $user)
     {
-        $adminId = Auth::id();
+        $admin = Auth::user();
+        $adminId = $admin->id;
+        $adminCategoryId = $admin->category_id;
 
-        // Pastikan user ini memang terkait dengan admin
-        $isUserOwned = $user->assignedTasks()
-            ->whereHas('workspace', fn($w) => $w->where('admin_id', $adminId))
-            ->exists();
-
-        if (!$isUserOwned) {
-            return redirect()->route('users.index')->with('error', 'User ini tidak termasuk workspace Anda.');
+        // ✅ Pastikan user memiliki kategori yang sama dengan admin
+        if ($user->category_id !== $adminCategoryId) {
+            return redirect()->route('users.index')->with('error', 'User ini tidak termasuk dalam kategori Anda.');
         }
 
         $tasks = $user->assignedTasks()
@@ -275,5 +270,82 @@ class UserController extends Controller
             'user', 'tasks', 'totalTasks', 'completedTasks', 'pendingTasks',
             'todoTasks', 'diligenceScore', 'completionRate'
         ));
+    }
+
+    /**
+     * SUPER ADMIN: Tampilkan semua admin dari seluruh kategori (GLOBAL)
+     */
+    public function superAdminIndex(Request $request)
+    {
+        $sortBy = $request->get('sort_by', 'created_at');
+        $search = $request->get('search');
+        $categoryFilter = $request->get('category_filter');
+
+        // ✅ Ambil SEMUA admin dengan role 'admin' (tidak termasuk user biasa)
+        $query = User::where('role', 'admin');
+
+        // Filter berdasarkan kategori (opsional)
+        if ($categoryFilter) {
+            $query->where('category_id', $categoryFilter);
+        }
+
+        // Filter pencarian
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        // Sorting
+        switch ($sortBy) {
+            case 'name':
+                $admins = $query->orderBy('name', 'asc')->paginate(15);
+                break;
+            case 'email':
+                $admins = $query->orderBy('email', 'asc')->paginate(15);
+                break;
+            default:
+                $admins = $query->orderBy('created_at', 'desc')->paginate(15);
+        }
+
+        $admins->appends(['sort_by' => $sortBy, 'search' => $search, 'category_filter' => $categoryFilter]);
+
+        // Ambil semua kategori untuk filter
+        $categories = \App\Models\Category::all();
+
+        return view('superadmin.pengguna.index', compact('admins', 'sortBy', 'search', 'categoryFilter', 'categories'));
+    }
+
+    /**
+     * SUPER ADMIN: Hapus admin (GLOBAL)
+     */
+    public function superAdminDestroy(User $user)
+    {
+        // Cegah hapus akun superadmin
+        if ($user->role === 'superadmin') {
+            return back()->with('error', 'Tidak dapat menghapus akun Super Admin.');
+        }
+
+        // Cegah hapus akun user biasa dari halaman ini
+        if ($user->role === 'user') {
+            return back()->with('error', 'Tidak dapat menghapus user biasa dari halaman ini.');
+        }
+
+        $user->delete();
+        return back()->with('success', 'Admin berhasil dihapus dari sistem.');
+    }
+
+    /**
+     * SUPER ADMIN: Show detail admin (GLOBAL)
+     */
+    public function superAdminShow(User $user)
+    {
+        // Pastikan hanya admin yang bisa dilihat detailnya
+        if ($user->role !== 'admin') {
+            return redirect()->route('pengguna.index')->with('error', 'Akses ditolak.');
+        }
+
+        return view('superadmin.pengguna.show', compact('user'));
     }
 }

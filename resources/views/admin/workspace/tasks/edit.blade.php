@@ -122,37 +122,65 @@
                 <label class="block text-sm font-medium text-gray-700 mb-2">
                     Berikan Kepada <span class="text-red-500">*</span>
                 </label>
+                
+                <!-- Info Badge Kategori -->
+                <div class="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div class="flex items-center gap-2 text-sm">
+                        <svg class="w-4 h-4 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <span class="text-blue-800">
+                            Menampilkan pengguna kategori: <span class="font-bold">{{ $categoryName }}</span>
+                        </span>
+                    </div>
+                </div>
 
                 <div class="mb-3">
-                    <label class="flex items-center gap-2 cursor-pointer">
+                    <label class="flex items-center gap-2 cursor-pointer p-3 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors">
                         <input type="checkbox" id="assign_to_all" onchange="toggleUserSelection(this)"
-                               class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
-                        <span class="text-sm text-gray-700">Berikan ke semua pengguna</span>
+                            class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                        <div class="flex-1">
+                            <span class="text-sm font-medium text-gray-900">Berikan ke semua tim {{ $categoryName }}</span>
+                            <p class="text-xs text-gray-600 mt-0.5">Tugaskan ke {{ $users->count() }} pengguna yang terdaftar</p>
+                        </div>
                     </label>
                 </div>
 
+                @if($users->count() > 0)
                 <div id="user-selection" class="border border-gray-300 rounded-lg p-4 max-h-60 overflow-y-auto">
+                    <div class="mb-2 pb-2 border-b border-gray-200">
+                        <p class="text-xs font-semibold text-gray-600 uppercase">{{ $users->count() }} Pengguna Tersedia</p>
+                    </div>
                     @foreach($users as $user)
                     <label class="flex items-center gap-2 py-2 hover:bg-gray-50 px-2 rounded cursor-pointer">
                         <input type="checkbox" 
-                               name="user_ids[]" 
-                               value="{{ $user->id }}"
-                               {{ $task->assignedUsers->contains($user->id) ? 'checked' : '' }}
-                               class="user-checkbox w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                            name="user_ids[]" 
+                            value="{{ $user->id }}"
+                            {{ $task->assignedUsers->contains($user->id) ? 'checked' : '' }}
+                            class="user-checkbox w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
                         <div class="flex items-center gap-2 flex-1">
-                            <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center">
+                            <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
                                 <span class="text-xs font-semibold text-indigo-600">
                                     {{ strtoupper(substr($user->name, 0, 1)) }}
                                 </span>
                             </div>
-                            <div>
-                                <div class="text-sm font-medium text-gray-900">{{ $user->name }}</div>
-                                <div class="text-xs text-gray-500">{{ $user->email }}</div>
+                            <div class="min-w-0 flex-1">
+                                <div class="text-sm font-medium text-gray-900 truncate">{{ $user->name }}</div>
+                                <div class="text-xs text-gray-500 truncate">{{ $user->email }}</div>
                             </div>
                         </div>
                     </label>
                     @endforeach
                 </div>
+                @else
+                <div class="border border-gray-300 rounded-lg p-6 text-center bg-gray-50">
+                    <svg class="w-12 h-12 text-gray-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                    <p class="text-sm font-medium text-gray-900 mb-1">Tidak ada pengguna tersedia</p>
+                    <p class="text-xs text-gray-600">Belum ada pengguna dalam kategori {{ $categoryName }}</p>
+                </div>
+                @endif
             </div>
 
             <!-- Status Tersembunyi -->

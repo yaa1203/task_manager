@@ -154,6 +154,11 @@ Route::middleware('guest')->group(function () {
 Route::middleware(['auth', 'role:superadmin'])->group(function () {
     Route::get('/superadmin/dashboard', [DashboardController::class, 'superAdminDashboard'])->name('superadmin.dashboard');
     Route::resource('categories',SuperAdminCategoryController::class);
+
+    // User Management (Global)
+    Route::get('/pengguna', [UserController::class, 'superAdminIndex'])->name('pengguna.index');
+    Route::get('/pengguna/{user}', [UserController::class, 'superAdminShow'])->name('pengguna.show');
+    Route::delete('/pengguna/{user}', [UserController::class, 'superAdminDestroy'])->name('pengguna.destroy');
 });
 // =============================================================
 // 🔸 Profile Routes
