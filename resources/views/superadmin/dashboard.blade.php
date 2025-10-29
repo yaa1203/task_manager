@@ -49,7 +49,7 @@
                 <span class="text-sm font-semibold text-gray-700 group-hover:text-blue-600 text-center">Kelola Kategori</span>
             </a>
 
-            <a href="#" 
+            <a href="{{ route('space.index') }}" 
                class="group flex flex-col items-center justify-center gap-2 p-4 sm:p-6 bg-white border-2 border-gray-200 rounded-xl hover:border-indigo-500 hover:shadow-lg transition-all duration-200">
                 <div class="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                     <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -59,7 +59,7 @@
                 <span class="text-sm font-semibold text-gray-700 group-hover:text-indigo-600 text-center">Semua Workspace</span>
             </a>
 
-            <a href="#" 
+            <a href="#analytics" 
                class="group flex flex-col items-center justify-center gap-2 p-4 sm:p-6 bg-white border-2 border-gray-200 rounded-xl hover:border-orange-500 hover:shadow-lg transition-all duration-200">
                 <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                     <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -172,7 +172,7 @@
                 </p>
             </div>
             <div class="px-6 py-3 bg-gray-50 border-t border-gray-100">
-                <a href="#" class="text-sm font-medium text-green-600 hover:text-green-700 flex items-center gap-1">
+                <a href="{{ route('space.index') }}" class="text-sm font-medium text-green-600 hover:text-green-700 flex items-center gap-1">
                     Lihat workspace
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
@@ -184,7 +184,7 @@
 
     {{-- Chart & Recent Activity --}}
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {{-- Task Completion Chart --}}
+        {{-- Task Status Chart untuk Super Admin --}}
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
                 <div class="flex items-center justify-between">
@@ -195,14 +195,30 @@
                             </svg>
                         </div>
                         <div>
-                            <h2 class="text-base sm:text-lg font-semibold text-gray-900">Tugas Selesai</h2>
-                            <p class="text-xs sm:text-sm text-gray-600">Berdasarkan role pengguna</p>
+                            <h2 class="text-base sm:text-lg font-semibold text-gray-900">Status Tugas Global</h2>
+                            <p class="text-xs sm:text-sm text-gray-600">Selesai, Belum Selesai, dan Terlambat</p>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="p-6">
-                <canvas id="taskCompletionChart" class="w-full" style="max-height: 300px;"></canvas>
+                <canvas id="taskStatusChart" class="w-full" style="max-height: 300px;"></canvas>
+                
+                {{-- Legend with Statistics --}}
+                <div class="grid grid-cols-3 gap-4 mt-6">
+                    <div class="text-center p-3 bg-green-50 rounded-lg">
+                        <div class="text-2xl font-bold text-green-600" id="completedCount">{{ $completedTasks ?? 0 }}</div>
+                        <div class="text-xs text-gray-600 mt-1">Selesai</div>
+                    </div>
+                    <div class="text-center p-3 bg-blue-50 rounded-lg">
+                        <div class="text-2xl font-bold text-blue-600" id="pendingCount">{{ $pendingTasks ?? 0 }}</div>
+                        <div class="text-xs text-gray-600 mt-1">Belum Selesai</div>
+                    </div>
+                    <div class="text-center p-3 bg-red-50 rounded-lg">
+                        <div class="text-2xl font-bold text-red-600" id="overdueCount">{{ $overdueTasks ?? 0 }}</div>
+                        <div class="text-xs text-gray-600 mt-1">Terlambat</div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -267,7 +283,7 @@
                         <p class="text-xs sm:text-sm text-gray-600">Daftar pengguna yang baru bergabung</p>
                     </div>
                 </div>
-                <a href="#" class="text-xs sm:text-sm text-green-600 hover:text-green-700 font-medium transition">
+                <a href="{{ route('pengguna.admin') }}" class="text-xs sm:text-sm text-green-600 hover:text-green-700 font-medium transition">
                     Lihat Semua →
                 </a>
             </div>
@@ -320,7 +336,16 @@
                             {{ $user->created_at->diffForHumans() }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-left text-sm font-medium">
-                            <a href="#" class="text-purple-600 hover:text-purple-900">Detail</a>
+                            {{-- Link detail yang disesuaikan dengan role --}}
+                            @if($user->role === 'admin' || $user->role === 'superadmin')
+                                <a href="{{ route('pengguna.admin', ['id' => $user->id]) }}" class="text-purple-600 hover:text-purple-900">
+                                    Detail
+                                </a>
+                            @else
+                                <a href="{{ route('pengguna.user', ['id' => $user->id]) }}" class="text-green-600 hover:text-green-900">
+                                    Detail
+                                </a>
+                            @endif
                         </td>
                     </tr>
                     @empty
@@ -330,7 +355,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
                             </svg>
                             <p class="text-sm text-gray-500">Tidak ada pengguna ditemukan</p>
-                        </td>
+                        </tr>
                     </tr>
                     @endforelse
                 </tbody>
@@ -342,113 +367,75 @@
 {{-- Chart.js --}}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // Task Completion Chart
-    const ctx = document.getElementById('taskCompletionChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: ['Users', 'Admins', 'Super Admins'],
-            datasets: [{
-                label: 'Tugas Selesai',
-                data: [
-                    {{ $completedTasks['users'] ?? 0 }},
-                    {{ $completedTasks['admins'] ?? 0 }},
-                    {{ $completedTasks['superadmins'] ?? 0 }}
-                ],
-                backgroundColor: [
-                    'rgba(34, 197, 94, 0.8)',
-                    'rgba(59, 130, 246, 0.8)',
-                    'rgba(168, 85, 247, 0.8)'
-                ],
-                borderColor: [
-                    'rgb(34, 197, 94)',
-                    'rgb(59, 130, 246)',
-                    'rgb(168, 85, 247)'
-                ],
-                borderWidth: 2,
-                borderRadius: 8,
-                barThickness: 60
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { 
-                    display: true,
-                    position: 'top',
-                    labels: {
-                        font: {
-                            size: 12,
-                            family: "'Inter', sans-serif"
+document.addEventListener('DOMContentLoaded', function() {
+    // Task Status Chart for Super Admin
+    const ctx = document.getElementById('taskStatusChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Selesai', 'Belum Selesai', 'Terlambat'],
+                datasets: [{
+                    data: [
+                        {{ $completedTasks ?? 0 }},
+                        {{ $pendingTasks ?? 0 }},
+                        {{ $overdueTasks ?? 0 }}
+                    ],
+                    backgroundColor: [
+                        '#10b981', // Green for completed
+                        '#3b82f6', // Blue for pending
+                        '#ef4444'  // Red for overdue
+                    ],
+                    borderColor: '#ffffff',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            font: {
+                                size: 12,
+                                family: "'Inter', sans-serif"
+                            },
+                            usePointStyle: true,
+                            pointStyle: 'circle'
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleFont: {
+                            size: 13,
+                            weight: 'bold'
                         },
-                        padding: 15,
-                        usePointStyle: true,
-                        pointStyle: 'circle'
-                    }
-                },
-                tooltip: { 
-                    mode: 'index', 
-                    intersect: false,
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    titleFont: {
-                        size: 13,
-                        weight: 'bold'
-                    },
-                    bodyFont: {
-                        size: 12
-                    },
-                    padding: 12,
-                    cornerRadius: 8,
-                    displayColors: true,
-                    callbacks: {
-                        label: function(context) {
-                            return context.dataset.label + ': ' + context.parsed.y + ' tugas';
+                        bodyFont: {
+                            size: 12
+                        },
+                        padding: 12,
+                        cornerRadius: 8,
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                return `${label}: ${value} (${percentage}%)`;
+                            }
                         }
                     }
-                }
-            },
-            scales: {
-                y: { 
-                    beginAtZero: true, 
-                    ticks: { 
-                        stepSize: 1,
-                        font: {
-                            size: 11
-                        },
-                        color: '#6B7280'
-                    },
-                    grid: {
-                        color: 'rgba(229, 231, 235, 0.5)',
-                        drawBorder: false
-                    },
-                    border: {
-                        display: false
-                    }
                 },
-                x: {
-                    ticks: {
-                        font: {
-                            size: 11,
-                            weight: '500'
-                        },
-                        color: '#374151'
-                    },
-                    grid: {
-                        display: false,
-                        drawBorder: false
-                    },
-                    border: {
-                        display: false
-                    }
+                animation: {
+                    duration: 1000,
+                    easing: 'easeInOutQuart'
                 }
-            },
-            animation: {
-                duration: 1000,
-                easing: 'easeInOutQuart'
             }
-        }
-    });
+        });
+    }
+});
 </script>
 
 <style>

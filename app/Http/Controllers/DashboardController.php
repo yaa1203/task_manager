@@ -172,6 +172,7 @@ class DashboardController extends Controller
     public function superAdminDashboard()
     {
         $totalUsers = User::where('role', 'user')->count();
+        
         // Hitung total admin dan superadmin
         $totalAdmins = User::where('role', 'admin')->count();
         $totalSuperAdmins = User::where('role', 'superadmin')->count();
@@ -185,22 +186,34 @@ class DashboardController extends Controller
         
         // Ambil admin dan superadmin terbaru (tidak termasuk superadmin yang sedang login)
         $recentAdmins = User::whereIn('role', ['admin', 'superadmin'])
-                             ->where('id', '!=', auth()->id())
-                             ->latest()
-                             ->take(5)
-                             ->get();
+                            ->where('id', '!=', auth()->id())
+                            ->latest()
+                            ->take(5)
+                            ->get();
         
-        $recentUsers = User::latest()->take(5)->get();
-             
-        // Hitung tugas selesai untuk admin dan superadmin
-        $completedTasks = [
-            'admins' => User::where('role', 'admin')->get()->sum(function($user) {
-                return $user->completed_tasks_count ?? 0;
-            }),
-            'superadmins' => User::where('role', 'superadmin')->get()->sum(function($user) {
-                return $user->completed_tasks_count ?? 0;
-            }),
-        ];
+        $recentUsers = User::latest()->take(6)->get();
+        
+        // ✅ HITUNG STATUS TUGAS UNTUK CHART (SEMUA TUGAS DI SISTEM)
+        $now = Carbon::now();
+        
+        // Tugas yang sudah diselesaikan (ada submission dari setidaknya 1 user)
+        $completedTasks = Task::whereHas('submissions')
+            ->distinct('id')
+            ->count();
+        
+        // Tugas yang terlambat (belum ada submission dan sudah lewat due_date)
+        $overdueTasks = Task::whereDoesntHave('submissions')
+            ->whereNotNull('due_date')
+            ->where('due_date', '<', $now)
+            ->count();
+        
+        // Tugas belum selesai (belum ada submission dan belum lewat due_date atau tanpa due_date)
+        $pendingTasks = Task::whereDoesntHave('submissions')
+            ->where(function($q) use ($now) {
+                $q->whereNull('due_date')
+                ->orWhere('due_date', '>=', $now);
+            })
+            ->count();
         
         return view('superadmin.dashboard', compact(
             'totalAdmins',
@@ -211,7 +224,9 @@ class DashboardController extends Controller
             'totalCategories',
             'recentAdmins',
             'recentUsers',
-            'completedTasks'
+            'completedTasks',
+            'pendingTasks',
+            'overdueTasks'
         ));
     }
 }

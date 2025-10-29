@@ -41,6 +41,11 @@ class Workspace extends Model
         return $this->hasMany(Task::class);
     }
 
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+
     // Scopes
     public function scopeActive($query)
     {

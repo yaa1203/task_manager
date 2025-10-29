@@ -2,6 +2,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Workspace;
+use App\Models\Category;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -790,5 +791,113 @@ class WorkspaceController extends Controller
             });
 
         return view('calendar.index', compact('tasks'));
+    }
+
+    /**
+     * Superadmin workspace index - Show all workspaces from all admins
+     */
+    public function superadminIndex(Request $request)
+    {
+        $search = $request->input('search');
+        $sortBy = $request->input('sort_by', 'created_at');
+        $archived = $request->input('archived', 'false');
+        
+        $query = Workspace::withCount(['tasks'])
+            ->with(['admin.category']) // Load category relationship
+            ->latest();
+        
+        // Apply search filter
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                ->orWhereHas('admin', function($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                });
+            });
+        }
+        
+        // Apply archive filter
+        if ($archived === 'true') {
+            $query->where('is_archived', true);
+        } elseif ($archived === 'false') {
+            $query->where('is_archived', false);
+        }
+        
+        // Apply sorting
+        switch ($sortBy) {
+            case 'name':
+                $query->orderBy('name');
+                break;
+            case 'updated_at':
+                $query->orderBy('updated_at', 'desc');
+                break;
+            default:
+                $query->orderBy('created_at', 'desc');
+        }
+        
+        $workspaces = $query->paginate(15);
+        
+        // Get categories with counts
+        $categories = \App\Models\Category::withCount([
+            'users as admins_count' => function($query) {
+                $query->where('role', 'admin');
+            }
+        ])->get();
+        
+        // Calculate workspace and task counts for each category
+        foreach ($categories as $category) {
+            $category->workspaces_count = Workspace::whereHas('admin', function($q) use ($category) {
+                $q->where('category_id', $category->id);
+            })->count();
+            
+            $category->tasks_count = Task::whereHas('workspace.admin', function($q) use ($category) {
+                $q->where('category_id', $category->id);
+            })->count();
+        }
+        
+        return view('superadmin.space.index', compact('workspaces', 'categories', 'search', 'sortBy', 'archived'));
+    }
+
+    /**
+     * Superadmin workspace detail - Show workspace details from any admin
+     */
+    public function superadminShow(Workspace $workspace)
+    {
+        // Load workspace with related data
+        $workspace->load(['admin', 'tasks.assignedUsers', 'tasks.submissions']);
+        
+        // Get all users for task assignment
+        $users = User::where('role', 'user')->get();
+
+        return view('superadmin.space.show', compact('workspace', 'users'));
+    }
+
+    /**
+     * Superadmin toggle archive workspace
+     */
+    public function superadminToggleArchive(Workspace $workspace)
+    {
+        $workspace->update([
+            'is_archived' => !$workspace->is_archived
+        ]);
+
+        $message = $workspace->is_archived 
+            ? 'Workspace archived successfully!' 
+            : 'Workspace restored successfully!';
+
+        return redirect()->route('space.index')
+            ->with('success', $message);
+    }
+
+    /**
+     * Superadmin delete workspace
+     */
+    public function superadminDestroy(Workspace $workspace)
+    {
+        $workspace->delete();
+
+        return redirect()->route('space.index')
+            ->with('success', 'Workspace deleted successfully!');
     }
 }

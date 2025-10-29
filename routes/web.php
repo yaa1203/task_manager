@@ -163,6 +163,11 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
     Route::get('/pengguna/user', [UserController::class, 'superUserIndex'])->name('pengguna.user');
     Route::get('/pengguna/user/{user}', [UserController::class, 'superUserShow'])->name('pengguna.user.show');
     Route::delete('/pengguna/user/{user}', [UserController::class, 'superUserDestroy'])->name('pengguna.user.destroy');
+
+    Route::get('/space', [WorkspaceController::class, 'superadminIndex'])->name('space.index');
+    Route::get('/space/{workspace}', [WorkspaceController::class, 'superadminShow'])->name('space.show');
+    Route::post('/space/{workspace}/toggle-archive', [WorkspaceController::class, 'superadminToggleArchive'])->name('space.toggle-archive');
+    Route::delete('/space/{workspace}', [WorkspaceController::class, 'superadminDestroy'])->name('space.destroy');
 });
 // =============================================================
 // 🔸 Profile Routes

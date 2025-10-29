@@ -13,13 +13,23 @@ class Category extends Model
 
 
     public function users()
-{
-    return $this->hasMany(User::class);
-}
+    {
+        return $this->hasMany(User::class);
+    }
 
- public function userUsers()
+    public function userUsers()
     {
         return $this->hasMany(User::class, 'category_id')->where('role', 'user');
+    }
+
+    public function workspaces()
+    {
+        return $this->hasManyThrough(Workspace::class, User::class);
+    }
+
+    public function tasks()
+    {
+        return $this->hasManyThrough(Task::class, User::class);
     }
 
     // Relasi hanya ke admin
