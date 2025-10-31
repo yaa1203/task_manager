@@ -39,6 +39,16 @@
                 <span class="text-sm font-semibold text-gray-700 group-hover:text-purple-600 text-center">Kelola Admin</span>
             </a>
 
+            <a href="{{ route('pengguna.user') }}" 
+               class="group flex flex-col items-center justify-center gap-2 p-4 sm:p-6 bg-white border-2 border-gray-200 rounded-xl hover:border-indigo-500 hover:shadow-lg transition-all duration-200">
+                <div class="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                    </svg>
+                </div>
+                <span class="text-sm font-semibold text-gray-700 group-hover:text-indigo-600 text-center">Kelola User</span>
+            </a>
+
             <a href="{{ route('categories.index') }}" 
                class="group flex flex-col items-center justify-center gap-2 p-4 sm:p-6 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-lg transition-all duration-200">
                 <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -57,16 +67,6 @@
                     </svg>
                 </div>
                 <span class="text-sm font-semibold text-gray-700 group-hover:text-indigo-600 text-center">Semua Workspace</span>
-            </a>
-
-            <a href="#analytics" 
-               class="group flex flex-col items-center justify-center gap-2 p-4 sm:p-6 bg-white border-2 border-gray-200 rounded-xl hover:border-orange-500 hover:shadow-lg transition-all duration-200">
-                <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                    </svg>
-                </div>
-                <span class="text-sm font-semibold text-gray-700 group-hover:text-orange-600 text-center">Analitik Global</span>
             </a>
         </div>
     </div>
@@ -100,26 +100,26 @@
             </div>
         </div>
 
-        {{-- Kartu Total Super Admins --}}
+        {{-- Kartu Total Users (menggantikan Total Super Admins) --}}
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
             <div class="p-6">
                 <div class="flex items-center justify-between mb-4">
                     <div class="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center">
                         <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
                         </svg>
                     </div>
-                    <span class="px-3 py-1 bg-indigo-50 text-indigo-700 text-xs font-semibold rounded-full">Super</span>
+                    <span class="px-3 py-1 bg-indigo-50 text-indigo-700 text-xs font-semibold rounded-full">Users</span>
                 </div>
-                <h3 class="text-sm font-medium text-gray-600 mb-1">Total Super Admins</h3>
-                <p class="text-3xl font-bold text-gray-900 mb-1">{{ $totalSuperAdmins }}</p>
+                <h3 class="text-sm font-medium text-gray-600 mb-1">Total Users</h3>
+                <p class="text-3xl font-bold text-gray-900 mb-1">{{ $totalUsers }}</p>
                 <p class="text-sm text-gray-500">
-                    Super administrator
+                    Pengguna biasa
                 </p>
             </div>
             <div class="px-6 py-3 bg-gray-50 border-t border-gray-100">
-                <a href="{{ route('pengguna.admin') }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1">
-                    Lihat semua
+                <a href="{{ route('pengguna.user') }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1">
+                    Lihat semua users
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                     </svg>

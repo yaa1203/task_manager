@@ -217,7 +217,7 @@ class DashboardController extends Controller
         
         return view('superadmin.dashboard', compact(
             'totalAdmins',
-            'totalUsers',
+            'totalUsers',  // ✅ Ini sudah benar untuk Total Users
             'totalSuperAdmins',
             'totalAdminsAndSuperAdmins',
             'totalWorkspaces',
