@@ -160,22 +160,26 @@
     <script>
         // Tambahkan skrip ini ke analytics index.blade Anda, ganti fungsi loadAnalytics yang ada
 
+        // Fixed Analytics Script - Prevents Auto Refresh Issues
         let charts = { task: null, workspace: null };
         let retryCount = 0;
         const MAX_RETRIES = 3;
+        let isLoading = false;
+        let lastLoadTime = 0;
+        const MIN_LOAD_INTERVAL = 5000; // Minimum 5 seconds between loads
+
+        // Prevent multiple initializations
+        let isInitialized = false;
 
         document.addEventListener("DOMContentLoaded", function() {
-            console.log('Halaman analitik dimuat');
-            
-            // Hapus data analitik yang di-cache saat memuat halaman
-            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-                navigator.serviceWorker.controller.postMessage({ 
-                    type: 'CLEAR_ANALYTICS_CACHE' 
-                });
+            if (isInitialized) {
+                console.log('Already initialized, skipping...');
+                return;
             }
+            isInitialized = true;
             
-            // Sedikit penundaan untuk memastikan service worker siap
-            setTimeout(() => loadAnalytics(), 100);
+            console.log('Analytics page loaded');
+            loadAnalytics();
         });
 
         function toggleLoading(show = true) {
@@ -192,7 +196,7 @@
                 errorMessage.textContent = message;
                 errorAlert.classList.remove('hidden');
             }
-            console.error('Error Analitik:', message);
+            console.error('Analytics Error:', message);
         }
 
         function hideError() {
@@ -203,14 +207,28 @@
         }
 
         async function loadAnalytics() {
+            // Prevent concurrent loads
+            if (isLoading) {
+                console.log('Already loading, skipping...');
+                return;
+            }
+
+            // Rate limiting - prevent too frequent loads
+            const now = Date.now();
+            if (now - lastLoadTime < MIN_LOAD_INTERVAL) {
+                console.log('Too soon to reload, skipping...');
+                return;
+            }
+            lastLoadTime = now;
+
+            isLoading = true;
             toggleLoading(true);
             hideError();
             
             const url = `${window.location.origin}/analytics/data`;
-            console.log('Mengambil data analitik dari:', url);
+            console.log('Fetching analytics data from:', url);
 
             try {
-                // Tambahkan timestamp untuk mencegah caching
                 const timestamp = new Date().getTime();
                 const fetchUrl = `${url}?t=${timestamp}`;
                 
@@ -225,48 +243,50 @@
                         'Expires': '0'
                     },
                     credentials: 'same-origin',
-                    cache: 'no-store' // Paksa data fresh
+                    cache: 'no-store'
                 });
 
-                console.log('Status respons:', response.status);
-                console.log('Header respons:', [...response.headers.entries()]);
+                console.log('Response status:', response.status);
 
                 if (!response.ok) {
                     const errorText = await response.text();
-                    console.error('Error respons:', errorText);
+                    console.error('Error response:', errorText);
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
                 const contentType = response.headers.get('content-type');
                 if (!contentType || !contentType.includes('application/json')) {
-                    throw new Error('Respons bukan JSON');
+                    throw new Error('Response is not JSON');
                 }
 
                 const data = await response.json();
-                console.log('Data analitik diterima:', data);
+                console.log('Analytics data received:', data);
 
-                // Validasi struktur data
                 if (!data || typeof data !== 'object') {
-                    throw new Error('Struktur data tidak valid');
+                    throw new Error('Invalid data structure');
                 }
 
                 updateUI(data);
-                retryCount = 0; // Reset hitungan percobaan pada keberhasilan
+                retryCount = 0;
                 toggleLoading(false);
 
             } catch (error) {
-                console.error('Error memuat analitik:', error);
+                console.error('Error loading analytics:', error);
                 toggleLoading(false);
                 
                 if (retryCount < MAX_RETRIES) {
                     retryCount++;
-                    showError(`Gagal memuat data. Mencoba lagi... (${retryCount}/${MAX_RETRIES})`);
-                    setTimeout(() => loadAnalytics(), 2000 * retryCount);
+                    showError(`Failed to load data. Retrying... (${retryCount}/${MAX_RETRIES})`);
+                    setTimeout(() => {
+                        isLoading = false;
+                        loadAnalytics();
+                    }, 2000 * retryCount);
                 } else {
-                    showError('Gagal memuat data analitik. Periksa koneksi Anda dan coba lagi.');
-                    // Tampilkan status default/kosong
+                    showError('Failed to load analytics data. Check your connection and try again.');
                     updateUI(getDefaultData());
                 }
+            } finally {
+                isLoading = false;
             }
         }
 
@@ -283,19 +303,16 @@
             try {
                 const { tasks, workspaces, weekly_trend, summary } = data;
                 
-                // Dapatkan jumlah tugas dengan aman
                 const done = parseInt(tasks?.done) || 0;
                 const unfinished = parseInt(tasks?.unfinished) || 0;
                 const overdue = parseInt(tasks?.overdue) || 0;
                 const total = done + unfinished + overdue;
                 
-                // Hitung tingkat
                 const completionRate = parseFloat(summary?.completion_rate) || 0;
                 const overdueRate = total > 0 ? Math.round((overdue / total) * 100) : 0;
                 const totalWorkspaces = parseInt(workspaces?.total) || 0;
                 const avgTasks = totalWorkspaces > 0 ? (total / totalWorkspaces).toFixed(1) : '0.0';
                 
-                // Perbarui semua elemen dengan aman
                 const updates = {
                     'total-tasks': total,
                     'completed-tasks': done,
@@ -317,29 +334,26 @@
                     }
                 });
 
-                // Perbarui progress bar
                 const completionBar = document.getElementById('completion-bar');
                 const overdueBar = document.getElementById('overdue-rate-bar');
                 
                 if (completionBar) completionBar.style.width = completionRate + '%';
                 if (overdueBar) overdueBar.style.width = overdueRate + '%';
                 
-                // Perbarui timestamp
                 const timestamp = document.getElementById('chart-update-time');
                 if (timestamp) {
-                    timestamp.textContent = 'Diperbarui ' + new Date().toLocaleTimeString('id-ID', { 
+                    timestamp.textContent = 'Updated ' + new Date().toLocaleTimeString('id-ID', { 
                         hour: '2-digit', 
                         minute: '2-digit' 
                     });
                 }
                 
-                // Perbarui grafik
                 updateCharts(data);
                 
-                console.log('UI berhasil diperbarui');
+                console.log('UI successfully updated');
             } catch (error) {
-                console.error('Error memperbarui UI:', error);
-                showError('Error menampilkan data: ' + error.message);
+                console.error('Error updating UI:', error);
+                showError('Error displaying data: ' + error.message);
             }
         }
 
@@ -352,27 +366,28 @@
                 ];
                 const workspaceData = Array.isArray(data.workspaces?.breakdown) ? data.workspaces.breakdown : [];
 
-                // Pengaturan responsif
                 const isMobile = window.innerWidth < 640;
                 const fontSize = isMobile ? 9 : 11;
                 const legendPadding = isMobile ? 5 : 10;
 
-                // Sembunyikan spinner loading
                 const taskLoading = document.getElementById('task-chart-loading');
                 const workspaceLoading = document.getElementById('workspace-chart-loading');
                 if (taskLoading) taskLoading.style.display = 'none';
                 if (workspaceLoading) workspaceLoading.style.display = 'none';
 
-                // Grafik Distribusi Tugas
+                // Task Distribution Chart
                 const taskCanvas = document.getElementById('taskChart');
                 if (taskCanvas) {
-                    if (charts.task) charts.task.destroy();
+                    if (charts.task) {
+                        charts.task.destroy();
+                        charts.task = null;
+                    }
                     
                     const ctx = taskCanvas.getContext('2d');
                     charts.task = new Chart(ctx, {
                         type: 'doughnut',
                         data: {
-                            labels: ['Selesai', 'Belum Selesai', 'Terlambat'],
+                            labels: ['Completed', 'Unfinished', 'Overdue'],
                             datasets: [{
                                 data: taskData,
                                 backgroundColor: ['#10b981', '#6b7280', '#ef4444'],
@@ -406,10 +421,13 @@
                     });
                 }
 
-                // Grafik Ruang Kerja
+                // Workspace Chart
                 const workspaceCanvas = document.getElementById('workspaceChart');
                 if (workspaceCanvas) {
-                    if (charts.workspace) charts.workspace.destroy();
+                    if (charts.workspace) {
+                        charts.workspace.destroy();
+                        charts.workspace = null;
+                    }
                     
                     const ctx = workspaceCanvas.getContext('2d');
                     
@@ -418,12 +436,12 @@
                             type: 'bar',
                             data: {
                                 labels: workspaceData.map(w => {
-                                    const name = w.name || 'Tidak Diketahui';
+                                    const name = w.name || 'Unknown';
                                     const maxLen = isMobile ? 10 : 15;
                                     return name.length > maxLen ? name.substring(0, maxLen) + '...' : name;
                                 }),
                                 datasets: [{
-                                    label: 'Tugas',
+                                    label: 'Tasks',
                                     data: workspaceData.map(w => parseInt(w.tasks) || 0),
                                     backgroundColor: '#8b5cf6',
                                     borderRadius: isMobile ? 4 : 8
@@ -436,7 +454,7 @@
                                     legend: { display: false },
                                     tooltip: {
                                         callbacks: {
-                                            label: function(ctx) { return `${ctx.parsed.y} tugas`; }
+                                            label: function(ctx) { return `${ctx.parsed.y} tasks`; }
                                         }
                                     }
                                 },
@@ -459,75 +477,72 @@
                             }
                         });
                     } else {
-                        // Tampilkan state kosong
                         ctx.clearRect(0, 0, workspaceCanvas.width, workspaceCanvas.height);
                         ctx.font = `${isMobile ? 12 : 14}px sans-serif`;
                         ctx.fillStyle = '#9ca3af';
                         ctx.textAlign = 'center';
-                        ctx.fillText('Tidak ada data ruang kerja', workspaceCanvas.width / 2, workspaceCanvas.height / 2);
+                        ctx.fillText('No workspace data', workspaceCanvas.width / 2, workspaceCanvas.height / 2);
                     }
                 }
                 
-                console.log('Grafik berhasil diperbarui');
+                console.log('Charts successfully updated');
             } catch (error) {
-                console.error('Error memperbarui grafik:', error);
+                console.error('Error updating charts:', error);
             }
         }
 
         function refreshData() { 
-            console.log('Pembaruan manual dipicu');
+            console.log('Manual refresh triggered');
             retryCount = 0;
-            
-            // Hapus cache service worker untuk analitik
-            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-                navigator.serviceWorker.controller.postMessage({ 
-                    type: 'CLEAR_ANALYTICS_CACHE' 
-                });
-            }
-            
-            setTimeout(() => loadAnalytics(), 100);
+            lastLoadTime = 0; // Reset rate limit for manual refresh
+            isLoading = false; // Reset loading state
+            loadAnalytics();
         }
 
-        // Render ulang grafik saat ukuran window berubah
+        // Debounced resize handler - only re-render charts, don't reload data
         let resizeTimer;
         window.addEventListener('resize', function() {
             clearTimeout(resizeTimer);
             resizeTimer = setTimeout(function() {
                 if (charts.task || charts.workspace) {
-                    console.log('Ukuran window berubah, merender ulang grafik');
-                    loadAnalytics();
+                    console.log('Window resized, re-rendering charts');
+                    // Only re-render existing charts, don't fetch new data
+                    const taskCanvas = document.getElementById('taskChart');
+                    const workspaceCanvas = document.getElementById('workspaceChart');
+                    if (taskCanvas && charts.task) {
+                        charts.task.resize();
+                    }
+                    if (workspaceCanvas && charts.workspace) {
+                        charts.workspace.resize();
+                    }
                 }
             }, 250);
         });
 
-        // Handle perubahan visibilitas (saat pengguna kembali ke tab)
+        // REMOVED: Aggressive visibility change handler that was causing auto-refresh
+        // Only reload if page was hidden for more than 5 minutes
+        let pageHiddenTime = null;
         document.addEventListener('visibilitychange', function() {
-            if (!document.hidden) {
-                console.log('Halaman menjadi terlihat, memperbarui data');
-                
-                // Hapus cache dan muat ulang
-                if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-                    navigator.serviceWorker.controller.postMessage({ 
-                        type: 'CLEAR_ANALYTICS_CACHE' 
-                    });
+            if (document.hidden) {
+                pageHiddenTime = Date.now();
+            } else if (pageHiddenTime) {
+                const hiddenDuration = Date.now() - pageHiddenTime;
+                // Only reload if hidden for more than 5 minutes
+                if (hiddenDuration > 300000) {
+                    console.log('Page visible after long absence, refreshing data');
+                    isLoading = false;
+                    loadAnalytics();
                 }
-                
-                setTimeout(() => loadAnalytics(), 100);
+                pageHiddenTime = null;
             }
         });
 
-        // Handle event online
+        // REMOVED: Aggressive online event handler
+        // Only show message, don't auto-reload
         window.addEventListener('online', function() {
-            console.log('Koneksi dipulihkan, memperbarui analitik');
-            
-            // Hapus cache dan muat ulang
-            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-                navigator.serviceWorker.controller.postMessage({ 
-                    type: 'CLEAR_ANALYTICS_CACHE' 
-                });
-            }
-            
-            setTimeout(() => loadAnalytics(), 100);
+            console.log('Connection restored');
+            hideError();
+            // Don't auto-reload, let user manually refresh if needed
         });
     </script>
 
