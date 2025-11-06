@@ -1,10 +1,12 @@
 // Service Worker Version - update this when you want to force cache refresh
-const CACHE_VERSION = 'v1.0.6';
+const CACHE_VERSION = 'v1.0.7'; // Tingkatkan versi
 const CACHE_NAME = `taskapp-cache-${CACHE_VERSION}`;
 const DATA_CACHE_NAME = `taskapp-data-cache-${CACHE_VERSION}`;
 
 // Files to cache for offline access
 const urlsToCache = [
+  '/',
+  '/welcome',  // Tambahkan ini
   '/dashboard',
   '/admin/dashboard',
   '/tasks',
@@ -168,12 +170,25 @@ self.addEventListener('fetch', (event) => {
   // Handle root path redirect
   if (url.pathname === '/') {
     event.respondWith(
-      fetch(request)
-        .then(response => response)
-        .catch(() => {
-          return caches.match('/dashboard')
-            .then(cachedResponse => cachedResponse || caches.match('/offline'));
-        })
+      fetch(request, { 
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      })
+      .then(response => {
+        // Jangan cache root path
+        return response;
+      })
+      .catch(() => {
+        // Saat offline, coba ambil welcome page dari cache
+        return caches.match('/welcome')
+          .then(cachedResponse => {
+            return cachedResponse || caches.match('/offline');
+          });
+      })
     );
     return;
   }
@@ -420,8 +435,11 @@ self.addEventListener('message', (event) => {
       caches.keys().then((cacheNames) => {
         return Promise.all(
           cacheNames.map((cacheName) => {
-            console.log('[ServiceWorker] Clearing cache:', cacheName);
-            return caches.delete(cacheName);
+              // Hapus cache yang berisi halaman terautentikasi
+              if (cacheName.includes('taskapp-cache')) {
+                  console.log('[ServiceWorker] Clearing cache on logout:', cacheName);
+                  return caches.delete(cacheName);
+              }
           })
         );
       }).then(() => {

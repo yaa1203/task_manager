@@ -966,6 +966,64 @@
                     document.documentElement.style.setProperty('--vh', `${currentHeight * 0.01}px`);
                 }
             });
+            
+            // Tambahkan di bagian bawah halaman
+            document.addEventListener('DOMContentLoaded', function() {
+                // Periksa apakah pengguna baru saja logout
+                const hasLoggedOut = sessionStorage.getItem('loggedOut');
+                
+                if (hasLoggedOut === 'true') {
+                    // Bersihkan flag
+                    sessionStorage.removeItem('loggedOut');
+                    
+                    // Perbarui halaman untuk memastikan tidak ada cache
+                    window.location.reload();
+                }
+                
+                // Tangani logout
+                const logoutButtons = document.querySelectorAll('a[href*="logout"]');
+                logoutButtons.forEach(button => {
+                    button.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        
+                        // Tandai bahwa pengguna telah logout
+                        sessionStorage.setItem('loggedOut', 'true');
+                        
+                        // Kirim permintaan logout
+                        fetch(this.href, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                'Accept': 'application/json'
+                            },
+                            credentials: 'same-origin'
+                        })
+                        .then(response => {
+                            if (response.redirected) {
+                                window.location.href = response.url;
+                            } else {
+                                window.location.href = '/';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Logout error:', error);
+                            window.location.href = '/';
+                        });
+                    });
+                });
+                
+                // Periksa apakah ini adalah PWA yang baru diinstal
+                if (window.matchMedia('(display-mode: standalone)').matches && 
+                    !localStorage.getItem('pwa_installed')) {
+                    
+                    localStorage.setItem('pwa_installed', 'true');
+                    
+                    // Arahkan ke halaman welcome
+                    if (window.location.pathname !== '/' && !auth()->check()) {
+                        window.location.href = '/';
+                    }
+                }
+            });
         </script>
     </body>
 </html>
