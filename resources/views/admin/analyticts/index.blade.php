@@ -1,5 +1,3 @@
-
-
 @extends('admin.layouts.admin')
 
 @section('page-title', 'Dashboard Analitik')
@@ -13,83 +11,75 @@
                 <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Dashboard Analitik</h1>
                 <p class="text-sm sm:text-base text-gray-600">Tinjauan global tentang semua pengguna dan aktivitas</p>
             </div>
-            <div class="flex gap-2">
-                <button onclick="refreshData()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                    </svg>
-                    <span>Segarkan</span>
-                </button>
-            </div>
         </div>
     </div>
 
     {{-- Kartu Statistik --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-4 sm:mb-6 lg:mb-8">
         {{-- Kartu Total Pengguna --}}
-        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-            <div class="p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="bg-white rounded-lg sm:rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+            <div class="p-3 sm:p-4 lg:p-6">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 sm:mb-3 lg:mb-4">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-lg sm:rounded-xl flex items-center justify-center mb-2 sm:mb-0">
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
                         </svg>
                     </div>
-                    <span class="px-3 py-1 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full">Total</span>
+                    <span class="hidden sm:inline-flex px-2 sm:px-3 py-1 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full">Total</span>
                 </div>
-                <h3 class="text-sm font-medium text-gray-600 mb-1">Semua Pengguna</h3>
-                <p id="total-users" class="text-3xl font-bold text-gray-900">-</p>
+                <h3 class="text-xs sm:text-sm font-medium text-gray-600 mb-0.5 sm:mb-1 line-clamp-1">Semua Pengguna</h3>
+                <p id="total-users" class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">-</p>
             </div>
         </div>
 
         {{-- Kartu Total Tugas --}}
-        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-            <div class="p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center">
-                        <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="bg-white rounded-lg sm:rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+            <div class="p-3 sm:p-4 lg:p-6">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 sm:mb-3 lg:mb-4">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-indigo-100 rounded-lg sm:rounded-xl flex items-center justify-center mb-2 sm:mb-0">
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                         </svg>
                     </div>
-                    <span class="px-3 py-1 bg-indigo-50 text-indigo-700 text-xs font-semibold rounded-full">Semua</span>
+                    <span class="hidden sm:inline-flex px-2 sm:px-3 py-1 bg-indigo-50 text-indigo-700 text-xs font-semibold rounded-full">Semua</span>
                 </div>
-                <h3 class="text-sm font-medium text-gray-600 mb-1">Total Tugas</h3>
-                <p id="total-tasks" class="text-3xl font-bold text-gray-900">-</p>
+                <h3 class="text-xs sm:text-sm font-medium text-gray-600 mb-0.5 sm:mb-1 line-clamp-1">Total Tugas</h3>
+                <p id="total-tasks" class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">-</p>
             </div>
         </div>
 
         {{-- Kartu Tugas Selesai --}}
-        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-            <div class="p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="bg-white rounded-lg sm:rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+            <div class="p-3 sm:p-4 lg:p-6">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 sm:mb-3 lg:mb-4">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-lg sm:rounded-xl flex items-center justify-center mb-2 sm:mb-0">
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                     </div>
-                    <span class="px-3 py-1 bg-green-50 text-green-700 text-xs font-semibold rounded-full">Selesai</span>
+                    <span class="hidden sm:inline-flex px-2 sm:px-3 py-1 bg-green-50 text-green-700 text-xs font-semibold rounded-full whitespace-nowrap">Selesai</span>
                 </div>
-                <h3 class="text-sm font-medium text-gray-600 mb-1">Selesai</h3>
-                <p id="completed-tasks" class="text-3xl font-bold text-gray-900">-</p>
-                <p class="text-xs text-gray-500 mt-1">
+                <h3 class="text-xs sm:text-sm font-medium text-gray-600 mb-0.5 sm:mb-1 line-clamp-1">Selesai</h3>
+                <p id="completed-tasks" class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">-</p>
+                <p class="text-xs text-gray-500 mt-0.5 sm:mt-1">
                     <span id="completion-rate">-</span>% tingkat penyelesaian
                 </p>
             </div>
         </div>
 
         {{-- Kartu Tugas Terlambat --}}
-        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-            <div class="p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
-                        <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="bg-white rounded-lg sm:rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+            <div class="p-3 sm:p-4 lg:p-6">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 sm:mb-3 lg:mb-4">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-red-100 rounded-lg sm:rounded-xl flex items-center justify-center mb-2 sm:mb-0">
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                     </div>
-                    <span class="px-3 py-1 bg-red-50 text-red-700 text-xs font-semibold rounded-full">Peringatan</span>
+                    <span class="hidden sm:inline-flex px-2 sm:px-3 py-1 bg-red-50 text-red-700 text-xs font-semibold rounded-full whitespace-nowrap">Peringatan</span>
                 </div>
-                <h3 class="text-sm font-medium text-gray-600 mb-1">Tugas Terlambat</h3>
-                <p id="unfinished-tasks" class="text-3xl font-bold text-gray-900">-</p>
+                <h3 class="text-xs sm:text-sm font-medium text-gray-600 mb-0.5 sm:mb-1 line-clamp-1">Tugas Terlambat</h3>
+                <p id="unfinished-tasks" class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">-</p>
             </div>
         </div>
     </div>
@@ -206,7 +196,7 @@
                 <div>
                     <span id="system-completion-percentage" class="text-2xl sm:text-3xl font-bold text-green-600">0%</span>
                     <div class="mt-2 overflow-hidden h-2 rounded-full bg-green-100">
-                        <div id="system-completion-bar" style="width:0%" class="h-full bg-gradient-to-r from-green-500 to-green-600 transition-all duration-500"></div>
+                        <div id="system-completion-bar" style="width:0%" class="h-full bg-gradient-to-r from-green-500 to-green-600"></div>
                     </div>
                 </div>
                 <p class="text-xs text-gray-500 mt-2">Di semua pengguna</p>
@@ -234,38 +224,20 @@
     </div>
 </div>
 
- {{-- Overlay Loading --}}
-<div id="loading" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center">
-    <div class="bg-white rounded-lg p-6 flex flex-col items-center gap-3">
-        <svg class="animate-spin h-10 w-10 text-blue-600" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        <p class="text-gray-700 font-medium">Memuat analitik...</p>
-    </div>
-</div>
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     let charts = { task: null };
 
     document.addEventListener("DOMContentLoaded", loadAnalytics);
 
-    function toggleLoading(show = true) {
-        document.getElementById('loading').classList.toggle('hidden', !show);
-    }
-
     function loadAnalytics() {
-        toggleLoading(true);
         fetch(`${window.location.origin}/analytict/data`)
             .then(res => res.json())
             .then(data => {
                 updateUI(data);
-                toggleLoading(false);
             })
             .catch(error => {
                 console.error('Error:', error);
-                toggleLoading(false);
             });
     }
 
@@ -325,12 +297,6 @@
                 }
             }
         });
-    }
-
-    function refreshData() { loadAnalytics(); }
-
-    function exportReport() {
-        alert('Fitur ekspor akan diimplementasikan.');
     }
 </script>
 @endsection
