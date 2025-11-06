@@ -12,7 +12,7 @@ use Illuminate\View\View;
 class AuthenticatedSessionController extends Controller
 {
     /**
-     * Display the login view.
+     * Tampilkan halaman login.
      */
     public function create(): View
     {
@@ -20,38 +20,61 @@ class AuthenticatedSessionController extends Controller
     }
 
     /**
-     * Handle an incoming authentication request.
+     * Proses autentikasi pengguna.
      */
     public function store(LoginRequest $request): RedirectResponse
     {
-        // 🔐 Autentikasi user
+        // Autentikasi pengguna
         $request->authenticate();
 
-        // 🔄 Regenerasi session agar aman (anti session fixation)
+        // Regenerasi session agar lebih aman
         $request->session()->regenerate();
 
-        // 🚀 Redirect sesuai role user
         $user = Auth::user();
 
+        // Pastikan user terdeteksi
+        if (!$user) {
+            return redirect()->route('login')->withErrors([
+                'email' => 'Gagal login. Silakan coba lagi.',
+            ]);
+        }
+
+        // Redirect sesuai role pengguna
         return match ($user->role) {
-            'superadmin' => redirect()->intended(route('superadmin.dashboard', absolute: false)),
-            'admin'      => redirect()->intended(route('admin.dashboard', absolute: false)),
-            default      => redirect()->intended(route('dashboard', absolute: false)), // user biasa
+            'superadmin' => redirect()->route('superadmin.dashboard'),
+            'admin'      => redirect()->route('admin.dashboard'),
+            default      => redirect()->route('dashboard'),
         };
     }
 
+    /**
+     * Tentukan redirect otomatis (fallback)
+     */
+    protected function redirectTo(): string
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return route('login');
+        }
+
+        return match ($user->role) {
+            'superadmin' => route('superadmin.dashboard'),
+            'admin'      => route('admin.dashboard'),
+            default      => route('dashboard'),
+        };
+    }
 
     /**
-     * Destroy an authenticated session.
+     * Logout dan hapus session.
      */
     public function destroy(Request $request): RedirectResponse
     {
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
-
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect('/')->with('status', 'Anda telah logout.');
     }
 }

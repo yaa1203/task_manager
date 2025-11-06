@@ -21,68 +21,64 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 | Web Routes
 |--------------------------------------------------------------------------
-| Struktur sudah disesuaikan agar lebih rapi dan Laravel 11 friendly.
-| Tidak ada route yang dihapus, hanya dikelompokkan ulang agar mudah dibaca.
+| Versi disesuaikan agar redirect & middleware role berfungsi sempurna.
+| SuperAdmin, Admin, dan User hanya bisa mengakses halaman sesuai rolenya.
 |--------------------------------------------------------------------------
 */
 
-// 🔹 Root Route (redirect berdasarkan role)
+// =============================================================
+// 🔸 Halaman Utama
+// =============================================================
 Route::get('/', function () {
     if (auth()->check()) {
-        return match (auth()->user()->role) {
+        $user = auth()->user();
+
+        return match ($user->role) {
             'superadmin' => redirect()->route('superadmin.dashboard'),
             'admin'      => redirect()->route('admin.dashboard'),
-            default      => redirect()->route('dashboard'), // user biasa
+            default      => redirect()->route('dashboard'),
         };
     }
 
     return view('welcome');
-})->name('home');
-
+})->name('home')->middleware('no.cache');
 
 // =============================================================
-// 🔸 Routes untuk User yang Sudah Login (auth umum)
+// 🔸 Dashboard Umum (User biasa)
 // =============================================================
-Route::middleware(['auth'])->group(function () {
-    Route::view('/offline', 'offline')->name('offline');
+Route::middleware(['auth', 'role:user'])->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Task dan Project umum (bukan admin)
+    // Task dan Project (User)
     Route::resource('tasks', TaskController::class);
     Route::resource('projects', ProjectController::class);
 
-    // Analytics (user biasa)
+    // Analytics (User)
     Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
     Route::get('/analytics/data', [AnalyticsController::class, 'data'])->name('analytics.data');
 
-    // Notifikasi user biasa
+    // Notifikasi User
     Route::get('/notifikasi', [NotificationController::class, 'index'])->name('notifikasi.index');
     Route::post('/notifikasi/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifikasi.read');
     Route::post('/notifikasi/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])->name('notifikasi.markAllAsRead');
 
-    // Workspace user
+    // Workspace User
     Route::prefix('my-workspaces')->name('my-workspaces.')->group(function () {
         Route::get('/', [WorkspaceController::class, 'userIndex'])->name('index');
         Route::get('/{workspace}', [WorkspaceController::class, 'userShow'])->name('show');
         Route::get('/{workspace}/task/{task}', [WorkspaceController::class, 'userShowTask'])->name('task.show');
         Route::post('/{workspace}/task/{task}/submit', [WorkspaceController::class, 'submitTask'])->name('task.submit');
 
-        // File (task/submission)
+        // File Akses
         Route::get('/{workspace}/tasks/{task}/view-file', [WorkspaceController::class, 'viewTaskFile'])->name('task.view-file');
         Route::get('{workspace}/tasks/{task}/download', [WorkspaceController::class, 'downloadTaskFile'])->name('task.download');
         Route::get('{workspace}/tasks/{task}/submissions/{submission}/view', [WorkspaceController::class, 'viewSubmissionFile'])->name('submission.view-file');
         Route::get('{workspace}/tasks/{task}/submissions/{submission}/download', [WorkspaceController::class, 'downloadSubmissionFile'])->name('submission.download');
     });
 
-    // Calendar (user)
+    // Calendar (User)
     Route::get('/calendar', [WorkspaceController::class, 'userCalendar'])->name('calendar.index');
 });
-
-// =============================================================
-// 🔸 Dashboard Umum (User biasa)
-// =============================================================
-Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->middleware(['auth'])
-    ->name('dashboard');
 
 // =============================================================
 // 🔸 Admin Register (Guest only)
@@ -90,6 +86,9 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
 Route::middleware('guest')->group(function () {
     Route::get('/register/admin', [AdminRegisterController::class, 'create'])->name('register.admin');
     Route::post('/register/admin', [AdminRegisterController::class, 'store']);
+
+    Route::get('/register/superadmin', [SuperAdminRegisterController::class, 'create'])->name('register.superadmin');
+    Route::post('/register/superadmin', [SuperAdminRegisterController::class, 'store']);
 });
 
 // =============================================================
@@ -97,36 +96,35 @@ Route::middleware('guest')->group(function () {
 // =============================================================
 Route::middleware(['auth', 'role:admin'])->group(function () {
 
-    // 🔹 Dashboard Admin
-    Route::get('/admin/dashboard', [DashboardController::class, 'AdminIndex'])->name('admin.dashboard');
+    // Dashboard Admin
+    Route::get('/admin/dashboard', [DashboardController::class, 'adminIndex'])->name('admin.dashboard');
 
-    // 🔹 User Management
+    // User Management
     Route::prefix('users')->name('users.')->group(function () {
         Route::get('/', [UserController::class, 'index'])->name('index');
         Route::get('/{user}', [UserController::class, 'show'])->name('show');
         Route::delete('/{user}', [UserController::class, 'destroy'])->name('destroy');
     });
 
-    // 🔹 Analytics Admin
+    // Analytics Admin
     Route::prefix('analytict')->name('analytict.')->group(function () {
         Route::get('/', [AnalyticsController::class, 'adminIndex'])->name('index');
         Route::get('/data', [AnalyticsController::class, 'adminData'])->name('data');
     });
     Route::post('/analytics/export', [AnalyticsController::class, 'exportReport'])->name('analytics.export');
 
-    // 🔹 Notifikasi Admin
+    // Notifikasi Admin
     Route::prefix('notifications')->name('notifications.')->group(function () {
         Route::get('/', [AdminNotificationController::class, 'index'])->name('index');
         Route::post('/{id}/read', [AdminNotificationController::class, 'markAsRead'])->name('read');
         Route::post('/read-all', [AdminNotificationController::class, 'markAllAsRead'])->name('readAll');
     });
 
-    // 🔹 Workspace Admin (dengan middleware admin.owns)
+    // Workspace Admin
     Route::middleware('admin.owns')->group(function () {
         Route::resource('workspaces', WorkspaceController::class);
         Route::post('/workspaces/{workspace}/toggle-archive', [WorkspaceController::class, 'toggleArchive'])->name('workspaces.toggle-archive');
 
-        // Tasks di dalam Workspace
         Route::prefix('workspaces/{workspace}/tasks')->name('workspace.tasks.')->group(function () {
             Route::get('/create', [WorkspaceController::class, 'createTask'])->name('create');
             Route::post('/', [WorkspaceController::class, 'storeTask'])->name('store');
@@ -135,7 +133,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
             Route::delete('/{task}', [WorkspaceController::class, 'destroyTask'])->name('destroy');
             Route::get('/{task}', [WorkspaceController::class, 'showTask'])->name('show');
 
-            // File akses
+            // File Akses
             Route::get('/{task}/view', [WorkspaceController::class, 'viewTaskFile'])->name('view-file');
             Route::get('/{task}/download', [WorkspaceController::class, 'downloadTaskFile'])->name('download');
 
@@ -146,29 +144,33 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     });
 });
 
-Route::middleware('guest')->group(function () {
-    Route::get('/register/superadmin', [SuperAdminRegisterController::class, 'create'])->name('register.superadmin');
-    Route::post('/register/superadmin', [SuperAdminRegisterController::class, 'store']);
-});
-
+// =============================================================
+// 🔸 SuperAdmin Area
+// =============================================================
 Route::middleware(['auth', 'role:superadmin'])->group(function () {
     Route::get('/superadmin/dashboard', [DashboardController::class, 'superAdminDashboard'])->name('superadmin.dashboard');
-    Route::resource('categories',SuperAdminCategoryController::class);
+    Route::resource('categories', SuperAdminCategoryController::class);
 
-    // User Management (Global)
-    Route::get('/pengguna/admin', [UserController::class, 'superAdminIndex'])->name('pengguna.admin');
-    Route::get('/pengguna/admin/{user}', [UserController::class, 'superAdminShow'])->name('pengguna.admin.show');
-    Route::delete('/pengguna/admin/{user}', [UserController::class, 'superAdminDestroy'])->name('pengguna.admin.destroy');
+    // Manajemen Pengguna
+    Route::prefix('pengguna')->group(function () {
+        Route::get('/admin', [UserController::class, 'superAdminIndex'])->name('pengguna.admin');
+        Route::get('/admin/{user}', [UserController::class, 'superAdminShow'])->name('pengguna.admin.show');
+        Route::delete('/admin/{user}', [UserController::class, 'superAdminDestroy'])->name('pengguna.admin.destroy');
 
-    Route::get('/pengguna/user', [UserController::class, 'superUserIndex'])->name('pengguna.user');
-    Route::get('/pengguna/user/{user}', [UserController::class, 'superUserShow'])->name('pengguna.user.show');
-    Route::delete('/pengguna/user/{user}', [UserController::class, 'superUserDestroy'])->name('pengguna.user.destroy');
+        Route::get('/user', [UserController::class, 'superUserIndex'])->name('pengguna.user');
+        Route::get('/user/{user}', [UserController::class, 'superUserShow'])->name('pengguna.user.show');
+        Route::delete('/user/{user}', [UserController::class, 'superUserDestroy'])->name('pengguna.user.destroy');
+    });
 
-    Route::get('/space', [WorkspaceController::class, 'superadminIndex'])->name('space.index');
-    Route::get('/space/{workspace}', [WorkspaceController::class, 'superadminShow'])->name('space.show');
-    Route::post('/space/{workspace}/toggle-archive', [WorkspaceController::class, 'superadminToggleArchive'])->name('space.toggle-archive');
-    Route::delete('/space/{workspace}', [WorkspaceController::class, 'superadminDestroy'])->name('space.destroy');
+    // Workspace SuperAdmin
+    Route::prefix('space')->name('space.')->group(function () {
+        Route::get('/', [WorkspaceController::class, 'superadminIndex'])->name('index');
+        Route::get('/{workspace}', [WorkspaceController::class, 'superadminShow'])->name('show');
+        Route::post('/{workspace}/toggle-archive', [WorkspaceController::class, 'superadminToggleArchive'])->name('toggle-archive');
+        Route::delete('/{workspace}', [WorkspaceController::class, 'superadminDestroy'])->name('destroy');
+    });
 });
+
 // =============================================================
 // 🔸 Profile Routes
 // =============================================================

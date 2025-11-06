@@ -4,6 +4,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use App\Http\Middleware\RoleMiddleware;
 use App\Http\Middleware\AdminOwnsData;
+use App\Http\Middleware\NoCache;
 use Illuminate\Foundation\Configuration\Middleware;
 use App\Http\Middleware\SuperAdminMiddleware;
 
@@ -18,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => RoleMiddleware::class,
             'admin.owns' => \App\Http\Middleware\AdminOwnsData::class,
+            'no.cache' => \App\Http\Middleware\NoCache::class,
             'superadmin' => \App\Http\Middleware\SuperAdminMiddleware::class,
         ]);
     })
