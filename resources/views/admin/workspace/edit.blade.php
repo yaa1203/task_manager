@@ -17,7 +17,7 @@
     </x-slot>
 
     <div class="py-6 sm:py-8">
-        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-3xl mx-auto">
             <div class="bg-white rounded-xl shadow-sm border border-gray-200">
                 <form action="{{ route('workspaces.update', $workspace) }}" method="POST" id="workspaceForm">
                     @csrf

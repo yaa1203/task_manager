@@ -1,7 +1,7 @@
 @extends('admin.layouts.admin')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="max-w-7xl mx-auto">
     
     <!-- Bagian Header -->
     <div class="mb-4 sm:mb-6">
@@ -9,13 +9,13 @@
             <!-- Baris 1: Tombol Kembali dan Info Workspace -->
             <div class="flex items-start gap-3 sm:gap-4">
                 <a href="{{ route('workspaces.index') }}" 
-                   class="inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-gray-100 hover:bg-gray-200 transition flex-shrink-0">
+                   class="inline-flex items-center mt-1.5 justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gray-100 hover:bg-gray-200 transition flex-shrink-0">
                     <svg class="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                     </svg>
                 </a>
                 <div class="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
-                    <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center bg-white border-2 text-gray-700 flex-shrink-0" 
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 mt-1.5 rounded-lg flex items-center justify-center bg-white border-2 text-gray-700 flex-shrink-0" 
                          style="border-color: {{ $workspace->color }};">
                         @php
                         $iconSvgs = [
