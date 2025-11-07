@@ -88,17 +88,17 @@ class DashboardController extends Controller
 
         // ✅ Ambil hanya user dengan kategori yang sama dengan admin ini
         $users = User::where('role', 'user')
-            ->where('category_id', $adminCategoryId) // Filter berdasarkan kategori
+            ->where('category_id', $adminCategoryId)
             ->withCount(['assignedTasks' => function ($q) use ($adminId) {
                 $q->whereHas('workspace', function ($w) use ($adminId) {
                     $w->where('admin_id', $adminId);
                 });
             }])
             ->latest()
-            ->take(5)
+            ->take(6)
             ->get();
 
-        // Hitung statistik tiap user (spesifik milik admin ini)
+        // Hitung statistik tiap user
         $users->each(function ($user) use ($adminId) {
             $user->diligence_score = $this->calculateDiligenceScore($user, $adminId);
             $user->late_submissions_count = $this->countLateSubmissions($user, $adminId);
@@ -111,15 +111,59 @@ class DashboardController extends Controller
             ->where('category_id', $adminCategoryId)
             ->count();
 
+        // Total tasks milik admin ini
         $totalTasks = Task::whereHas('workspace', function ($w) use ($adminId) {
             $w->where('admin_id', $adminId);
         })->count();
 
+        // Total workspaces milik admin ini
+        $totalWorkspaces = Workspace::where('admin_id', $adminId)->count();
+
+        // ✅ Hitung status tugas untuk chart (hanya tugas milik admin ini)
+        $now = Carbon::now();
+        
+        $completedTasks = Task::whereHas('workspace', function ($w) use ($adminId) {
+            $w->where('admin_id', $adminId);
+        })
+        ->whereHas('submissions')
+        ->distinct('id')
+        ->count();
+        
+        $overdueTasks = Task::whereHas('workspace', function ($w) use ($adminId) {
+            $w->where('admin_id', $adminId);
+        })
+        ->whereDoesntHave('submissions')
+        ->whereNotNull('due_date')
+        ->where('due_date', '<', $now)
+        ->count();
+        
+        $pendingTasks = Task::whereHas('workspace', function ($w) use ($adminId) {
+            $w->where('admin_id', $adminId);
+        })
+        ->whereDoesntHave('submissions')
+        ->where(function($q) use ($now) {
+            $q->whereNull('due_date')
+              ->orWhere('due_date', '>=', $now);
+        })
+        ->count();
+
+        // ✅ Aktivitas terbaru (user yang baru bergabung di kategori ini)
+        $recentUsers = User::where('role', 'user')
+            ->where('category_id', $adminCategoryId)
+            ->latest()
+            ->take(5)
+            ->get();
+
         return view('admin.dashboard', [
             'totalUsers' => $totalUsers,
             'totalTasks' => $totalTasks,
+            'totalWorkspaces' => $totalWorkspaces,
             'users' => $users,
             'category' => $category,
+            'completedTasks' => $completedTasks,
+            'pendingTasks' => $pendingTasks,
+            'overdueTasks' => $overdueTasks,
+            'recentUsers' => $recentUsers,
         ]);
     }
 
@@ -171,12 +215,11 @@ class DashboardController extends Controller
     // Dashboard Super Admin
     public function superAdminDashboard()
     {
+        // ✅ Hanya user biasa (role = 'user')
         $totalUsers = User::where('role', 'user')->count();
         
-        // Hitung total admin dan superadmin
+        // ✅ Hanya admin biasa (role = 'admin')
         $totalAdmins = User::where('role', 'admin')->count();
-        $totalSuperAdmins = User::where('role', 'superadmin')->count();
-        $totalAdminsAndSuperAdmins = $totalAdmins + $totalSuperAdmins;
         
         // Hitung total workspace
         $totalWorkspaces = Workspace::count();
@@ -184,30 +227,24 @@ class DashboardController extends Controller
         // Hitung total kategori
         $totalCategories = Category::count();
         
-        // Ambil admin dan superadmin terbaru (tidak termasuk superadmin yang sedang login)
-        $recentAdmins = User::whereIn('role', ['admin', 'superadmin'])
-                            ->where('id', '!=', auth()->id())
-                            ->latest()
-                            ->take(5)
-                            ->get();
-        
-        $recentUsers = User::latest()->take(6)->get();
+        // ✅ Ambil user terbaru (HANYA user dan admin, TIDAK termasuk superadmin)
+        $recentUsers = User::whereIn('role', ['user', 'admin'])
+            ->latest()
+            ->take(6)
+            ->get();
         
         // ✅ HITUNG STATUS TUGAS UNTUK CHART (SEMUA TUGAS DI SISTEM)
         $now = Carbon::now();
         
-        // Tugas yang sudah diselesaikan (ada submission dari setidaknya 1 user)
         $completedTasks = Task::whereHas('submissions')
             ->distinct('id')
             ->count();
         
-        // Tugas yang terlambat (belum ada submission dan sudah lewat due_date)
         $overdueTasks = Task::whereDoesntHave('submissions')
             ->whereNotNull('due_date')
             ->where('due_date', '<', $now)
             ->count();
         
-        // Tugas belum selesai (belum ada submission dan belum lewat due_date atau tanpa due_date)
         $pendingTasks = Task::whereDoesntHave('submissions')
             ->where(function($q) use ($now) {
                 $q->whereNull('due_date')
@@ -217,12 +254,9 @@ class DashboardController extends Controller
         
         return view('superadmin.dashboard', compact(
             'totalAdmins',
-            'totalUsers',  // ✅ Ini sudah benar untuk Total Users
-            'totalSuperAdmins',
-            'totalAdminsAndSuperAdmins',
+            'totalUsers',
             'totalWorkspaces',
             'totalCategories',
-            'recentAdmins',
             'recentUsers',
             'completedTasks',
             'pendingTasks',
