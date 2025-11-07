@@ -30,7 +30,8 @@
     
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://cdn.tailwindcss.com"></script>
-    
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
     <!-- PWA Styles -->
     <style>
         /* PWA Install Prompt */
@@ -400,7 +401,7 @@
 
 <!-- Offline Banner -->
 <div id="offline-banner" class="banner offline-banner">
-    ⚠️ Anda sedang offline. Beberapa fitur mungkin terbatas.
+    Anda sedang offline. Beberapa fitur mungkin terbatas.
 </div>
 
 <div class="flex h-screen overflow-hidden">
@@ -420,7 +421,6 @@
                         @if(file_exists(public_path('icons/logo72x72.png')))
                             <img src="{{ asset('icons/logo72x72.png') }}" alt="Logo" class="relative h-10 w-10 rounded-xl shadow-lg" />
                         @else
-                            {{-- Fallback SVG Logo --}}
                             <div class="relative h-10 w-10 rounded-xl shadow-lg bg-white flex items-center justify-center">
                                 <svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
@@ -467,7 +467,7 @@
                             'route' => 'workspaces.*', 
                             'url' => 'workspaces', 
                             'label' => 'Workspace', 
-                            'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/>',
+                            'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 22.828l-8.486 8.485M7 17h.01"/>',
                             'desc' => 'Ruang kerja'
                         ],
                         [
@@ -512,12 +512,6 @@
                                 </div>
                             </div>
                         </span>
-                        
-                        @if(isset($item['isNotification']) && Auth::user()->unreadNotifications->count())
-                        <span class="relative flex items-center justify-center min-w-[22px] h-[22px] bg-red-500 to-pink-500 text-white text-xs font-bold px-1.5 rounded-full shadow-lg">
-                            {{ Auth::user()->unreadNotifications->count() > 99 ? '99+' : Auth::user()->unreadNotifications->count() }}
-                        </span>
-                        @endif
                     </a>
                     @endforeach
                 </div>
@@ -567,7 +561,7 @@
 
     {{-- Main Content --}}
     <div class="flex-1 flex flex-col overflow-hidden">
-        {{-- Top Navigation Bar (Mobile) --}}
+        {{-- Mobile Top Bar --}}
         <header class="lg:hidden sticky top-0 z-[35] bg-white border-b border-gray-200 shadow-sm">
             <div class="flex items-center justify-between px-4 py-3">
                 <button id="open-sidebar" type="button" class="p-2 text-gray-600 hover:bg-gray-100 active:bg-gray-200 rounded-lg transition-colors touch-manipulation">
@@ -575,10 +569,10 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                     </svg>
                 </button>
-                
+
                 <div class="flex items-center gap-2">
                     @if(file_exists(public_path('icons/logo72x72.png')))
-                        <img src="{{ asset('icons/logo72x72.png') }}" alt="Logo" class="relative w-8 h-8 rounded-full shadow-md" />
+                        <img src="{{ asset('icons/logo72x72.png') }}" alt="Logo" class="w-8 h-8 rounded-full shadow-md" />
                     @else
                         <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-lg shadow-md flex items-center justify-center">
                             <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -588,10 +582,18 @@
                     @endif
                     <span class="text-lg font-bold text-gray-900">TaskFlow</span>
                 </div>
-                
-                <div class="w-10">
-                    {{-- Spacer for alignment --}}
-                </div>
+
+                <a href="{{ route('notifications.index') }}" class="relative p-2 rounded-full hover:bg-gray-100 transition-colors">
+                    <svg class="w-6 h-6 mt-1.5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
+                    @if(Auth::user()->unreadNotifications->count() > 0)
+                        <span class="absolute top-0 right-0 h-5 w-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center ring-2 ring-white shadow-lg animate-pulse">
+                            {{ Auth::user()->unreadNotifications->count() > 99 ? '99+' : Auth::user()->unreadNotifications->count() }}
+                        </span>
+                    @endif
+                </a>
             </div>
         </header>
 
@@ -606,6 +608,11 @@
 
 <!-- PWA Install Prompt -->
 <div id="pwa-install-prompt" class="pwa-install-prompt">
+    <button class="pwa-close-btn" id="pwa-close-btn">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+    </button>
     <div class="pwa-content">
         <div class="pwa-icon">
             <img src="/icons/logo72x72.png" alt="TaskFlow Admin Icon">
@@ -654,115 +661,43 @@
 </div>
 
 <script>
-    // Sidebar Toggle with smooth animations
+    // Sidebar Toggle
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebar-overlay');
     const openBtn = document.getElementById('open-sidebar');
     const closeBtn = document.getElementById('close-sidebar');
 
-    function openSidebar(e) {
-        if (e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
+    function openSidebar() {
         sidebar.classList.remove('-translate-x-full');
         overlay.classList.remove('hidden');
         setTimeout(() => overlay.classList.add('opacity-100'), 10);
         document.body.style.overflow = 'hidden';
     }
 
-    function closeSidebar(e) {
-        if (e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
+    function closeSidebar() {
         sidebar.classList.add('-translate-x-full');
         overlay.classList.remove('opacity-100');
         setTimeout(() => overlay.classList.add('hidden'), 300);
         document.body.style.overflow = '';
     }
 
-    // Add event listeners with better handling
-    if (openBtn) {
-        openBtn.addEventListener('click', openSidebar, { passive: false });
-        openBtn.addEventListener('touchstart', openSidebar, { passive: false });
-    }
-    
-    if (closeBtn) {
-        closeBtn.addEventListener('click', closeSidebar, { passive: false });
-        closeBtn.addEventListener('touchstart', closeSidebar, { passive: false });
-    }
-    
-    if (overlay) {
-        overlay.addEventListener('click', closeSidebar, { passive: false });
-        overlay.addEventListener('touchstart', closeSidebar, { passive: false });
-    }
+    openBtn?.addEventListener('click', openSidebar);
+    closeBtn?.addEventListener('click', closeSidebar);
+    overlay?.addEventListener('click', closeSidebar);
 
-    // Close sidebar when clicking nav links on mobile
     document.querySelectorAll('#sidebar a').forEach(link => {
         link.addEventListener('click', () => {
-            if (window.innerWidth < 1024) {
-                setTimeout(closeSidebar, 150);
-            }
+            if (window.innerWidth < 1024) closeSidebar();
         });
     });
 
-    // Handle window resize
-    let resizeTimer;
     window.addEventListener('resize', () => {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(() => {
-            if (window.innerWidth >= 1024) {
-                closeSidebar();
-                document.body.style.overflow = '';
-            }
-        }, 250);
+        if (window.innerWidth >= 1024) closeSidebar();
     });
 
-    // Smooth scroll behavior
-    document.addEventListener('DOMContentLoaded', () => {
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-            });
-        });
-    });
-
-    // Add subtle animation on page load
-    window.addEventListener('load', () => {
-        document.body.style.opacity = '0';
-        setTimeout(() => {
-            document.body.style.transition = 'opacity 0.3s ease';
-            document.body.style.opacity = '1';
-        }, 100);
-    });
-
-    // Prevent scroll on body when sidebar is open (mobile)
-    document.addEventListener('touchmove', function(e) {
-        if (!sidebar.classList.contains('-translate-x-full') && window.innerWidth < 1024) {
-            if (!sidebar.contains(e.target)) {
-                e.preventDefault();
-            }
-        }
-    }, { passive: false });
-    
-    // PWA Implementation - Fully Fixed Version
+    // PWA Logic (same as before)
     (function() {
-        'use strict';
-        
-        const CONFIG = {
-            SHOW_DELAY: 3000,
-            STORAGE_KEYS: {
-                PROMPT_SHOWN: 'pwa-full-prompt-shown'
-            }
-        };
-        
         let deferredPrompt = null;
-        
         const elements = {
             fullPrompt: document.getElementById('pwa-install-prompt'),
             miniPrompt: document.getElementById('pwa-mini-prompt'),
@@ -771,247 +706,59 @@
             closeBtn: document.querySelector('.pwa-close-btn'),
             offlineBanner: document.getElementById('offline-banner'),
         };
-        
-        const storage = {
-            get(key) {
-                try {
-                    const value = localStorage.getItem(key);
-                    return value ? JSON.parse(value) : null;
-                } catch (e) { 
-                    console.error('Storage get error:', e);
-                    return null; 
-                }
-            },
-            set(key, value) {
-                try { 
-                    localStorage.setItem(key, JSON.stringify(value)); 
-                    console.log('Storage set:', key, value);
-                } catch (e) {
-                    console.error('Storage set error:', e);
-                }
-            },
-            remove(key) {
-                try { 
-                    localStorage.removeItem(key); 
-                    console.log('Storage removed:', key);
-                } catch (e) {
-                    console.error('Storage remove error:', e);
-                }
-            }
-        };
-        
-        // Cek apakah full prompt sudah pernah ditampilkan
-        function hasFullPromptBeenShown() {
-            const shown = storage.get(CONFIG.STORAGE_KEYS.PROMPT_SHOWN) === true;
-            console.log('hasFullPromptBeenShown:', shown);
-            return shown;
-        }
-        
-        function markFullPromptAsShown() {
-            storage.set(CONFIG.STORAGE_KEYS.PROMPT_SHOWN, true);
-            console.log('Full prompt marked as shown');
-        }
-        
-        function shouldShowFullPrompt() {
-            if (window.matchMedia('(display-mode: standalone)').matches) {
-                console.log('App already installed (standalone mode)');
-                return false;
-            }
-            if (hasFullPromptBeenShown()) {
-                console.log('Full prompt already shown before');
-                return false;
-            }
-            return true;
-        }
-        
+
         function showFullPrompt() {
-            console.log('showFullPrompt called, deferredPrompt:', !!deferredPrompt);
-            if (!deferredPrompt) {
-                console.warn('No deferredPrompt available');
-                return;
-            }
-            
-            console.log('Showing full prompt...');
             elements.miniPrompt?.classList.remove('show');
             elements.fullPrompt?.classList.add('show');
-            markFullPromptAsShown();
+            localStorage.setItem('pwa-full-prompt-shown', 'true');
         }
-        
+
         function showMiniPrompt() {
-            console.log('showMiniPrompt called, deferredPrompt:', !!deferredPrompt);
-            if (!deferredPrompt) {
-                console.warn('No deferredPrompt available');
-                return;
-            }
-            
-            console.log('Showing mini prompt...');
             elements.fullPrompt?.classList.remove('show');
-            setTimeout(() => {
-                elements.miniPrompt?.classList.add('show');
-            }, 300);
+            setTimeout(() => elements.miniPrompt?.classList.add('show'), 300);
         }
-        
+
         function hideAllPrompts() {
-            console.log('Hiding all prompts');
             elements.fullPrompt?.classList.remove('show');
             elements.miniPrompt?.classList.remove('show');
         }
-        
-        async function handleInstall() {
-            console.log('handleInstall called');
-            if (!deferredPrompt) {
-                console.warn('No deferredPrompt in handleInstall');
-                return;
-            }
-            
+
+        elements.installBtn?.addEventListener('click', () => {
+            deferredPrompt?.prompt();
             hideAllPrompts();
-            
-            try {
-                console.log('Showing native install prompt...');
-                await deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                console.log('User choice:', outcome);
-                
-                if (outcome === 'accepted') {
-                    storage.remove(CONFIG.STORAGE_KEYS.PROMPT_SHOWN);
-                }
-                
-                deferredPrompt = null;
-            } catch (error) {
-                console.error('Install error:', error);
-            }
-        }
-        
-        // Event Listeners
-        if (elements.installBtn) {
-            elements.installBtn.addEventListener('click', (e) => {
-                console.log('Install button clicked');
-                e.preventDefault();
-                e.stopPropagation();
-                handleInstall();
-            });
-        }
-        
-        if (elements.laterBtn) {
-            elements.laterBtn.addEventListener('click', (e) => {
-                console.log('Later button clicked');
-                e.preventDefault();
-                e.stopPropagation();
-                hideAllPrompts();
-                setTimeout(() => showMiniPrompt(), 300);
-            });
-        }
-        
-        if (elements.closeBtn) {
-            elements.closeBtn.addEventListener('click', (e) => {
-                console.log('Close button clicked');
-                e.preventDefault();
-                e.stopPropagation();
-                hideAllPrompts();
-                setTimeout(() => showMiniPrompt(), 300);
-            });
-        }
-        
-        // CRITICAL FIX: Mini prompt click handler dengan logging
-        if (elements.miniPrompt) {
-            elements.miniPrompt.addEventListener('click', (e) => {
-                console.log('Mini prompt clicked!');
-                e.preventDefault();
-                e.stopPropagation();
-                
-                console.log('Current deferredPrompt:', !!deferredPrompt);
-                console.log('Mini prompt has "show" class:', elements.miniPrompt.classList.contains('show'));
-                console.log('Full prompt has "show" class:', elements.fullPrompt.classList.contains('show'));
-                
-                // Force hide mini, force show full
-                elements.miniPrompt.classList.remove('show');
-                
-                // Use timeout to ensure transition
-                setTimeout(() => {
-                    if (deferredPrompt) {
-                        console.log('Adding show class to full prompt');
-                        elements.fullPrompt.classList.add('show');
-                    } else {
-                        console.error('No deferredPrompt available when clicking mini prompt!');
-                    }
-                }, 100);
-            });
-            
-            // Also add keyboard support
-            elements.miniPrompt.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    console.log('Mini prompt activated via keyboard');
-                    e.preventDefault();
-                    elements.miniPrompt.click();
-                }
-            });
-        }
-        
-        // beforeinstallprompt - Simpan event
+        });
+
+        elements.laterBtn?.addEventListener('click', () => {
+            hideAllPrompts();
+            showMiniPrompt();
+        });
+
+        elements.closeBtn?.addEventListener('click', () => {
+            hideAllPrompts();
+            showMiniPrompt();
+        });
+
+        elements.miniPrompt?.addEventListener('click', () => {
+            elements.miniPrompt.classList.remove('show');
+            setTimeout(() => elements.fullPrompt.classList.add('show'), 100);
+        });
+
         window.addEventListener('beforeinstallprompt', (e) => {
-            console.log('beforeinstallprompt event fired');
             e.preventDefault();
             deferredPrompt = e;
-            console.log('deferredPrompt saved:', !!deferredPrompt);
-            
-            // Tunggu sebentar, lalu cek apakah boleh tampilkan full prompt
             setTimeout(() => {
-                if (shouldShowFullPrompt()) {
-                    console.log('Will show full prompt');
+                if (!localStorage.getItem('pwa-full-prompt-shown')) {
                     showFullPrompt();
                 } else {
-                    console.log('Will show mini prompt');
                     showMiniPrompt();
                 }
-            }, CONFIG.SHOW_DELAY);
+            }, 3000);
         });
-        
-        // appinstalled
-        window.addEventListener('appinstalled', () => {
-            console.log('App installed!');
-            hideAllPrompts();
-            storage.remove(CONFIG.STORAGE_KEYS.PROMPT_SHOWN);
-        });
-        
-        // Service Worker Update
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/service-worker.js')
-                .then(() => console.log('Service Worker registered'))
-                .catch(err => console.error('SW registration failed:', err));
-        }
-        
-        // Online/Offline Banner
-        function updateOnlineStatus() {
-            const isOnline = navigator.onLine;
-            console.log('Online status:', isOnline);
-            elements.offlineBanner?.classList.toggle('show', !isOnline);
-        }
-        window.addEventListener('online', updateOnlineStatus);
-        window.addEventListener('offline', updateOnlineStatus);
-        updateOnlineStatus();
-        
-        console.log('✅ PWA Script initialized with full debugging');
-        console.log('Elements found:', {
-            fullPrompt: !!elements.fullPrompt,
-            miniPrompt: !!elements.miniPrompt,
-            installBtn: !!elements.installBtn,
-            laterBtn: !!elements.laterBtn,
-            closeBtn: !!elements.closeBtn
-        });
+
+        window.addEventListener('online', () => elements.offlineBanner?.classList.remove('show'));
+        window.addEventListener('offline', () => elements.offlineBanner?.classList.add('show'));
+        navigator.onLine || elements.offlineBanner?.classList.add('show');
     })();
-</script>
-<script>
-    // Reset PWA prompt saat logout
-    document.addEventListener('DOMContentLoaded', function() {
-        const logoutBtn = document.querySelector('form[action*="logout"] button');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', function() {
-                try {
-                    localStorage.removeItem('pwa-full-prompt-shown');
-                } catch (e) {}
-            });
-        }
-    });
 </script>
 </body>
 </html>

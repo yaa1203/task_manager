@@ -29,7 +29,6 @@
                         ['url' => 'my-workspaces', 'label' => 'Workspace', 'icon' => 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H9m12 0a1 1 0 001 1h-3.5a1 1 0 01-1-1m-6.5 0a1 1 0 01-1-1H4a1 1 0 011-1m6 0a1 1 0 011 1h-3.5a1 1 0 01-1-1'],
                         ['url' => 'calendar', 'label' => 'Calendar', 'icon' => 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'],
                         ['url' => 'analytics', 'label' => 'Analytics', 'icon' => 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z'],
-                        ['url' => 'notifikasi', 'label' => 'Notifikasi', 'icon' => 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9', 'badge' => Auth::user()->unreadNotifications->count()],
                     ];
                 @endphp
 
@@ -54,73 +53,19 @@
 
             <!-- Right: Notifikasi + User + Hamburger -->
             <div class="flex items-center space-x-3">
-                <!-- Notifikasi -->
-                <div class="relative" x-data="{ notifOpen: false }" @click.away="notifOpen = false" x-on:keydown.escape="notifOpen = false">
-                    <button @click="notifOpen = !notifOpen" class="p-2 rounded-full hover:bg-gray-100 transition relative focus:outline-none">
-                        <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                        </svg>
-                        @if (Auth::user()->unreadNotifications->count() > 0)
-                            <span class="absolute top-0 right-0 h-5 w-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center ring-2 ring-white">
-                                {{ Auth::user()->unreadNotifications->count() > 9 ? '9+' : Auth::user()->unreadNotifications->count() }}
-                            </span>
-                        @endif
-                    </button>
-
-                    <!-- Dropdown Notifikasi -->
-                    <div x-show="notifOpen" 
-                         x-transition:enter="transition ease-out duration-150" 
-                         x-transition:enter-start="opacity-0 scale-90" 
-                         x-transition:enter-end="opacity-100 scale-100" 
-                         x-transition:leave="transition ease-in duration-100" 
-                         x-transition:leave-start="opacity-100 scale-100" 
-                         x-transition:leave-end="opacity-0 scale-90" 
-                         class="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50 origin-top-right"
-                         style="display: none;">
-                        <div class="p-3 sm:p-4 bg-gradient-to-r from-indigo-500 to-purple-600">
-                            <div class="flex justify-between items-center">
-                                <h3 class="text-sm font-bold text-white">Notifikasi</h3>
-                                @if (Auth::user()->unreadNotifications->count() > 0)
-                                    <span class="text-xs bg-white text-indigo-600 px-1.5 py-0.5 rounded-full font-bold">
-                                        {{ Auth::user()->unreadNotifications->count() }} baru
-                                    </span>
-                                @endif
-                            </div>
-                        </div>
-                        <div class="max-h-72 overflow-y-auto">
-                            @php $notifications = Auth::user()->unreadNotifications()->latest()->take(5)->get(); @endphp
-                            @forelse($notifications as $n)
-                                <a href="#" onclick="event.preventDefault(); markAsReadAndRedirect('{{ route('notifikasi.read', $n) }}', '{{ $n->data['url'] ?? '#' }}')"
-                                   class="block p-2 sm:p-3 hover:bg-gray-50 border-b border-gray-100 transition">
-                                    <div class="flex gap-2 sm:gap-3">
-                                        <div class="w-8 h-8 sm:w-10 sm:h-10 bg-indigo-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                            <svg class="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                                            </svg>
-                                        </div>
-                                        <div class="flex-1 min-w-0">
-                                            <p class="text-sm font-semibold text-gray-900">{{ $n->data['title'] ?? 'Notifikasi' }}</p>
-                                            <p class="text-xs text-gray-600 line-clamp-2">{{ $n->data['message'] ?? '' }}</p>
-                                            <p class="text-xs text-gray-500 mt-1">{{ $n->created_at->diffForHumans() }}</p>
-                                        </div>
-                                    </div>
-                                </a>
-                            @empty
-                                <div class="p-4 sm:p-6 text-center text-gray-500">
-                                    <svg class="mx-auto h-10 w-10 sm:h-12 sm:w-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
-                                    </svg>
-                                    <p class="mt-2 text-sm">Tidak ada notifikasi</p>
-                                </div>
-                            @endforelse
-                        </div>
-                        <div class="p-2 sm:p-3 bg-gray-50 border-t">
-                            <a href="{{ route('notifikasi.index') }}" class="block text-center text-sm font-semibold text-indigo-600 hover:text-indigo-700">
-                                Lihat semua
-                            </a>
-                        </div>
-                    </div>
-                </div>
+                <!-- Notifikasi (Langsung ke Halaman) -->
+                <a href="{{ route('notifikasi.index') }}" 
+                class="relative p-2 rounded-full hover:bg-gray-100 transition focus:outline-none">
+                    <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
+                    @if (Auth::user()->unreadNotifications->count() > 0)
+                        <span class="absolute top-0 right-0 h-5 w-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center ring-2 ring-white text-center leading-none">
+                            {{ Auth::user()->unreadNotifications->count() > 9 ? '9+' : Auth::user()->unreadNotifications->count() }}
+                        </span>
+                    @endif
+                </a>
 
                 <!-- User Dropdown -->
                 <div class="relative" x-data="{ userOpen: false }" @click.away="userOpen = false">
@@ -255,14 +200,52 @@
 </div>
 
 <script>
-    function markAsReadAndRedirect(url, redirect) {
-        if (redirect === '#') return;
-        fetch(url, {
-            method: 'PUT',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
-                'Accept': 'application/json',
+
+    function notifDropdown() {
+        return {
+            open: false,
+            left: 0,
+
+            init() {
+                // Update saat resize
+                window.addEventListener('resize', () => this.updatePosition());
             },
-        }).then(() => location.href = redirect).catch(() => location.href = redirect);
+
+            toggle() {
+                this.open = !this.open;
+                if (this.open) {
+                    this.$nextTick(() => this.updatePosition());
+                }
+            },
+
+            updatePosition() {
+                if (!this.open) return;
+
+                const trigger = this.$refs.trigger;
+                const dropdown = this.$refs.dropdown;
+
+                if (!trigger || !dropdown) return;
+
+                const triggerRect = trigger.getBoundingClientRect();
+                const dropdownWidth = dropdown.offsetWidth;
+                const viewportWidth = window.innerWidth;
+
+                // Hitung posisi tengah tombol
+                const triggerCenter = triggerRect.left + triggerRect.width / 2;
+                let idealLeft = triggerCenter - dropdownWidth / 2;
+
+                // Batasi agar tidak keluar layar
+                const padding = 16;
+                const maxLeft = viewportWidth - dropdownWidth - padding;
+                const minLeft = padding;
+
+                this.left = Math.max(minLeft, Math.min(maxLeft, idealLeft));
+            }
+        };
     }
+
+    // Pastikan Alpine sudah loaded
+    document.addEventListener('alpine:init', () => {
+        // Opsional: debounce resize
+    });
 </script>
