@@ -474,11 +474,26 @@ use Illuminate\Support\Facades\Storage;
                     </div>
                 @endif
 
+                <!-- Peringatan Form Kosong -->
+                <div id="emptyFormWarning" class="hidden bg-amber-50 border-2 border-amber-300 rounded-xl p-4 mb-6 shadow-sm">
+                    <div class="flex items-start gap-3">
+                        <div class="flex-shrink-0 w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
+                            <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="text-sm font-bold text-amber-900 mb-1">Form Tidak Boleh Kosong!</h4>
+                            <p class="text-xs text-amber-700">Silakan isi minimal salah satu: upload file, tautan, atau catatan tambahan.</p>
+                        </div>
+                    </div>
+                </div>
+
                 <form action="{{ route('my-workspaces.task.submit', [$workspace, $task]) }}" 
-                      method="POST" 
-                      enctype="multipart/form-data"
-                      class="space-y-6"
-                      id="submitForm">
+                    method="POST" 
+                    enctype="multipart/form-data"
+                    class="space-y-6"
+                    id="submitForm">
                     @csrf
 
                     <!-- Upload File Section -->
@@ -559,11 +574,12 @@ use Illuminate\Support\Facades\Storage;
                         </label>
                         <div class="relative">
                             <input type="url" 
-                                   id="link"
-                                   name="link" 
-                                   placeholder="https://drive.google.com/..."
-                                   {{ $hasUserSubmitted ? 'disabled' : '' }}
-                                   class="block w-full pl-4 pr-12 py-3.5 text-base border-2 rounded-xl transition-all focus:ring-4 focus:ring-blue-100 {{ $hasUserSubmitted ? 'bg-gray-100 border-gray-300 text-gray-500' : 'bg-white border-gray-300 focus:border-blue-500' }}">
+                                id="link"
+                                name="link" 
+                                placeholder="https://drive.google.com/..."
+                                {{ $hasUserSubmitted ? 'disabled' : '' }}
+                                oninput="validateForm()"
+                                class="block w-full pl-4 pr-12 py-3.5 text-base border-2 rounded-xl transition-all focus:ring-4 focus:ring-blue-100 {{ $hasUserSubmitted ? 'bg-gray-100 border-gray-300 text-gray-500' : 'bg-white border-gray-300 focus:border-blue-500' }}">
                             <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
                                 <svg class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd"/>
@@ -584,18 +600,21 @@ use Illuminate\Support\Facades\Storage;
                             </span>
                         </label>
                         <textarea id="notes" 
-                                  name="notes" 
-                                  rows="5" 
-                                  placeholder="Tambahkan catatan, komentar, atau penjelasan tentang tugas Anda..."
-                                  {{ $hasUserSubmitted ? 'disabled' : '' }}
-                                  class="block w-full px-4 py-3.5 text-base border-2 rounded-xl transition-all focus:ring-4 focus:ring-blue-100 resize-none {{ $hasUserSubmitted ? 'bg-gray-100 border-gray-300 text-gray-500' : 'bg-white border-gray-300 focus:border-blue-500' }}"></textarea>
+                                name="notes" 
+                                rows="5" 
+                                placeholder="Tambahkan catatan, komentar, atau penjelasan tentang tugas Anda..."
+                                {{ $hasUserSubmitted ? 'disabled' : '' }}
+                                oninput="validateForm()"
+                                class="block w-full px-4 py-3.5 text-base border-2 rounded-xl transition-all focus:ring-4 focus:ring-blue-100 resize-none {{ $hasUserSubmitted ? 'bg-gray-100 border-gray-300 text-gray-500' : 'bg-white border-gray-300 focus:border-blue-500' }}"></textarea>
                     </div>
 
                     <!-- Submit Button -->
                     <div class="pt-4">
                         <button type="submit" 
+                                id="submitButton"
                                 {{ $hasUserSubmitted ? 'disabled' : '' }}
-                                class="w-full flex justify-center items-center gap-3 px-6 py-4 border-2 border-transparent rounded-xl shadow-lg text-lg font-bold text-white transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-blue-300 {{ $hasUserSubmitted ? 'bg-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98]' }}">
+                                class="w-full flex justify-center items-center gap-3 px-6 py-4 border-2 border-transparent rounded-xl shadow-lg text-lg font-bold text-white transition-all transform focus:outline-none focus:ring-4 focus:ring-blue-300 {{ $hasUserSubmitted ? 'bg-gray-400 cursor-not-allowed' : 'bg-gray-400 cursor-not-allowed' }}"
+                                disabled>
                             @if($hasUserSubmitted)
                                 <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
@@ -605,7 +624,7 @@ use Illuminate\Support\Facades\Storage;
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
                                 </svg>
-                                Kirim Tugas Sekarang
+                                <span id="submitButtonText">Isi Minimal 1 Form</span>
                             @endif
                         </button>
                         @if(!$hasUserSubmitted)
@@ -613,7 +632,7 @@ use Illuminate\Support\Facades\Storage;
                                 <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
-                                Pastikan semua file dan informasi sudah benar sebelum mengirim
+                                Isi minimal salah satu form sebelum mengirim
                             </p>
                         @endif
                     </div>
@@ -631,6 +650,7 @@ use Illuminate\Support\Facades\Storage;
                             <div class="flex-1">
                                 <h5 class="text-sm font-bold text-gray-900 mb-1">Tips Pengumpulan</h5>
                                 <ul class="text-xs text-gray-600 space-y-1">
+                                    <li>• <strong>Wajib mengisi minimal 1 form</strong></li>
                                     <li>• Upload file dengan format yang sesuai</li>
                                     <li>• Pastikan file tidak melebihi 10MB</li>
                                     <li>• Periksa kembali sebelum mengirim</li>
@@ -920,6 +940,178 @@ document.addEventListener('keydown', function(event) {
         closeFileModal();
     }
 });
+
+function validateForm() {
+    @if($hasUserSubmitted)
+        return; // Skip validation if already submitted
+    @endif
+
+    const fileInput = document.getElementById('file');
+    const linkInput = document.getElementById('link');
+    const notesInput = document.getElementById('notes');
+    const submitButton = document.getElementById('submitButton');
+    const submitButtonText = document.getElementById('submitButtonText');
+    const emptyFormWarning = document.getElementById('emptyFormWarning');
+    
+    const hasFile = fileInput && fileInput.files && fileInput.files.length > 0;
+    const hasLink = linkInput && linkInput.value.trim() !== '';
+    const hasNotes = notesInput && notesInput.value.trim() !== '';
+    
+    const isFormValid = hasFile || hasLink || hasNotes;
+    
+    if (isFormValid) {
+        submitButton.disabled = false;
+        submitButton.classList.remove('bg-gray-400', 'cursor-not-allowed');
+        submitButton.classList.add('bg-gradient-to-r', 'from-blue-600', 'to-indigo-600', 'hover:from-blue-700', 'hover:to-indigo-700', 'hover:scale-[1.02]', 'active:scale-[0.98]');
+        submitButtonText.textContent = 'Kirim Tugas Sekarang';
+        emptyFormWarning.classList.add('hidden');
+    } else {
+        submitButton.disabled = true;
+        submitButton.classList.add('bg-gray-400', 'cursor-not-allowed');
+        submitButton.classList.remove('bg-gradient-to-r', 'from-blue-600', 'to-indigo-600', 'hover:from-blue-700', 'hover:to-indigo-700', 'hover:scale-[1.02]', 'active:scale-[0.98]');
+        submitButtonText.textContent = 'Isi Minimal 1 Form';
+        emptyFormWarning.classList.remove('hidden');
+    }
+}
+
+// Handle file selection and preview
+function handleFileSelect(input) {
+    const file = input.files[0];
+    if (!file) {
+        validateForm();
+        return;
+    }
+    
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+        alert('Ukuran file terlalu besar! Maksimal 10MB.');
+        input.value = '';
+        validateForm();
+        return;
+    }
+    
+    // Show file preview area
+    const uploadArea = document.getElementById('uploadArea');
+    const filePreviewArea = document.getElementById('filePreviewArea');
+    const selectedFileName = document.getElementById('selectedFileName');
+    const selectedFileSize = document.getElementById('selectedFileSize');
+    const imagePreview = document.getElementById('imagePreview');
+    const imagePreviewImg = imagePreview.querySelector('img');
+    
+    uploadArea.classList.add('hidden');
+    filePreviewArea.classList.remove('hidden');
+    
+    // Set file name and size
+    selectedFileName.textContent = file.name;
+    selectedFileSize.textContent = formatFileSize(file.size);
+    
+    // Show image preview if it's an image
+    const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp'];
+    const fileExtension = file.name.split('.').pop().toLowerCase();
+    
+    if (imageExtensions.includes(fileExtension)) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            imagePreviewImg.src = e.target.result;
+            imagePreview.classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+    } else {
+        imagePreview.classList.add('hidden');
+    }
+    
+    // Validate form after file selection
+    validateForm();
+}
+
+// Remove selected file
+function removeSelectedFile() {
+    const fileInput = document.getElementById('file');
+    const uploadArea = document.getElementById('uploadArea');
+    const filePreviewArea = document.getElementById('filePreviewArea');
+    const imagePreview = document.getElementById('imagePreview');
+    
+    fileInput.value = '';
+    uploadArea.classList.remove('hidden');
+    filePreviewArea.classList.add('hidden');
+    imagePreview.classList.add('hidden');
+    
+    // Validate form after removing file
+    validateForm();
+}
+
+// Format file size
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+}
+
+// Form submission validation
+document.getElementById('submitForm').addEventListener('submit', function(e) {
+    @if(!$hasUserSubmitted)
+        const fileInput = document.getElementById('file');
+        const linkInput = document.getElementById('link');
+        const notesInput = document.getElementById('notes');
+        
+        const hasFile = fileInput.files.length > 0;
+        const hasLink = linkInput.value.trim() !== '';
+        const hasNotes = notesInput.value.trim() !== '';
+        
+        if (!hasFile && !hasLink && !hasNotes) {
+            e.preventDefault();
+            alert('Mohon isi minimal salah satu form: file, tautan, atau catatan!');
+            document.getElementById('emptyFormWarning').classList.remove('hidden');
+            return false;
+        }
+    @endif
+});
+
+// Drag and drop functionality
+(function() {
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('file');
+    
+    if (!uploadArea || !fileInput || fileInput.disabled) return;
+    
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    
+    ['dragenter', 'dragover'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, () => {
+            uploadArea.classList.add('border-blue-500', 'bg-blue-100');
+        }, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, () => {
+            uploadArea.classList.remove('border-blue-500', 'bg-blue-100');
+        }, false);
+    });
+    
+    uploadArea.addEventListener('drop', function(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        
+        if (files.length > 0) {
+            fileInput.files = files;
+            handleFileSelect(fileInput);
+        }
+    }, false);
+})();
+
+// Initialize validation on page load
+document.addEventListener('DOMContentLoaded', function() {
+    validateForm();
+});
 </script>
 
 <style>
@@ -995,6 +1187,34 @@ textarea::-webkit-scrollbar-thumb:hover {
 #uploadArea.border-blue-500 {
     transform: scale(1.02);
     transition: all 0.2s ease;
+}
+
+/* Smooth transitions for button state changes */
+#submitButton {
+    transition: all 0.3s ease;
+}
+
+#submitButton:not(:disabled):hover {
+    transform: scale(1.02);
+}
+
+#submitButton:not(:disabled):active {
+    transform: scale(0.98);
+}
+
+#emptyFormWarning {
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 </style>
 </x-app-layout>
