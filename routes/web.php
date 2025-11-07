@@ -111,6 +111,8 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         Route::get('/{user}', [UserController::class, 'show'])->name('show');
         Route::delete('/{user}', [UserController::class, 'destroy'])->name('destroy');
     });
+    Route::post('/users/{user}/block', [UserController::class, 'block'])->name('users.block');
+    Route::post('/users/{user}/unblock', [UserController::class, 'unblock'])->name('users.unblock');
 
     // Analytics Admin
     Route::prefix('analytict')->name('analytict.')->group(function () {

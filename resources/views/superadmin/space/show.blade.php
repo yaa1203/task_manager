@@ -3,7 +3,7 @@
 @section('page-title', 'Detail Workspace')
 
 @section('content')
-<div class="max-w-7xl mx-auto">
+<div class="max-w-6xl mx-auto">
     {{-- Header Section dengan Breadcrumb --}}
     <div class="mb-8">
         {{-- Breadcrumb --}}

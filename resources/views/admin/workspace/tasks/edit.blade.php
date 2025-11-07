@@ -79,7 +79,7 @@
                     <div>
                         <p class="text-sm text-gray-700">File saat ini:</p>
                         <a href="{{ asset('storage/' . $task->file_path) }}" target="_blank" class="text-indigo-600 hover:underline">
-                            {{ basename($task->file_path) }}
+                            {{ $task->original_filename ?? basename($task->file_path) }}
                         </a>
                     </div>
                     <label class="flex items-center text-sm text-red-600 cursor-pointer">
@@ -93,7 +93,7 @@
                     <label for="file" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
                         <div class="flex flex-col items-center justify-center pt-5 pb-6">
                             <svg class="w-8 h-8 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width-2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                             </svg>
                             <p class="mb-2 text-sm text-gray-500"><span class="font-semibold">Klik untuk mengunggah</span> atau seret dan lepas</p>
                             <p class="text-xs text-gray-500">Ukuran maksimal file: 10MB</p>
@@ -134,6 +134,18 @@
                         </span>
                     </div>
                 </div>
+                
+                <!-- Peringatan tentang pengguna yang diblokir -->
+                <div class="mb-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                    <div class="flex items-center gap-2 text-sm">
+                        <svg class="w-4 h-4 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 15.5c-.77.833.192 2.5 1.732 2.5z"/>
+                        </svg>
+                        <span class="text-amber-800">
+                            Pengguna yang diblokir tidak akan ditampilkan dalam daftar pilihan.
+                        </span>
+                    </div>
+                </div>
 
                 <div class="mb-3">
                     <label class="flex items-center gap-2 cursor-pointer p-3 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors">
@@ -167,6 +179,24 @@
                             <div class="min-w-0 flex-1">
                                 <div class="text-sm font-medium text-gray-900 truncate">{{ $user->name }}</div>
                                 <div class="text-xs text-gray-500 truncate">{{ $user->email }}</div>
+                            </div>
+                            <!-- Status User -->
+                            <div class="flex items-center gap-1">
+                                @if($user->is_blocked)
+                                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd"/>
+                                    </svg>
+                                    Diblokir
+                                </span>
+                                @else
+                                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                    </svg>
+                                    Aktif
+                                </span>
+                                @endif
                             </div>
                         </div>
                     </label>
@@ -213,6 +243,7 @@
                                name="due_date_date" 
                                id="due_date_date"
                                value="{{ old('due_date_date', $task->due_date ? $task->due_date->format('Y-m-d') : '') }}"
+                               min="{{ date('Y-m-d') }}"
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                     </div>
                     
@@ -221,7 +252,7 @@
                         <input type="time" 
                                name="due_date_time" 
                                id="due_date_time"
-                               value="{{ old('due_date_time', $task->due_date ? $task->due_date->format('H:i') : '') }}"
+                               value="{{ old('due_date_time', $task->due_date ? $task->due_date->format('H:i') : '23:59') }}"
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                     </div>
                 </div>
@@ -250,12 +281,12 @@
 <script>
 // Script untuk form EDIT TASK
 // Letakkan di bagian bawah file edit.blade.php
-// Ganti semua script yang ada dengan script ini
 
 function displayFileName(input) {
     const fileNameDisplay = document.getElementById('file-name');
     if (input.files && input.files[0]) {
-        fileNameDisplay.textContent = '📎 ' + input.files[0].name;
+        const fileSize = (input.files[0].size / 1024 / 1024).toFixed(2);
+        fileNameDisplay.textContent = '📎 ' + input.files[0].name + ' (' + fileSize + ' MB)';
         fileNameDisplay.classList.remove('hidden');
     } else {
         fileNameDisplay.classList.add('hidden');
@@ -324,6 +355,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Form submit handler
 document.getElementById('taskForm').addEventListener('submit', function(e) {
+    const assignToAllCheckbox = document.getElementById('assign_to_all');
+    const userCheckboxes = document.querySelectorAll('.user-checkbox');
     const dateInput = document.getElementById('due_date_date');
     const timeInput = document.getElementById('due_date_time');
     const hiddenInput = document.getElementById('due_date_hidden');
@@ -337,6 +370,40 @@ document.getElementById('taskForm').addEventListener('submit', function(e) {
             hiddenInput.value = dateInput.value + ' 23:59:00';
         }
         console.log('Final DateTime before submit:', hiddenInput.value); // Debug
+    }
+    
+    // Handle assign to all
+    if (assignToAllCheckbox.checked) {
+        userCheckboxes.forEach(cb => {
+            cb.disabled = false; // Enable agar value terkirim
+            cb.checked = false;
+        });
+    }
+    
+    // Validasi minimal satu user dipilih
+    if (!assignToAllCheckbox.checked) {
+        let anyChecked = false;
+        userCheckboxes.forEach(cb => {
+            if (cb.checked) anyChecked = true;
+        });
+        
+        if (!anyChecked) {
+            e.preventDefault();
+            alert('Silakan pilih setidaknya satu pengguna untuk diberi tugas.');
+            return false;
+        }
+    }
+    
+    // Validasi tanggal batas tidak di masa lalu
+    if (dateInput.value) {
+        const selectedDate = new Date(dateInput.value + ' ' + (timeInput.value || '23:59'));
+        const now = new Date();
+        
+        if (selectedDate < now) {
+            e.preventDefault();
+            alert('Tanggal batas tidak boleh di masa lalu.');
+            return false;
+        }
     }
 });
 </script>

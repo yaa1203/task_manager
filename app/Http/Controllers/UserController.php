@@ -456,4 +456,149 @@ class UserController extends Controller
         $user->delete();
         return back()->with('success', 'User berhasil dihapus dari sistem.');
     }
+
+    /**
+     * Blokir user
+     */
+    public function block(User $user)
+    {
+        $admin = Auth::user();
+        $adminCategoryId = $admin->category_id;
+
+        // Cegah admin blokir dirinya sendiri
+        if ($admin->id === $user->id) {
+            return back()->with('error', 'Anda tidak dapat memblokir akun sendiri.');
+        }
+
+        // Pastikan user memiliki kategori yang sama dengan admin
+        if ($user->category_id !== $adminCategoryId) {
+            return back()->with('error', 'Anda tidak memiliki izin untuk memblokir user dari kategori lain.');
+        }
+
+        // Cegah blokir user yang sudah diblokir
+        if ($user->is_blocked) {
+            return back()->with('error', 'User ini sudah diblokir.');
+        }
+
+        $user->update([
+            'is_blocked' => true,
+            'blocked_at' => now(),
+            'blocked_by' => $admin->id,
+        ]);
+
+        return back()->with('success', "Akun {$user->name} berhasil diblokir. User tidak dapat login ke sistem.");
+    }
+
+    /**
+     * Buka blokir user
+     */
+    public function unblock(User $user)
+    {
+        $admin = Auth::user();
+        $adminCategoryId = $admin->category_id;
+
+        // Pastikan user memiliki kategori yang sama dengan admin
+        if ($user->category_id !== $adminCategoryId) {
+            return back()->with('error', 'Anda tidak memiliki izin untuk membuka blokir user dari kategori lain.');
+        }
+
+        // Cegah unblock user yang tidak diblokir
+        if (!$user->is_blocked) {
+            return back()->with('error', 'User ini tidak dalam status terblokir.');
+        }
+
+        $user->update([
+            'is_blocked' => false,
+            'blocked_at' => null,
+            'blocked_by' => null,
+        ]);
+
+        return back()->with('success', "Akun {$user->name} berhasil dibuka blokirnya. User dapat login kembali.");
+    }
+
+    /**
+     * SUPER ADMIN: Blokir admin
+     */
+    public function superAdminBlock(User $user)
+    {
+        // Cegah blokir superadmin
+        if ($user->role === 'superadmin') {
+            return back()->with('error', 'Tidak dapat memblokir akun Super Admin.');
+        }
+
+        // Cegah blokir admin yang sudah diblokir
+        if ($user->is_blocked) {
+            return back()->with('error', 'Admin ini sudah diblokir.');
+        }
+
+        $user->update([
+            'is_blocked' => true,
+            'blocked_at' => now(),
+            'blocked_by' => Auth::id(),
+        ]);
+
+        return back()->with('success', "Akun admin {$user->name} berhasil diblokir.");
+    }
+
+    /**
+     * SUPER ADMIN: Buka blokir admin
+     */
+    public function superAdminUnblock(User $user)
+    {
+        // Cegah unblock admin yang tidak diblokir
+        if (!$user->is_blocked) {
+            return back()->with('error', 'Admin ini tidak dalam status terblokir.');
+        }
+
+        $user->update([
+            'is_blocked' => false,
+            'blocked_at' => null,
+            'blocked_by' => null,
+        ]);
+
+        return back()->with('success', "Akun admin {$user->name} berhasil dibuka blokirnya.");
+    }
+
+    /**
+     * SUPER ADMIN: Blokir user
+     */
+    public function superUserBlock(User $user)
+    {
+        // Cegah blokir superadmin atau admin
+        if (in_array($user->role, ['superadmin', 'admin'])) {
+            return back()->with('error', 'Tidak dapat memblokir akun ini dari halaman user.');
+        }
+
+        // Cegah blokir user yang sudah diblokir
+        if ($user->is_blocked) {
+            return back()->with('error', 'User ini sudah diblokir.');
+        }
+
+        $user->update([
+            'is_blocked' => true,
+            'blocked_at' => now(),
+            'blocked_by' => Auth::id(),
+        ]);
+
+        return back()->with('success', "Akun user {$user->name} berhasil diblokir.");
+    }
+
+    /**
+     * SUPER ADMIN: Buka blokir user
+     */
+    public function superUserUnblock(User $user)
+    {
+        // Cegah unblock user yang tidak diblokir
+        if (!$user->is_blocked) {
+            return back()->with('error', 'User ini tidak dalam status terblokir.');
+        }
+
+        $user->update([
+            'is_blocked' => false,
+            'blocked_at' => null,
+            'blocked_by' => null,
+        ]);
+
+        return back()->with('success', "Akun user {$user->name} berhasil dibuka blokirnya.");
+    }
 }

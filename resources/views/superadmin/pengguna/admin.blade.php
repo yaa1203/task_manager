@@ -3,7 +3,7 @@
 @section('page-title', 'Manajemen Admin')
 
 @section('content')
-<div class="max-w-7xl mx-auto">
+<div class="max-w-6xl mx-auto">
     {{-- Header Section --}}
     <div class="mb-8">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
