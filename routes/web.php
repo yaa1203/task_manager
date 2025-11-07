@@ -95,11 +95,11 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
 
-  Route::get('/admin/profile', [ProfileController::class, 'profileAdmin'])->name('admin.profile');
-Route::patch('/admin/profile', [ProfileController::class, 'updateAdmin'])->name('admin.profile.update');
-Route::put('/admin/profile/password', [ProfileController::class, 'updatePasswordAdmin'])->name('admin.password.update');
-Route::delete('/admin/profile', [ProfileController::class, 'destroyAdmin'])->name('admin.profile.destroy');
-Route::post('/admin/profile/send-verification', [ProfileController::class, 'sendVerificationAdmin'])->name('admin.profile.verify');
+    Route::get('/admin/profile', [ProfileController::class, 'profileAdmin'])->name('admin.profile');
+    Route::patch('/admin/profile', [ProfileController::class, 'updateAdmin'])->name('admin.profile.update');
+    Route::put('/admin/profile/password', [ProfileController::class, 'updatePasswordAdmin'])->name('admin.password.update');
+    Route::delete('/admin/profile', [ProfileController::class, 'destroyAdmin'])->name('admin.profile.destroy');
+    Route::post('/admin/profile/send-verification', [ProfileController::class, 'sendVerificationAdmin'])->name('admin.profile.verify');
 
  
     // Dashboard Admin

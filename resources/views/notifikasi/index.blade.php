@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div>
-                <h2 class="font-semibold text-xl text-gray-800">🔔 Notifikasi</h2>
+                <h2 class="font-semibold text-xl text-gray-800">Notifikasi</h2>
                 <p class="text-sm text-gray-600 mt-1">Tetap update dengan penugasan tugas Anda</p>
             </div>
             @if($notifications->total() > 0)

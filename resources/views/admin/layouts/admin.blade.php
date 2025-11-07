@@ -539,8 +539,7 @@
             </div>
             
             <div class="space-y-1">
-                 <a href="{{ url('/admin/profile') }}" target="_blank" 
-                   class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-white hover:text-blue-600 rounded-lg transition-all group">
+                 <a href="{{ url('admin/profile') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 rounded-lg">
                     <div class="w-8 h-8 bg-gray-100 group-hover:bg-blue-50 rounded-lg flex items-center justify-center transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z"/>

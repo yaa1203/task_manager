@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div>
-                <h2 class="font-semibold text-lg sm:text-xl text-gray-800">📊 Dasbor Analitik</h2>
+                <h2 class="font-semibold text-lg sm:text-xl text-gray-800">Dasbor Analitik</h2>
                 <p class="text-xs sm:text-sm text-gray-600 mt-1">Wawasan produktivitas dan statistik Anda</p>
             </div>
          

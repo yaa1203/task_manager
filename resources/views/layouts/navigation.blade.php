@@ -1,4 +1,5 @@
-<nav class="bg-white border-b border-gray-100 z-50 h-16">
+{{-- Fixed Top Navbar --}}
+<nav class="fixed top-0 left-0 right-0 bg-white border-b border-gray-100 z-50 h-16 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
             <!-- Logo -->
@@ -51,11 +52,11 @@
                 @endforeach
             </div>
 
-            <!-- Right: Notifikasi + User -->
+            <!-- Right: Notifikasi + User + Hamburger -->
             <div class="flex items-center space-x-3">
                 <!-- Notifikasi -->
-                <div class="relative" x-data="{ open: false }" @click.away="open = false" x-on:keydown.escape="open = false">
-                    <button @click="open = !open" class="p-2 rounded-full hover:bg-gray-100 transition relative focus:outline-none">
+                <div class="relative" x-data="{ notifOpen: false }" @click.away="notifOpen = false" x-on:keydown.escape="notifOpen = false">
+                    <button @click="notifOpen = !notifOpen" class="p-2 rounded-full hover:bg-gray-100 transition relative focus:outline-none">
                         <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                         </svg>
@@ -67,17 +68,15 @@
                     </button>
 
                     <!-- Dropdown Notifikasi -->
-                    <div x-show="open" 
-                        x-transition:enter="transition ease-out duration-150" 
-                        x-transition:enter-start="opacity-0 scale-90" 
-                        x-transition:enter-end="opacity-100 scale-100" 
-                        x-transition:leave="transition ease-in duration-100" 
-                        x-transition:leave-start="opacity-100 scale-100" 
-                        x-transition:leave-end="opacity-0 scale-90" 
-                        class="absolute mt-2 w-80 sm:w-96 max-w-[90vw] bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50 origin-top
-                                md:right-0 md:left-auto md:translate-x-0
-                                left-1/2 -translate-x-1/2 right-auto mobile-center-dropdown"
-                        style="min-width: 280px;">
+                    <div x-show="notifOpen" 
+                         x-transition:enter="transition ease-out duration-150" 
+                         x-transition:enter-start="opacity-0 scale-90" 
+                         x-transition:enter-end="opacity-100 scale-100" 
+                         x-transition:leave="transition ease-in duration-100" 
+                         x-transition:leave-start="opacity-100 scale-100" 
+                         x-transition:leave-end="opacity-0 scale-90" 
+                         class="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50 origin-top-right"
+                         style="display: none;">
                         <div class="p-3 sm:p-4 bg-gradient-to-r from-indigo-500 to-purple-600">
                             <div class="flex justify-between items-center">
                                 <h3 class="text-sm font-bold text-white">Notifikasi</h3>
@@ -92,7 +91,7 @@
                             @php $notifications = Auth::user()->unreadNotifications()->latest()->take(5)->get(); @endphp
                             @forelse($notifications as $n)
                                 <a href="#" onclick="event.preventDefault(); markAsReadAndRedirect('{{ route('notifikasi.read', $n) }}', '{{ $n->data['url'] ?? '#' }}')"
-                                class="block p-2 sm:p-3 hover:bg-gray-50 border-b border-gray-100 transition">
+                                   class="block p-2 sm:p-3 hover:bg-gray-50 border-b border-gray-100 transition">
                                     <div class="flex gap-2 sm:gap-3">
                                         <div class="w-8 h-8 sm:w-10 sm:h-10 bg-indigo-100 rounded-full flex items-center justify-center flex-shrink-0">
                                             <svg class="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -124,8 +123,8 @@
                 </div>
 
                 <!-- User Dropdown -->
-                <div class="relative" x-data="{ open: false }" @click.away="open = false">
-                    <button @click="open = !open" class="flex items-center gap-2 p-1 rounded-full hover:bg-gray-100 transition">
+                <div class="relative" x-data="{ userOpen: false }" @click.away="userOpen = false">
+                    <button @click="userOpen = !userOpen" class="flex items-center gap-2 p-1 rounded-full hover:bg-gray-100 transition">
                         <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-md">
                             {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
                         </div>
@@ -135,7 +134,15 @@
                         </svg>
                     </button>
 
-                    <div x-show="open" x-transition class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 z-50">
+                    <div x-show="userOpen" 
+                         x-transition:enter="transition ease-out duration-150" 
+                         x-transition:enter-start="opacity-0 scale-90" 
+                         x-transition:enter-end="opacity-100 scale-100" 
+                         x-transition:leave="transition ease-in duration-100" 
+                         x-transition:leave-start="opacity-100 scale-100" 
+                         x-transition:leave-end="opacity-0 scale-90"
+                         class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 z-50"
+                         style="display: none;">
                         <div class="p-3 space-y-1">
                             <a href="{{ route('profile.edit') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -156,11 +163,12 @@
                     </div>
                 </div>
 
-                <!-- Mobile Menu Button -->
-                <button id="mobile-menu-btn" class="lg:hidden p-2 rounded-full hover:bg-gray-100 transition">
+                <!-- Hamburger Button (Mobile) -->
+                <button x-data="{ mobileOpen: false }" 
+                        @click="mobileOpen = !mobileOpen; $dispatch('toggle-mobile-menu')" 
+                        class="lg:hidden p-2 rounded-full hover:bg-gray-100 transition focus:outline-none">
                     <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path class="hamburger" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                        <path class="close hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                     </svg>
                 </button>
             </div>
@@ -168,7 +176,19 @@
     </div>
 
     <!-- Mobile Full Overlay Menu -->
-    <div id="mobile-menu" class="fixed inset-0 bg-white z-40 hidden flex flex-col lg:hidden">
+    <div x-data="{ mobileMenuOpen: false }" 
+         @toggle-mobile-menu.window="mobileMenuOpen = !mobileMenuOpen"
+         x-show="mobileMenuOpen" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         @click.away="mobileMenuOpen = false"
+         class="fixed inset-0 bg-white z-40 flex flex-col lg:hidden"
+         style="display: none;">
+         
         <div class="p-6 border-b border-gray-100">
             <div class="flex justify-between items-center">
                 <div class="flex items-center gap-3">
@@ -180,7 +200,7 @@
                         <p class="text-sm text-gray-500">{{ Auth::user()->email }}</p>
                     </div>
                 </div>
-                <button id="close-mobile-menu" class="p-2 hover:bg-gray-100 rounded-lg">
+                <button @click="mobileMenuOpen = false" class="p-2 hover:bg-gray-100 rounded-lg transition">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
@@ -192,6 +212,7 @@
             @foreach($navItems as $item)
                 @php $isActive = request()->is(($item['url'] ?? $item['route']) . '*') || request()->routeIs($item['route'] ?? ''); @endphp
                 <a href="{{ isset($item['url']) ? url($item['url']) : route($item['route']) }}"
+                   @click="mobileMenuOpen = false"
                    class="flex items-center justify-between p-4 rounded-xl text-base font-medium transition-all {{ $isActive ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md' : 'text-gray-700 hover:bg-gray-50' }}">
                     <div class="flex items-center gap-3">
                         <svg class="w-6 h-6 {{ $isActive ? 'text-white' : 'text-gray-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -209,13 +230,13 @@
         </nav>
 
         <div class="p-4 border-t border-gray-100 space-y-2">
-            <a href="{{ route('profile.edit') }}" class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 text-gray-700">
+            <a href="{{ route('profile.edit') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 text-gray-700">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                 </svg>
                 <span>Profil</span>
             </a>
-            <form method="POST" action="{{ route('logout') }}">
+            <form method="POST" action="{{ route('logout') }}" @submit.prevent="mobileMenuOpen = false; $el.submit()">
                 @csrf
                 <button type="submit" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-red-50 text-red-600 font-medium">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -228,41 +249,12 @@
     </div>
 </nav>
 
-<!-- Script -->
+{{-- Add padding to content so it doesn't hide under fixed navbar --}}
+<div class="pt-16">
+    {{-- Your page content goes here --}}
+</div>
+
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const btn = document.getElementById('mobile-menu-btn');
-        const menu = document.getElementById('mobile-menu');
-        const close = document.getElementById('close-mobile-menu');
-        const hamburger = btn?.querySelector('.hamburger');
-        const x = btn?.querySelector('.close');
-
-        const open = () => {
-            menu.classList.remove('hidden');
-            setTimeout(() => menu.classList.add('opacity-100'), 10);
-            document.body.style.overflow = 'hidden';
-            hamburger?.classList.add('hidden');
-            x?.classList.remove('hidden');
-        };
-
-        const closeMenu = () => {
-            menu.classList.remove('opacity-100');
-            setTimeout(() => {
-                menu.classList.add('hidden');
-                document.body.style.overflow = '';
-                hamburger?.classList.remove('hidden');
-                x?.classList.add('hidden');
-            }, 300);
-        };
-
-        btn?.addEventListener('click', open);
-        close?.addEventListener('click', closeMenu);
-
-        menu.querySelectorAll('a, button[type="submit"]').forEach(el => {
-            el.addEventListener('click', () => setTimeout(closeMenu, 150));
-        });
-    });
-
     function markAsReadAndRedirect(url, redirect) {
         if (redirect === '#') return;
         fetch(url, {
@@ -274,17 +266,3 @@
         }).then(() => location.href = redirect).catch(() => location.href = redirect);
     }
 </script>
-
-<style>
-    #mobile-menu { transition: opacity 0.3s ease; opacity: 0; }
-    #mobile-menu.opacity-100 { opacity: 1; }
-    .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-
-    @media (max-width: 767px) {
-        .mobile-center-dropdown {
-            left: auto !important;
-            right: auto !important;
-            transform: translateX(-50%) !important;
-        }
-    }
-</style>

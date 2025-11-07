@@ -1,6 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800">Dasbor</h2>
+        <h2 class="font-semibold text-xl text-gray-800">Dasboard</h2>
+        <p class="text-sm text-gray-600 mt-1">Tetap update dengan penugasan tugas Anda</p>
     </x-slot>
 
     <div class="py-4 sm:py-6">
