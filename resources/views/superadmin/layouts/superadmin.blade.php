@@ -12,18 +12,18 @@
 <div class="flex h-screen overflow-hidden">
 
     {{-- Mobile Overlay --}}
-    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden lg:hidden transition-opacity"></div>
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden transition-opacity duration-300"></div>
 
     {{-- Sidebar --}}
     <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 transform -translate-x-full lg:translate-x-0 w-64 bg-white border-r border-gray-200 transition-transform duration-300 ease-in-out z-30 flex flex-col">
 
         {{-- Logo Header --}}
-        <div class="p-6 flex items-center justify-between border-b">
+        <div class="p-4 sm:p-6 flex items-center justify-between border-b">
             <a href="{{ route('superadmin.dashboard') }}" class="flex items-center space-x-2">
                 <img src="{{ asset('icons/logo72x72.png') }}" alt="Logo" class="h-8 w-8 rounded-full" />
-                <span class="text-lg font-bold">Super Admin</span>
+                <span class="text-base sm:text-lg font-bold">Super Admin</span>
             </a>
-            <button id="close-sidebar" class="lg:hidden text-gray-500 hover:text-gray-700">
+            <button id="close-sidebar" class="lg:hidden text-gray-500 hover:text-gray-700 focus:outline-none">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
@@ -89,15 +89,15 @@
                             <button class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 {{ (request()->is('pengguna/admin') || request()->is('pengguna/admin/*') || request()->is('pengguna/user') || request()->is('pengguna/user/*')) ? 'bg-purple-50 text-purple-700' : 'text-gray-700 hover:bg-gray-100' }}"
                                     onclick="toggleSubmenu('submenu-{{ $loop->index }}')">
                                 <span class="flex items-center gap-3">
-                                    <svg class="w-5 h-5 {{ (request()->is('pengguna/admin') || request()->is('pengguna/admin/*') || request()->is('pengguna/user') || request()->is('pengguna/user/*')) ? 'text-purple-600' : 'text-gray-400' }}" 
+                                    <svg class="w-5 h-5 flex-shrink-0 {{ (request()->is('pengguna/admin') || request()->is('pengguna/admin/*') || request()->is('pengguna/user') || request()->is('pengguna/user/*')) ? 'text-purple-600' : 'text-gray-400' }}" 
                                         fill="none" 
                                         stroke="currentColor" 
                                         viewBox="0 0 24 24">
                                         {!! $item['icon'] !!}
                                     </svg>
-                                    <span>{{ $item['label'] }}</span>
+                                    <span class="truncate">{{ $item['label'] }}</span>
                                 </span>
-                                <svg id="submenu-arrow-{{ $loop->index }}" class="w-4 h-4 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg id="submenu-arrow-{{ $loop->index }}" class="w-4 h-4 flex-shrink-0 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                                 </svg>
                             </button>
@@ -106,13 +106,13 @@
                                 @foreach($item['submenu'] as $subitem)
                                     <a href="{{ route($subitem['route']) }}"
                                     class="group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->is('pengguna/admin') || request()->is('pengguna/admin/*') ? 'bg-purple-100 text-purple-700' : (request()->is('pengguna/user') || request()->is('pengguna/user/*') ? 'bg-purple-100 text-purple-700' : 'text-gray-700 hover:bg-gray-100') }}">
-                                        <svg class="w-4 h-4 {{ request()->is('pengguna/admin') || request()->is('pengguna/admin/*') ? 'text-purple-600' : (request()->is('pengguna/user') || request()->is('pengguna/user/*') ? 'text-purple-600' : 'text-gray-400 group-hover:text-gray-600') }}" 
+                                        <svg class="w-4 h-4 flex-shrink-0 {{ request()->is('pengguna/admin') || request()->is('pengguna/admin/*') ? 'text-purple-600' : (request()->is('pengguna/user') || request()->is('pengguna/user/*') ? 'text-purple-600' : 'text-gray-400 group-hover:text-gray-600') }}" 
                                             fill="none" 
                                             stroke="currentColor" 
                                             viewBox="0 0 24 24">
                                             {!! $subitem['icon'] !!}
                                         </svg>
-                                        <span>{{ $subitem['label'] }}</span>
+                                        <span class="truncate">{{ $subitem['label'] }}</span>
                                     </a>
                                 @endforeach
                             </div>
@@ -121,14 +121,14 @@
                         {{-- Menu tanpa submenu --}}
                         <a href="{{ $item['url'] ? url($item['url']) : route($item['route']) }}"
                            class="group flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs($item['route']) || (isset($item['route']) && str_contains($item['route'], '*') && request()->is($item['route'])) ? 'bg-purple-50 text-purple-700' : 'text-gray-700 hover:bg-gray-100' }}">
-                            <span class="flex items-center gap-3">
-                                <svg class="w-5 h-5 {{ request()->routeIs($item['route']) || (isset($item['route']) && str_contains($item['route'], '*') && request()->is($item['route'])) ? 'text-purple-600' : 'text-gray-400 group-hover:text-gray-600' }}" 
+                            <span class="flex items-center gap-3 min-w-0">
+                                <svg class="w-5 h-5 flex-shrink-0 {{ request()->routeIs($item['route']) || (isset($item['route']) && str_contains($item['route'], '*') && request()->is($item['route'])) ? 'text-purple-600' : 'text-gray-400 group-hover:text-gray-600' }}" 
                                      fill="none" 
                                      stroke="currentColor" 
                                      viewBox="0 0 24 24">
                                     {!! $item['icon'] !!}
                                 </svg>
-                                <span>{{ $item['label'] }}</span>
+                                <span class="truncate">{{ $item['label'] }}</span>
                             </span>
                         </a>
                     @endif
@@ -137,7 +137,7 @@
         </nav>
 
         {{-- User Profile & Logout --}}
-        <div class="p-4 border-t border-gray-200 bg-gray-50/50">
+        <div class="p-3 sm:p-4 border-t border-gray-200 bg-gray-50/50">
             <div class="mb-3 px-2">
                 <div class="text-sm font-semibold text-gray-900 truncate">{{ Auth::user()->name }}</div>
                 <div class="text-xs text-gray-500 truncate">{{ Auth::user()->email }}</div>
@@ -145,19 +145,19 @@
             <div class="space-y-1">
                 <a href="{{ url('/') }}" target="_blank" 
                    class="flex items-center gap-2.5 px-3 py-2 text-sm text-gray-600 hover:bg-white hover:text-gray-900 rounded-lg transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
                     </svg>
-                    <span>Lihat Website</span>
+                    <span class="truncate">Lihat Website</span>
                 </a>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit"
                             class="w-full flex items-center gap-2.5 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                         </svg>
-                        <span>Keluar</span>
+                        <span class="truncate">Keluar</span>
                     </button>
                 </form>
             </div>
@@ -166,6 +166,20 @@
 
     {{-- Main Content --}}
     <div class="flex-1 flex flex-col overflow-hidden">
+        {{-- Mobile Header dengan Hamburger --}}
+        <header class="lg:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-0 z-10">
+            <button id="open-sidebar" class="text-gray-600 hover:text-gray-900 focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
+            <div class="flex items-center space-x-2">
+                <img src="{{ asset('icons/logo72x72.png') }}" alt="Logo" class="h-7 w-7 rounded-full" />
+                <span class="text-base font-bold">Super Admin</span>
+            </div>
+            <div class="w-6"></div> {{-- Spacer untuk balance --}}
+        </header>
+
         <main class="flex-1 overflow-y-auto bg-gray-50">
             <div class="p-4 sm:p-6 lg:p-8">
                 @yield('content')
@@ -174,8 +188,9 @@
     </div>
 </div>
 
-{{-- JavaScript untuk toggle submenu --}}
+{{-- JavaScript untuk toggle sidebar dan submenu --}}
 <script>
+    // Toggle Submenu
     function toggleSubmenu(id) {
         const submenu = document.getElementById(id);
         const arrow = document.getElementById('submenu-arrow-' + id.split('-')[1]);
@@ -188,6 +203,60 @@
             arrow.classList.remove('rotate-180');
         }
     }
+
+    // Sidebar Toggle untuk Mobile
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    const openBtn = document.getElementById('open-sidebar');
+    const closeBtn = document.getElementById('close-sidebar');
+
+    function openSidebar() {
+        sidebar.classList.remove('-translate-x-full');
+        overlay.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeSidebar() {
+        sidebar.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    if (openBtn) {
+        openBtn.addEventListener('click', openSidebar);
+    }
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeSidebar);
+    }
+
+    if (overlay) {
+        overlay.addEventListener('click', closeSidebar);
+    }
+
+    // Close sidebar ketika link diklik di mobile
+    const sidebarLinks = sidebar.querySelectorAll('a');
+    sidebarLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            if (window.innerWidth < 1024) {
+                closeSidebar();
+            }
+        });
+    });
+
+    // Auto-expand submenu jika ada menu aktif di dalamnya
+    document.addEventListener('DOMContentLoaded', function() {
+        const activeSubmenuItems = document.querySelectorAll('.bg-purple-100');
+        activeSubmenuItems.forEach(item => {
+            const submenu = item.closest('[id^="submenu-"]');
+            if (submenu) {
+                const submenuId = submenu.id;
+                const arrowId = 'submenu-arrow-' + submenuId.split('-')[1];
+                submenu.classList.remove('hidden');
+                document.getElementById(arrowId).classList.add('rotate-180');
+            }
+        });
+    });
 </script>
 
 </body>

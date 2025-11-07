@@ -66,27 +66,16 @@ class AuthenticatedSessionController extends Controller
     }
 
     /**
-     * Logout dan hapus session.
+     * Destroy an authenticated session.
      */
-    // Di AuthenticatedSessionController.php
-    public function destroy(Request $request)
+    public function destroy(Request $request): RedirectResponse
     {
-        // Bersihkan cache PWA
-        if ($request->header('User-Agent') && 
-            (strpos($request->header('User-Agent'), 'wv') !== false || 
-            strpos($request->header('User-Agent'), 'Android') !== false)) {
-            
-            // Kirim pesan ke Service Worker untuk membersihkan cache
-            $response = [
-                'message' => 'Logged out successfully',
-                'clear_pwa_cache' => true
-            ];
-        }
-        
         Auth::guard('web')->logout();
+
         $request->session()->invalidate();
+
         $request->session()->regenerateToken();
-        
-        return isset($response) ? response()->json($response) : redirect('/');
+
+        return redirect('/');
     }
 }

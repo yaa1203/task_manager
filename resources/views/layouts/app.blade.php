@@ -21,16 +21,6 @@
         <meta name="application-name" content="{{ config('app.name', 'Laravel') }}">
         <meta name="msapplication-TileColor" content="#4f46e5">
         <meta name="msapplication-TileImage" content="/icons/logo.png">
-        <meta name="msapplication-config" content="/browserconfig.xml">
-        
-        <!-- iOS Splash Screens -->
-        <link rel="apple-touch-startup-image" href="/splash/splash-640x1136.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)">
-        <link rel="apple-touch-startup-image" href="/splash/splash-750x1334.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)">
-        <link rel="apple-touch-startup-image" href="/splash/splash-1242x2208.png" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)">
-        <link rel="apple-touch-startup-image" href="/splash/splash-1125x2436.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)">
-        <link rel="apple-touch-startup-image" href="/splash/splash-1536x2048.png" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2)">
-        <link rel="apple-touch-startup-image" href="/splash/splash-1668x2224.png" media="(device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2)">
-        <link rel="apple-touch-startup-image" href="/splash/splash-2048x2732.png" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2)">
         
         <!-- Icons -->
         <link rel="icon" type="image/png" sizes="32x32" href="/icons/logo72x72.png">
@@ -51,221 +41,168 @@
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         
-        <!-- PWA Install Prompt Styles -->
+        <!-- PWA Styles -->
         <style>
-            /* Prevent horizontal scroll on mobile */
             html, body {
                 overflow-x: hidden;
                 width: 100%;
                 position: relative;
             }
             
-            /* PWA Install Prompt - Mobile First Design */
+            /* PWA Install Prompt */
             .pwa-install-prompt {
                 position: fixed;
                 bottom: 0;
                 left: 0;
                 right: 0;
                 background: white;
-                padding: 16px;
-                border-top-left-radius: 16px;
-                border-top-right-radius: 16px;
-                box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
+                padding: 20px;
+                padding-bottom: calc(20px + env(safe-area-inset-bottom));
+                border-top-left-radius: 20px;
+                border-top-right-radius: 20px;
+                box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
                 display: none;
-                flex-direction: column;
-                gap: 16px;
-                z-index: 1000;
-                animation: slideUp 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
-                transform: translateY(0);
-                transition: transform 0.3s ease-out;
-                safe-area-inset-bottom: env(safe-area-inset-bottom);
-                padding-bottom: calc(16px + env(safe-area-inset-bottom));
-            }
-            
-            /* Tablet and Desktop */
-            @media (min-width: 640px) {
-                .pwa-install-prompt {
-                    bottom: 20px;
-                    left: 50%;
-                    right: auto;
-                    transform: translateX(-50%);
-                    max-width: 420px;
-                    width: calc(100% - 40px);
-                    border-radius: 12px;
-                    padding: 20px;
-                    padding-bottom: 20px;
-                }
-            }
-            
-            @keyframes slideUp {
-                from {
-                    transform: translateY(100%);
-                    opacity: 0;
-                }
-                to {
-                    transform: translateY(0);
-                    opacity: 1;
-                }
-            }
-            
-            @media (min-width: 640px) {
-                @keyframes slideUp {
-                    from {
-                        transform: translateX(-50%) translateY(100px);
-                        opacity: 0;
-                    }
-                    to {
-                        transform: translateX(-50%) translateY(0);
-                        opacity: 1;
-                    }
-                }
+                z-index: 9999;
+                transform: translateY(100%);
+                transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
             }
             
             .pwa-install-prompt.show {
-                display: flex;
-            }
-            
-            .pwa-install-prompt.hide {
-                transform: translateY(120%);
+                display: block;
+                transform: translateY(0);
             }
             
             @media (min-width: 640px) {
-                .pwa-install-prompt.hide {
-                    transform: translateX(-50%) translateY(120%);
+                .pwa-install-prompt {
+                    bottom: 24px;
+                    left: 50%;
+                    right: auto;
+                    transform: translateX(-50%) translateY(150%);
+                    max-width: 420px;
+                    width: calc(100% - 48px);
+                    border-radius: 16px;
+                    padding: 24px;
+                }
+                
+                .pwa-install-prompt.show {
+                    transform: translateX(-50%) translateY(0);
                 }
             }
             
-            /* Minimize Button */
-            .pwa-minimize-btn {
+            .pwa-close-btn {
                 position: absolute;
                 top: 12px;
                 right: 12px;
-                width: 28px;
-                height: 28px;
+                width: 32px;
+                height: 32px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 background: transparent;
                 border: none;
                 cursor: pointer;
-                color: #6b7280;
-                transition: all 0.2s;
+                color: #9ca3af;
                 border-radius: 50%;
-                padding: 0;
+                transition: all 0.2s;
             }
             
-            .pwa-minimize-btn:hover {
+            .pwa-close-btn:hover {
                 background: #f3f4f6;
                 color: #374151;
             }
             
-            /* Mini Prompt (Collapsed State) */
-            .pwa-mini-prompt {
-                position: fixed;
-                bottom: 20px;
-                right: 20px;
-                width: 56px;
-                height: 56px;
-                background: #4f46e5;
-                border-radius: 50%;
-                display: none;
-                align-items: center;
-                justify-content: center;
-                cursor: pointer;
-                box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
-                z-index: 999;
-                transition: all 0.3s ease;
-                animation: pulse 2s infinite;
-            }
-            
-            .pwa-mini-prompt:hover {
-                transform: scale(1.1);
-                box-shadow: 0 6px 20px rgba(79, 70, 229, 0.5);
-            }
-            
-            .pwa-mini-prompt.show {
-                display: flex;
-            }
-            
-            @keyframes pulse {
-                0%, 100% {
-                    transform: scale(1);
-                }
-                50% {
-                    transform: scale(1.05);
-                }
-            }
-            
-            /* Content Wrapper */
             .pwa-content {
                 display: flex;
                 align-items: flex-start;
-                gap: 12px;
+                gap: 16px;
+                margin-bottom: 20px;
+                padding-right: 32px;
             }
             
             .pwa-icon {
-                width: 48px;
-                height: 48px;
+                width: 64px;
+                height: 64px;
                 flex-shrink: 0;
-                border-radius: 12px;
+                border-radius: 16px;
                 overflow: hidden;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+            }
+            
+            .pwa-icon img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
             }
             
             .pwa-text {
                 flex: 1;
-                margin-right: 20px;
             }
             
             .pwa-title {
-                font-size: 16px;
-                font-weight: 600;
+                font-size: 18px;
+                font-weight: 700;
                 color: #111827;
-                margin-bottom: 4px;
-                line-height: 1.2;
+                margin-bottom: 6px;
             }
             
             .pwa-description {
                 font-size: 14px;
                 color: #6b7280;
-                line-height: 1.4;
+                line-height: 1.5;
             }
             
-            /* Buttons Container */
+            .pwa-features {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                margin-bottom: 20px;
+            }
+            
+            .pwa-feature {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-size: 13px;
+                color: #4b5563;
+            }
+            
+            .pwa-feature-icon {
+                width: 18px;
+                height: 18px;
+                flex-shrink: 0;
+                color: #4f46e5;
+            }
+            
             .pwa-buttons {
                 display: flex;
                 gap: 12px;
-                width: 100%;
             }
             
             .pwa-btn {
                 flex: 1;
-                padding: 12px 20px;
-                border-radius: 8px;
+                padding: 14px 24px;
+                border-radius: 12px;
                 font-size: 15px;
-                font-weight: 500;
+                font-weight: 600;
                 border: none;
                 cursor: pointer;
-                transition: all 0.2s ease;
-                touch-action: manipulation;
-                -webkit-tap-highlight-color: transparent;
+                transition: all 0.2s;
                 min-height: 48px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
+                gap: 8px;
             }
             
             .pwa-btn-primary {
-                background: #4f46e5;
+                background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
                 color: white;
+                box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
             }
             
             .pwa-btn-primary:hover {
-                background: #4338ca;
-            }
-            
-            .pwa-btn-primary:active {
-                transform: scale(0.98);
+                transform: translateY(-2px);
+                box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4);
             }
             
             .pwa-btn-secondary {
@@ -277,122 +214,112 @@
                 background: #e5e7eb;
             }
             
-            .pwa-btn-secondary:active {
-                transform: scale(0.98);
+            /* Mini Floating Button */
+            .pwa-mini-prompt {
+                position: fixed;
+                bottom: 24px;
+                right: 24px;
+                width: 60px;
+                height: 60px;
+                background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+                border-radius: 50%;
+                display: none;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                box-shadow: 0 8px 24px rgba(79, 70, 229, 0.4);
+                z-index: 9998;
+                transition: all 0.3s;
             }
             
-            /* Offline Banner */
-            .offline-banner {
+            .pwa-mini-prompt.show {
+                display: flex;
+                animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55), pulse 2s infinite 1s;
+            }
+            
+            .pwa-mini-prompt:hover {
+                transform: scale(1.1) rotate(5deg);
+            }
+            
+            @keyframes bounceIn {
+                0% { transform: scale(0); opacity: 0; }
+                50% { transform: scale(1.1); }
+                100% { transform: scale(1); opacity: 1; }
+            }
+            
+            @keyframes pulse {
+                0%, 100% { box-shadow: 0 8px 24px rgba(79, 70, 229, 0.4); }
+                50% { box-shadow: 0 8px 32px rgba(79, 70, 229, 0.6), 0 0 0 8px rgba(79, 70, 229, 0.1); }
+            }
+            
+            /* Banners */
+            .banner {
                 position: fixed;
                 top: 0;
                 left: 0;
                 right: 0;
-                background: linear-gradient(90deg, #fbbf24, #f59e0b);
-                color: #78350f;
-                padding: 10px 16px;
+                padding: 14px 20px;
                 text-align: center;
-                z-index: 999;
+                z-index: 9997;
                 display: none;
                 font-size: 14px;
-                font-weight: 500;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            }
-            
-            .offline-banner.show {
-                display: block;
+                font-weight: 600;
                 animation: slideDown 0.3s ease-out;
             }
             
-            @keyframes slideDown {
-                from {
-                    transform: translateY(-100%);
-                }
-                to {
-                    transform: translateY(0);
-                }
+            .banner.show {
+                display: block;
             }
             
-            /* Update Banner */
+            .offline-banner {
+                background: linear-gradient(135deg, #fbbf24, #f59e0b);
+                color: #78350f;
+            }
+            
             .update-banner {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                background: linear-gradient(90deg, #3b82f6, #2563eb);
+                background: linear-gradient(135deg, #3b82f6, #2563eb);
                 color: white;
-                padding: 12px 16px;
-                z-index: 999;
-                display: none;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            }
-            
-            .update-banner.show {
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 gap: 12px;
-                animation: slideDown 0.3s ease-out;
             }
             
             .update-btn {
-                padding: 6px 16px;
+                padding: 8px 20px;
                 background: white;
                 color: #2563eb;
-                border-radius: 6px;
+                border-radius: 8px;
                 font-size: 14px;
-                font-weight: 600;
+                font-weight: 700;
                 border: none;
                 cursor: pointer;
                 transition: all 0.2s;
             }
             
-            .update-btn:hover {
-                background: #f0f9ff;
-                transform: translateY(-1px);
+            @keyframes slideDown {
+                from { transform: translateY(-100%); opacity: 0; }
+                to { transform: translateY(0); opacity: 1; }
             }
             
-            /* Mobile Optimizations */
+            .pwa-btn:focus-visible,
+            .pwa-close-btn:focus-visible,
+            .pwa-mini-prompt:focus-visible {
+                outline: 3px solid #4f46e5;
+                outline-offset: 2px;
+            }
+            
             @media (max-width: 640px) {
-                button, a {
-                    min-height: 44px;
-                    min-width: 44px;
-                    touch-action: manipulation;
-                }
-                
-                /* Adjust main content padding for mobile */
                 main {
                     padding-bottom: env(safe-area-inset-bottom, 20px);
                 }
-            }
-            
-            /* Smooth scrolling */
-            html {
-                scroll-behavior: smooth;
-                -webkit-font-smoothing: antialiased;
-                -moz-osx-font-smoothing: grayscale;
-            }
-            
-            /* Focus styles for accessibility */
-            .pwa-btn:focus-visible,
-            .pwa-minimize-btn:focus-visible,
-            .pwa-mini-prompt:focus-visible {
-                outline: 2px solid #4f46e5;
-                outline-offset: 2px;
             }
         </style>
     </head>
     <body class="font-sans antialiased">
         <!-- Offline Banner -->
-        <div id="offline-banner" class="offline-banner">
-            <span>⚠️ Anda sedang offline. Beberapa fitur mungkin terbatas.</span>
-        </div>
-        
-        <!-- Update Banner -->
-        <div id="update-banner" class="update-banner">
-            <span>🎉 Versi baru tersedia!</span>
-            <button onclick="window.location.reload()" class="update-btn">
-                Perbarui Sekarang
-            </button>
+        <div id="offline-banner" class="banner offline-banner">
+            ⚠️ Anda sedang offline. Beberapa fitur mungkin terbatas.
         </div>
         
         <div class="min-h-screen bg-gray-100">
@@ -408,621 +335,203 @@
             @endisset
             
             <!-- Page Content -->
-            <main class="pb-20 sm:pb-0">
+            <main class="pb-5 sm:pb-0">
                 {{ $slot }}
             </main>
         </div>
         
-        <!-- PWA Install Prompt (Expanded) -->
+        <!-- PWA Install Prompt -->
         <div id="pwa-install-prompt" class="pwa-install-prompt">
-            <div class="flex items-center gap-3">
-                <img src="/icons/logo72x72.png" alt="App Icon" class="w-12 h-12 rounded-lg flex-shrink-0">
-                <div>
-                    <p class="font-semibold">Instal Aplikasi Tugas</p>
-                    <p class="text-sm text-gray-600">Instal aplikasi kami untuk pengalaman yang lebih baik</p>
+            <div class="pwa-content">
+                <div class="pwa-icon">
+                    <img src="/icons/logo72x72.png" alt="App Icon">
+                </div>
+                <div class="pwa-text">
+                    <div class="pwa-title">Instal Aplikasi Kami</div>
+                    <div class="pwa-description">Akses lebih cepat dan mudah dari home screen Anda</div>
                 </div>
             </div>
             
-            <!-- Buttons -->
+            <div class="pwa-features">
+                <div class="pwa-feature">
+                    <svg class="pwa-feature-icon" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                    <span>Notifikasi push real-time</span>
+                </div>
+                <div class="pwa-feature">
+                    <svg class="pwa-feature-icon" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                    <span>Pengalaman seperti aplikasi native</span>
+                </div>
+            </div>
+            
             <div class="pwa-buttons">
                 <button id="pwa-install-btn" class="pwa-btn pwa-btn-primary">
-                    Instal Aplikasi
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10 3V13M10 13L6 9M10 13L14 9" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M4 17H16" stroke-linecap="round"/>
+                    </svg>
+                    Instal Sekarang
                 </button>
                 <button id="pwa-later-btn" class="pwa-btn pwa-btn-secondary">
-                    Mungkin Nanti
+                    Nanti
                 </button>
             </div>
         </div>
         
-        <!-- PWA Mini Prompt (Collapsed) -->
-        <div id="pwa-mini-prompt" class="pwa-mini-prompt" aria-label="Instal Aplikasi">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                <path d="M12 2L12 14M12 14L7 9M12 14L17 9" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M5 19H19" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- PWA Mini Prompt -->
+        <div id="pwa-mini-prompt" class="pwa-mini-prompt" role="button" tabindex="0" aria-label="Instal Aplikasi">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+                <path d="M12 3V15M12 15L7 10M12 15L17 10" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M5 20H19" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
         </div>
         
-        <!-- PWA Scripts -->
         <script>
-            let serviceWorkerRegistration = null;
-            
-            // Register Service Worker
-            if ('serviceWorker' in navigator) {
-                window.addEventListener('load', () => {
-                    navigator.serviceWorker.register('/service-worker.js')
-                        .then(registration => {
-                            console.log('ServiceWorker registration successful:', registration.scope);
-                            serviceWorkerRegistration = registration;
-                            
-                            // Check for updates
-                            registration.addEventListener('updatefound', () => {
-                                const newWorker = registration.installing;
-                                newWorker.addEventListener('statechange', () => {
-                                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                        document.getElementById('update-banner').classList.add('show');
-                                    }
-                                });
-                            });
-                        })
-                        .catch(err => {
-                            console.log('ServiceWorker registration failed:', err);
-                        });
-                });
-            }
-            
-            // Install Prompt Management
-            let deferredPrompt;
-            const installPrompt = document.getElementById('pwa-install-prompt');
-            const miniPrompt = document.getElementById('pwa-mini-prompt');
-            const installBtn = document.getElementById('pwa-install-btn');
-            const laterBtn = document.getElementById('pwa-later-btn');
-            const minimizeBtn = document.getElementById('pwa-minimize-btn');
-            
-            // Session storage for temporary dismissal
-            const PROMPT_STATE_KEY = 'pwa-prompt-state';
-            const PROMPT_LAST_SHOWN_KEY = 'pwa-prompt-last-shown';
-            const SHOW_DELAY = 30000; // 30 seconds
-            const REMIND_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours
-            
-            // Get prompt state from session storage
-            function getPromptState() {
-                const state = sessionStorage.getItem(PROMPT_STATE_KEY);
-                return state ? JSON.parse(state) : { minimized: false, dismissed: false };
-            }
-            
-            // Save prompt state to session storage
-            function savePromptState(state) {
-                sessionStorage.setItem(PROMPT_STATE_KEY, JSON.stringify(state));
-            }
-            
-            // Check if should show prompt
-            function shouldShowPrompt() {
-                const state = getPromptState();
-                const lastShown = localStorage.getItem(PROMPT_LAST_SHOWN_KEY);
-                const now = Date.now();
-                
-                // If dismissed in this session, don't show
-                if (state.dismissed) return false;
-                
-                // If shown recently (within 24 hours), only show mini version
-                if (lastShown && (now - parseInt(lastShown)) < REMIND_INTERVAL) {
-                    return 'mini';
-                }
-                
-                return true;
-            }
-            
-            // Show install prompt
-            function showInstallPrompt() {
-                if (!deferredPrompt) return;
-                
-                const shouldShow = shouldShowPrompt();
-                if (!shouldShow) return;
-                
-                const state = getPromptState();
-                
-                if (shouldShow === 'mini' || state.minimized) {
-                    miniPrompt.classList.add('show');
-                } else {
-                    installPrompt.classList.add('show');
-                    localStorage.setItem(PROMPT_LAST_SHOWN_KEY, Date.now().toString());
-                }
-            }
-            
-            // Handle beforeinstallprompt event
-            window.addEventListener('beforeinstallprompt', (e) => {
-                e.preventDefault();
-                deferredPrompt = e;
-                
-                // Initial delay before showing
-                setTimeout(() => showInstallPrompt(), SHOW_DELAY);
-                
-                // Show on scroll (once)
-                let scrolled = false;
-                window.addEventListener('scroll', () => {
-                    if (!scrolled && window.scrollY > 200) {
-                        scrolled = true;
-                        showInstallPrompt();
-                    }
-                }, { passive: true });
-                
-                // Show on user engagement (after 3 page interactions)
-                let interactions = 0;
-                const interactionHandler = () => {
-                    interactions++;
-                    if (interactions >= 3) {
-                        showInstallPrompt();
-                        document.removeEventListener('click', interactionHandler);
-                    }
-                };
-                document.addEventListener('click', interactionHandler);
-            });
-            
-            // Install button click
-            installBtn?.addEventListener('click', async () => {
-                if (!deferredPrompt) return;
-                
-                // Hide prompts
-                installPrompt.classList.remove('show');
-                miniPrompt.classList.remove('show');
-                
-                // Show install prompt
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                
-                if (outcome === 'accepted') {
-                    console.log('User accepted the install prompt');
-                    // Clear all storage
-                    sessionStorage.removeItem(PROMPT_STATE_KEY);
-                    localStorage.removeItem(PROMPT_LAST_SHOWN_KEY);
-                } else {
-                    // User cancelled, show mini prompt
-                    savePromptState({ minimized: true, dismissed: false });
-                    setTimeout(() => miniPrompt.classList.add('show'), 1000);
-                }
-                
-                deferredPrompt = null;
-            });
-            
-            // Later button click - minimize to mini prompt
-            laterBtn?.addEventListener('click', () => {
-                installPrompt.classList.add('hide');
-                setTimeout(() => {
-                    installPrompt.classList.remove('show', 'hide');
-                    miniPrompt.classList.add('show');
-                }, 300);
-                
-                savePromptState({ minimized: true, dismissed: false });
-            });
-            
-            // Minimize button click
-            minimizeBtn?.addEventListener('click', () => {
-                installPrompt.classList.add('hide');
-                setTimeout(() => {
-                    installPrompt.classList.remove('show', 'hide');
-                    miniPrompt.classList.add('show');
-                }, 300);
-                
-                savePromptState({ minimized: true, dismissed: false });
-            });
-            
-            // Mini prompt click - expand full prompt
-            miniPrompt?.addEventListener('click', () => {
-                miniPrompt.classList.remove('show');
-                installPrompt.classList.add('show');
-                savePromptState({ minimized: false, dismissed: false });
-            });
-            
-            // App installed event
-            window.addEventListener('appinstalled', () => {
-                console.log('PWA was installed');
-                installPrompt.classList.remove('show');
-                miniPrompt.classList.remove('show');
-                deferredPrompt = null;
-                
-                // Clear storage
-                sessionStorage.removeItem(PROMPT_STATE_KEY);
-                localStorage.removeItem(PROMPT_LAST_SHOWN_KEY);
-            });
-            
-            // Check if app is already installed
-            if (window.matchMedia('(display-mode: standalone)').matches) {
-                console.log('App is already installed');
-            }
-            
-            // Offline/Online Detection
-            const offlineBanner = document.getElementById('offline-banner');
-            
-            function updateOnlineStatus() {
-                if (navigator.onLine) {
-                    offlineBanner.classList.remove('show');
-                    
-                    // Sync data when back online
-                    if (serviceWorkerRegistration && 'sync' in serviceWorkerRegistration) {
-                        serviceWorkerRegistration.sync.register('sync-data')
-                            .then(() => console.log('Sync registered'))
-                            .catch(err => console.log('Sync registration failed:', err));
-                    }
-                } else {
-                    offlineBanner.classList.add('show');
-                }
-            }
-            
-            window.addEventListener('online', updateOnlineStatus);
-            window.addEventListener('offline', updateOnlineStatus);
-            updateOnlineStatus();
-            
-            // Request Notification Permission
-            function requestNotificationPermission() {
-                if ('Notification' in window && Notification.permission === 'default') {
-                    // Ask after user interaction
-                    setTimeout(() => {
-                        Notification.requestPermission().then(permission => {
-                            if (permission === 'granted') {
-                                console.log('Notification permission granted');
-                                subscribeToPushNotifications();
-                            }
-                        });
-                    }, 5000);
-                }
-            }
-            
-            // Push Notification Subscription
-            async function subscribeToPushNotifications() {
-                if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-                    return;
-                }
-                
-                try {
-                    const registration = await navigator.serviceWorker.ready;
-                    const existingSubscription = await registration.pushManager.getSubscription();
-                    if (existingSubscription) {
-                        console.log('Already subscribed to push notifications');
-                        return;
-                    }
-                    
-                    // Note: You'll need to add your VAPID key here
-                    console.log('Push notification subscription would be set up with valid VAPID key');
-                } catch (error) {
-                    console.error('Failed to subscribe to push notifications:', error);
-                }
-            }
-            
-            // Request notifications after user interaction
-            document.addEventListener('click', () => {
-                requestNotificationPermission();
-            }, { once: true });
-            
-            // Handle service worker messages
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.addEventListener('message', (event) => {
-                    if (event.data && event.data.type === 'SYNC_COMPLETE') {
-                        console.log('Data sync completed:', event.data.message);
-                        // Reload analytics if on analytics page
-                        if (window.location.pathname.includes('/analytics')) {
-                            if (typeof loadAnalytics === 'function') {
-                                loadAnalytics();
-                            }
-                        }
-                    }
-                });
-            }
-
-            // Handle service worker updates
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.addEventListener('controllerchange', () => {
-                    // New service worker has taken control
-                    console.log('New service worker activated');
-                    
-                    // Optional: Reload page untuk mendapatkan versi terbaru
-                    if (confirm('Versi baru tersedia! Muat ulang untuk memperbarui?')) {
-                        window.location.reload();
-                    }
-                });
-                
-                // Check for updates every 30 minutes
-                setInterval(() => {
-                    if (navigator.serviceWorker.controller) {
-                        navigator.serviceWorker.controller.postMessage({ 
-                            type: 'CHECK_UPDATE' 
-                        });
-                    }
-                }, 30 * 60 * 1000);
-            }
-            
-            // Clear cache function
-            window.clearAppCache = function() {
-                if ('caches' in window) {
-                    caches.keys().then(names => {
-                        names.forEach(name => {
-                            caches.delete(name);
-                            console.log('Cleared cache:', name);
-                        });
-                    }).then(() => {
-                        console.log('All caches cleared');
-                        if (serviceWorkerRegistration) {
-                            serviceWorkerRegistration.unregister().then(() => {
-                                console.log('Service worker unregistered');
-                                window.location.reload();
-                            });
-                        } else {
-                            window.location.reload();
-                        }
-                    });
-                }
-            };
-
-            // PWA Cache Management for Analytics
+            // PWA Implementation - User Version (Optimized)
             (function() {
                 'use strict';
                 
-                // Check if we're in standalone/PWA mode
-                const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
-                            window.navigator.standalone === true;
+                const CONFIG = {
+                    SHOW_DELAY: 3000,
+                    STORAGE_KEY: 'pwa-full-prompt-shown-user' // Unik per aplikasi/user
+                };
                 
-                console.log('App Mode:', isPWA ? 'PWA/Standalone' : 'Browser');
+                let deferredPrompt = null;
                 
-                // Function to clear analytics cache
-                async function clearAnalyticsCache() {
-                    if (!('serviceWorker' in navigator)) {
-                        console.log('Service Worker not supported');
-                        return;
-                    }
-                    
-                    try {
-                        const controller = navigator.serviceWorker.controller;
-                        if (!controller) {
-                            console.log('No active service worker controller');
-                            return;
-                        }
-                        
-                        // Send message to service worker to clear analytics cache
-                        controller.postMessage({ 
-                            type: 'CLEAR_ANALYTICS_CACHE' 
-                        });
-                        
-                        console.log('Analytics cache clear request sent');
-                        
-                        // Also try to clear via Cache API directly
-                        if ('caches' in window) {
-                            const cacheNames = await caches.keys();
-                            for (const cacheName of cacheNames) {
-                                if (cacheName.includes('data')) {
-                                    const cache = await caches.open(cacheName);
-                                    const requests = await cache.keys();
-                                    
-                                    for (const request of requests) {
-                                        if (request.url.includes('/analytics/data') || 
-                                            request.url.includes('/admin/analytics/data')) {
-                                            await cache.delete(request);
-                                            console.log('Cleared cached analytics:', request.url);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    } catch (error) {
-                        console.error('Error clearing analytics cache:', error);
-                    }
-                }
+                const elements = {
+                    fullPrompt: document.getElementById('pwa-install-prompt'),
+                    miniPrompt: document.getElementById('pwa-mini-prompt'),
+                    installBtn: document.getElementById('pwa-install-btn'),
+                    laterBtn: document.getElementById('pwa-later-btn'),
+                    offlineBanner: document.getElementById('offline-banner'),
+                };
                 
-                // Function to force reload analytics page
-                function forceReloadAnalytics() {
-                    if (window.location.pathname.includes('/analytics')) {
-                        console.log('Analytics page detected, forcing data reload');
-                        
-                        // Clear cache first
-                        clearAnalyticsCache().then(() => {
-                            // Wait a bit for cache to clear
-                            setTimeout(() => {
-                                if (typeof loadAnalytics === 'function') {
-                                    loadAnalytics();
-                                } else if (typeof refreshData === 'function') {
-                                    refreshData();
-                                } else {
-                                    // Force page reload as last resort
-                                    window.location.reload();
-                                }
-                            }, 200);
-                        });
-                    }
-                }
-                
-                // Clear cache when service worker is ready
-                if ('serviceWorker' in navigator) {
-                    navigator.serviceWorker.ready.then(() => {
-                        console.log('Service Worker ready, clearing analytics cache');
-                        clearAnalyticsCache();
-                    });
-                    
-                    // Listen for service worker controller change
-                    navigator.serviceWorker.addEventListener('controllerchange', () => {
-                        console.log('Service Worker controller changed');
-                        clearAnalyticsCache();
-                    });
-                    
-                    // Listen for messages from service worker
-                    navigator.serviceWorker.addEventListener('message', (event) => {
-                        if (event.data && event.data.type === 'ANALYTICS_CACHE_CLEARED') {
-                            console.log('Analytics cache cleared confirmation received');
-                            
-                            // Reload analytics if we're on that page
-                            if (window.location.pathname.includes('/analytics')) {
-                                if (typeof loadAnalytics === 'function') {
-                                    setTimeout(() => loadAnalytics(), 100);
-                                }
-                            }
-                        }
-                    });
-                }
-                
-                // Clear cache on page load
-                window.addEventListener('load', () => {
-                    console.log('Page loaded, clearing analytics cache');
-                    clearAnalyticsCache();
-                });
-                
-                // Clear cache when navigating to analytics page
-                if (window.location.pathname.includes('/analytics')) {
-                    forceReloadAnalytics();
-                }
-                
-                // Clear cache when coming back online
-                window.addEventListener('online', () => {
-                    console.log('Network connection restored');
-                    clearAnalyticsCache();
-                    
-                    if (window.location.pathname.includes('/analytics')) {
-                        setTimeout(() => forceReloadAnalytics(), 500);
-                    }
-                });
-                
-                // Clear cache when page becomes visible (user switches back to tab)
-                document.addEventListener('visibilitychange', () => {
-                    if (!document.hidden && window.location.pathname.includes('/analytics')) {
-                        console.log('Page became visible, refreshing analytics');
-                        clearAnalyticsCache();
-                        setTimeout(() => forceReloadAnalytics(), 200);
-                    }
-                });
-                
-                // For PWA mode, clear cache more aggressively
-                if (isPWA) {
-                    console.log('PWA mode detected, enabling aggressive cache clearing');
-                    
-                    // Clear cache every time user navigates
-                    let lastPathname = window.location.pathname;
-                    setInterval(() => {
-                        if (window.location.pathname !== lastPathname) {
-                            lastPathname = window.location.pathname;
-                            
-                            if (lastPathname.includes('/analytics')) {
-                                console.log('Navigated to analytics, clearing cache');
-                                clearAnalyticsCache();
-                                setTimeout(() => forceReloadAnalytics(), 300);
-                            }
-                        }
-                    }, 500);
-                    
-                    // Also clear cache periodically on analytics page
-                    if (window.location.pathname.includes('/analytics')) {
-                        setInterval(() => {
-                            clearAnalyticsCache();
-                        }, 30000); // Every 30 seconds
-                    }
-                }
-                
-                // Expose function globally for manual use
-                window.clearAnalyticsCache = clearAnalyticsCache;
-                
-                // Debug helper
-                window.debugPWA = function() {
-                    console.log('=== PWA Debug Info ===');
-                    console.log('Mode:', isPWA ? 'PWA/Standalone' : 'Browser');
-                    console.log('Service Worker:', 'serviceWorker' in navigator ? 'Supported' : 'Not supported');
-                    console.log('Controller:', navigator.serviceWorker?.controller ? 'Active' : 'None');
-                    console.log('Online:', navigator.onLine);
-                    console.log('Current URL:', window.location.href);
-                    
-                    if ('caches' in window) {
-                        caches.keys().then(names => {
-                            console.log('Cache names:', names);
-                            return Promise.all(
-                                names.map(name => 
-                                    caches.open(name).then(cache => 
-                                        cache.keys().then(keys => ({
-                                            name,
-                                            count: keys.length,
-                                            urls: keys.slice(0, 5).map(k => k.url)
-                                        }))
-                                    )
-                                )
-                            );
-                        }).then(details => {
-                            console.log('Cache details:', details);
-                        });
+                const storage = {
+                    get() {
+                        try {
+                            const val = localStorage.getItem(CONFIG.STORAGE_KEY);
+                            return val === 'true';
+                        } catch (e) { return false; }
+                    },
+                    set(value) {
+                        try { localStorage.setItem(CONFIG.STORAGE_KEY, value); } catch (e) {}
+                    },
+                    remove() {
+                        try { localStorage.removeItem(CONFIG.STORAGE_KEY); } catch (e) {}
                     }
                 };
                 
-                console.log('PWA Cache Management initialized');
-                console.log('Run window.debugPWA() for debug information');
-            })();
-            
-            // Prevent double-tap zoom on mobile
-            let lastTouchEnd = 0;
-            document.addEventListener('touchend', (e) => {
-                const now = Date.now();
-                if (now - lastTouchEnd <= 300) {
-                    e.preventDefault();
-                }
-                lastTouchEnd = now;
-            }, { passive: false });
-            
-            // Handle viewport resize for mobile keyboards
-            let viewportHeight = window.innerHeight;
-            window.addEventListener('resize', () => {
-                const currentHeight = window.innerHeight;
-                if (Math.abs(currentHeight - viewportHeight) > 100) {
-                    document.documentElement.style.setProperty('--vh', `${currentHeight * 0.01}px`);
-                }
-            });
-            
-            // Tambahkan di bagian bawah halaman
-            document.addEventListener('DOMContentLoaded', function() {
-                // Periksa apakah pengguna baru saja logout
-                const hasLoggedOut = sessionStorage.getItem('loggedOut');
-                
-                if (hasLoggedOut === 'true') {
-                    // Bersihkan flag
-                    sessionStorage.removeItem('loggedOut');
-                    
-                    // Perbarui halaman untuk memastikan tidak ada cache
-                    window.location.reload();
+                // Cek apakah full prompt sudah pernah ditampilkan
+                function shouldShowFullPrompt() {
+                    if (storage.get()) return false;
+                    if (window.matchMedia('(display-mode: standalone)').matches) return false;
+                    return true;
                 }
                 
-                // Tangani logout
-                const logoutButtons = document.querySelectorAll('a[href*="logout"]');
-                logoutButtons.forEach(button => {
-                    button.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        
-                        // Tandai bahwa pengguna telah logout
-                        sessionStorage.setItem('loggedOut', 'true');
-                        
-                        // Kirim permintaan logout
-                        fetch(this.href, {
-                            method: 'POST',
-                            headers: {
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                                'Accept': 'application/json'
-                            },
-                            credentials: 'same-origin'
-                        })
-                        .then(response => {
-                            if (response.redirected) {
-                                window.location.href = response.url;
-                            } else {
-                                window.location.href = '/';
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Logout error:', error);
-                            window.location.href = '/';
-                        });
-                    });
-                });
+                function markFullPromptShown() {
+                    storage.set('true');
+                }
                 
-                // Periksa apakah ini adalah PWA yang baru diinstal
-                if (window.matchMedia('(display-mode: standalone)').matches && 
-                    !localStorage.getItem('pwa_installed')) {
+                function showFullPrompt() {
+                    if (!deferredPrompt) return;
+                    elements.miniPrompt.classList.remove('show');
+                    elements.fullPrompt.classList.add('show');
+                    markFullPromptShown();
+                }
+                
+                function showMiniPrompt() {
+                    if (!deferredPrompt) return;
+                    elements.fullPrompt.classList.remove('show');
+                    setTimeout(() => elements.miniPrompt.classList.add('show'), 300);
+                }
+                
+                function hideAllPrompts() {
+                    elements.fullPrompt.classList.remove('show');
+                    elements.miniPrompt.classList.remove('show');
+                }
+                
+                async function handleInstall() {
+                    if (!deferredPrompt) return;
+                    hideAllPrompts();
                     
-                    localStorage.setItem('pwa_installed', 'true');
-                    
-                    // Arahkan ke halaman welcome
-                    if (window.location.pathname !== '/' && !auth()->check()) {
-                        window.location.href = '/';
+                    try {
+                        const { outcome } = await deferredPrompt.prompt();
+                        if (outcome === 'accepted') {
+                            storage.remove();
+                        }
+                        deferredPrompt = null;
+                    } catch (e) {
+                        console.error(e);
                     }
                 }
+                
+                // Event Listeners
+                elements.installBtn?.addEventListener('click', handleInstall);
+                
+                elements.laterBtn?.addEventListener('click', () => {
+                    hideAllPrompts();
+                    showMiniPrompt();
+                });
+                
+                elements.miniPrompt?.addEventListener('click', () => {
+                    elements.miniPrompt.classList.remove('show');
+                    elements.fullPrompt.classList.add('show');
+                });
+                
+                // beforeinstallprompt
+                window.addEventListener('beforeinstallprompt', (e) => {
+                    e.preventDefault();
+                    deferredPrompt = e;
+                    
+                    setTimeout(() => {
+                        if (shouldShowFullPrompt()) {
+                            showFullPrompt();
+                        } else {
+                            showMiniPrompt();
+                        }
+                    }, CONFIG.SHOW_DELAY);
+                });
+                
+                // appinstalled
+                window.addEventListener('appinstalled', () => {
+                    hideAllPrompts();
+                    storage.remove();
+                });
+                
+                // Reset saat logout (jika pakai form POST)
+                document.addEventListener('DOMContentLoaded', () => {
+                    const logoutForm = document.querySelector('form[action*="logout"]');
+                    if (logoutForm) {
+                        logoutForm.addEventListener('submit', () => {
+                            storage.remove();
+                        });
+                    }
+                });
+                
+                // Online/Offline
+                function updateOnlineStatus() {
+                    elements.offlineBanner?.classList.toggle('show', !navigator.onLine);
+                }
+                window.addEventListener('online', updateOnlineStatus);
+                window.addEventListener('offline', updateOnlineStatus);
+                updateOnlineStatus();
+                
+                console.log('PWA User: Full prompt hanya sekali per login');
+            })();
+        </script>
+        <script>
+            // Reset PWA prompt saat logout (untuk link)
+            document.addEventListener('DOMContentLoaded', () => {
+                document.querySelectorAll('a[href*="logout"]').forEach(link => {
+                    link.addEventListener('click', () => {
+                        try {
+                            localStorage.removeItem('pwa-full-prompt-shown-user');
+                        } catch (e) {}
+                    });
+                });
             });
         </script>
     </body>

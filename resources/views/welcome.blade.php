@@ -4,10 +4,326 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Taskly - Kelola Tugas Anda dengan Mudah</title>
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Taskly">
+    <meta name="application-name" content="Taskly">
+    <meta name="msapplication-TileColor" content="#4f46e5">
+    <meta name="msapplication-TileImage" content="/icons/logo.png">
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/logo72x72.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/logo.png">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/logo.png">
+    
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- PWA Styles -->
+    <style>
+        /* PWA Install Prompt */
+        .pwa-install-prompt {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 20px;
+            padding-bottom: calc(20px + env(safe-area-inset-bottom));
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+            display: none;
+            z-index: 9999;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+        }
+        
+        .pwa-install-prompt.show {
+            display: block;
+            transform: translateY(0);
+        }
+        
+        @media (min-width: 640px) {
+            .pwa-install-prompt {
+                bottom: 24px;
+                left: 50%;
+                right: auto;
+                transform: translateX(-50%) translateY(150%);
+                max-width: 420px;
+                width: calc(100% - 48px);
+                border-radius: 16px;
+                padding: 24px;
+            }
+            
+            .pwa-install-prompt.show {
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+        
+        .pwa-close-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: #9ca3af;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+        
+        .pwa-close-btn:hover {
+            background: #f3f4f6;
+            color: #374151;
+        }
+        
+        .pwa-content {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 20px;
+            padding-right: 32px;
+        }
+        
+        .pwa-icon {
+            width: 64px;
+            height: 64px;
+            flex-shrink: 0;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+        }
+        
+        .pwa-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .pwa-text {
+            flex: 1;
+        }
+        
+        .pwa-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 6px;
+        }
+        
+        .pwa-description {
+            font-size: 14px;
+            color: #6b7280;
+            line-height: 1.5;
+        }
+        
+        .pwa-features {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .pwa-feature {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            color: #4b5563;
+        }
+        
+        .pwa-feature-icon {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            color: #4f46e5;
+        }
+        
+        .pwa-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .pwa-btn {
+            flex: 1;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .pwa-btn-primary {
+            background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+        
+        .pwa-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4);
+        }
+        
+        .pwa-btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+        
+        .pwa-btn-secondary:hover {
+            background: #e5e7eb;
+        }
+        
+        /* Mini Floating Button */
+        .pwa-mini-prompt {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(79, 70, 229, 0.4);
+            z-index: 9998;
+            transition: all 0.3s;
+        }
+        
+        .pwa-mini-prompt.show {
+            display: flex;
+            animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55), pulse 2s infinite 1s;
+        }
+        
+        .pwa-mini-prompt:hover {
+            transform: scale(1.1) rotate(5deg);
+        }
+        
+        @keyframes bounceIn {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 8px 24px rgba(79, 70, 229, 0.4); }
+            50% { box-shadow: 0 8px 32px rgba(79, 70, 229, 0.6), 0 0 0 8px rgba(79, 70, 229, 0.1); }
+        }
+        
+        /* Banners */
+        .banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 14px 20px;
+            text-align: center;
+            z-index: 9997;
+            display: none;
+            font-size: 14px;
+            font-weight: 600;
+            animation: slideDown 0.3s ease-out;
+        }
+        
+        .banner.show {
+            display: block;
+        }
+        
+        .offline-banner {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #78350f;
+        }
+        
+        .update-banner {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        
+        .update-btn {
+            padding: 8px 20px;
+            background: white;
+            color: #2563eb;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .pwa-btn:focus-visible,
+        .pwa-close-btn:focus-visible,
+        .pwa-mini-prompt:focus-visible {
+            outline: 3px solid #4f46e5;
+            outline-offset: 2px;
+        }
+        
+        @media (max-width: 640px) {
+            main {
+                padding-bottom: env(safe-area-inset-bottom, 20px);
+            }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+        }
+        
+        @keyframes fade-in-up {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        .animate-fade-in-up {
+            animation: fade-in-up 0.8s ease-out forwards;
+        }
+    </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans antialiased">
+    
+    <!-- Offline Banner -->
+    <div id="offline-banner" class="banner offline-banner">
+        ⚠️ Anda sedang offline. Beberapa fitur mungkin terbatas.
+    </div>
     
     <!-- Navigation -->
     <nav class="bg-white shadow-sm sticky top-0 z-50">
@@ -209,30 +525,323 @@
         </div>
     </section>
 
-    <style>
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-15px); }
-        }
+    <!-- PWA Install Prompt -->
+    <div id="pwa-install-prompt" class="pwa-install-prompt">
+        <div class="pwa-content">
+            <div class="pwa-icon">
+                <img src="/icons/logo72x72.png" alt="Taskly Icon">
+            </div>
+            <div class="pwa-text">
+                <div class="pwa-title">Instal TaskFlow</div>
+                <div class="pwa-description">Akses lebih cepat dan mudah dari home screen Anda</div>
+            </div>
+        </div>
         
-        @keyframes fade-in-up {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
+        <div class="pwa-features">
+            <div class="pwa-feature">
+                <svg class="pwa-feature-icon" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                </svg>
+                <span>Notifikasi push real-time</span>
+            </div>
+            <div class="pwa-feature">
+                <svg class="pwa-feature-icon" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                </svg>
+                <span>Pengalaman seperti aplikasi native</span>
+            </div>
+        </div>
+        
+        <div class="pwa-buttons">
+            <button id="pwa-install-btn" class="pwa-btn pwa-btn-primary">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10 3V13M10 13L6 9M10 13L14 9" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M4 17H16" stroke-linecap="round"/>
+                </svg>
+                Instal Sekarang
+            </button>
+            <button id="pwa-later-btn" class="pwa-btn pwa-btn-secondary">
+                Nanti
+            </button>
+        </div>
+    </div>
+    
+    <!-- PWA Mini Prompt -->
+    <div id="pwa-mini-prompt" class="pwa-mini-prompt" role="button" tabindex="0" aria-label="Instal Aplikasi">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+            <path d="M12 3V15M12 15L7 10M12 15L17 10" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M5 20H19" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </div>
+
+    <script>
+        (function() {
+            'use strict';
+            
+            const CONFIG = {
+                SHOW_DELAY: 5000,
+                SCROLL_TRIGGER: 300,
+                INTERACTION_COUNT: 3,
+                STORAGE_KEYS: {
+                    DISMISSED: 'pwa-prompt-dismissed',
+                    MINIMIZED: 'pwa-prompt-minimized',
+                    LAST_SHOWN: 'pwa-prompt-last-shown'
+                }
+            };
+            
+            let deferredPrompt = null;
+            let hasShownPrompt = false;
+            let interactionCount = 0;
+            
+            const elements = {
+                fullPrompt: document.getElementById('pwa-install-prompt'),
+                miniPrompt: document.getElementById('pwa-mini-prompt'),
+                installBtn: document.getElementById('pwa-install-btn'),
+                laterBtn: document.getElementById('pwa-later-btn'),
+                closeBtn: document.querySelector('.pwa-close-btn'),
+                offlineBanner: document.getElementById('offline-banner'),
+            };
+            
+            const storage = {
+                get(key, isLocal = false) {
+                    try {
+                        const store = isLocal ? localStorage : sessionStorage;
+                        const value = store.getItem(key);
+                        return value ? JSON.parse(value) : null;
+                    } catch (e) {
+                        return null;
+                    }
+                },
+                set(key, value, isLocal = false) {
+                    try {
+                        const store = isLocal ? localStorage : sessionStorage;
+                        store.setItem(key, JSON.stringify(value));
+                        return true;
+                    } catch (e) {
+                        return false;
+                    }
+                },
+                remove(key, isLocal = false) {
+                    try {
+                        const store = isLocal ? localStorage : sessionStorage;
+                        store.removeItem(key);
+                    } catch (e) {}
+                }
+            };
+            
+            function shouldShowPrompt() {
+                // Jika sudah diinstall, jangan tampilkan
+                if (window.matchMedia('(display-mode: standalone)').matches) {
+                    return false;
+                }
+                
+                // Jika user klik X (dismiss), jangan tampilkan sampai refresh
+                const isDismissed = storage.get(CONFIG.STORAGE_KEYS.DISMISSED);
+                if (isDismissed) {
+                    return false;
+                }
+                
+                // Jika user klik "Nanti", tampilkan mini prompt
+                const isMinimized = storage.get(CONFIG.STORAGE_KEYS.MINIMIZED);
+                if (isMinimized) {
+                    return 'mini';
+                }
+                
+                // Tampilkan full prompt
+                return true;
             }
-            to {
-                opacity: 1;
-                transform: translateY(0);
+            
+            function showFullPrompt() {
+                if (!deferredPrompt) return;
+                
+                elements.miniPrompt.classList.remove('show');
+                elements.fullPrompt.classList.add('show');
+                storage.set(CONFIG.STORAGE_KEYS.LAST_SHOWN, Date.now(), true);
+                hasShownPrompt = true;
             }
-        }
-        
-        .animate-float {
-            animation: float 6s ease-in-out infinite;
-        }
-        
-        .animate-fade-in-up {
-            animation: fade-in-up 0.8s ease-out forwards;
-        }
-    </style>
+            
+            function showMiniPrompt() {
+                if (!deferredPrompt) return;
+                elements.fullPrompt.classList.remove('show');
+                elements.miniPrompt.classList.add('show');
+            }
+            
+            function hideAllPrompts() {
+                elements.fullPrompt.classList.remove('show');
+                elements.miniPrompt.classList.remove('show');
+            }
+            
+            async function handleInstall() {
+                if (!deferredPrompt) return;
+                
+                hideAllPrompts();
+                
+                try {
+                    await deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    
+                    if (outcome === 'accepted') {
+                        storage.remove(CONFIG.STORAGE_KEYS.DISMISSED);
+                        storage.remove(CONFIG.STORAGE_KEYS.MINIMIZED);
+                        storage.remove(CONFIG.STORAGE_KEYS.LAST_SHOWN, true);
+                    } else {
+                        setTimeout(showMiniPrompt, 1000);
+                    }
+                    
+                    deferredPrompt = null;
+                } catch (error) {
+                    console.error('Install error:', error);
+                }
+            }
+            
+            // Event Listeners
+            elements.installBtn?.addEventListener('click', handleInstall);
+            
+            elements.laterBtn?.addEventListener('click', () => {
+                // Set flag minimized di sessionStorage (hilang saat refresh)
+                storage.set(CONFIG.STORAGE_KEYS.MINIMIZED, true);
+                // Hapus flag dismissed jika ada
+                storage.remove(CONFIG.STORAGE_KEYS.DISMISSED);
+                
+                elements.fullPrompt.classList.remove('show');
+                hasShownPrompt = false; // Reset flag agar mini prompt bisa muncul
+                setTimeout(showMiniPrompt, 300);
+            });
+            
+            elements.closeBtn?.addEventListener('click', () => {
+                // Set flag dismissed di sessionStorage (hilang saat refresh)
+                storage.set(CONFIG.STORAGE_KEYS.DISMISSED, true);
+                // Hapus flag minimized jika ada
+                storage.remove(CONFIG.STORAGE_KEYS.MINIMIZED);
+                hideAllPrompts();
+            });
+            
+            const miniPromptClickHandler = () => {
+                if (!deferredPrompt) return;
+                // Hapus flag minimized dan dismissed
+                storage.remove(CONFIG.STORAGE_KEYS.MINIMIZED);
+                storage.remove(CONFIG.STORAGE_KEYS.DISMISSED);
+                
+                elements.miniPrompt.classList.remove('show');
+                elements.fullPrompt.classList.add('show');
+                hasShownPrompt = true;
+            };
+            
+            elements.miniPrompt?.addEventListener('click', miniPromptClickHandler);
+            elements.miniPrompt?.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    miniPromptClickHandler();
+                }
+            });
+            
+            // Scroll trigger
+            let hasScrolled = false;
+            window.addEventListener('scroll', () => {
+                if (!hasScrolled && window.scrollY > CONFIG.SCROLL_TRIGGER && !hasShownPrompt) {
+                    hasScrolled = true;
+                    const shouldShow = shouldShowPrompt();
+                    if (shouldShow === true) {
+                        showFullPrompt();
+                    } else if (shouldShow === 'mini') {
+                        showMiniPrompt();
+                    }
+                }
+            }, { passive: true });
+            
+            // Interaction trigger
+            const interactionHandler = () => {
+                interactionCount++;
+                if (interactionCount >= CONFIG.INTERACTION_COUNT && !hasShownPrompt) {
+                    const shouldShow = shouldShowPrompt();
+                    if (shouldShow === true) showFullPrompt();
+                    else if (shouldShow === 'mini') showMiniPrompt();
+                    document.removeEventListener('click', interactionHandler);
+                }
+            };
+            document.addEventListener('click', interactionHandler);
+            
+            // Clear dismissed flag on page load (untuk memastikan prompt muncul lagi setelah refresh)
+            window.addEventListener('load', () => {
+                // Hapus flag dismissed agar prompt bisa muncul lagi setelah refresh
+                storage.remove(CONFIG.STORAGE_KEYS.DISMISSED);
+                // Hapus flag minimized juga
+                storage.remove(CONFIG.STORAGE_KEYS.MINIMIZED);
+            });
+            
+            // beforeinstallprompt
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                
+                setTimeout(() => {
+                    const shouldShow = shouldShowPrompt();
+                    if (shouldShow === true) showFullPrompt();
+                    else if (shouldShow === 'mini') showMiniPrompt();
+                }, CONFIG.SHOW_DELAY);
+            });
+            
+            // appinstalled
+            window.addEventListener('appinstalled', () => {
+                hideAllPrompts();
+                // Hapus semua storage terkait PWA prompt
+                storage.remove(CONFIG.STORAGE_KEYS.DISMISSED);
+                storage.remove(CONFIG.STORAGE_KEYS.MINIMIZED);
+                storage.remove(CONFIG.STORAGE_KEYS.LAST_SHOWN, true);
+            });
+            
+            // Service Worker
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('/service-worker.js')
+                        .then(registration => {
+                            registration.addEventListener('updatefound', () => {
+                                const newWorker = registration.installing;
+                                newWorker.addEventListener('statechange', () => {
+                                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                        elements.updateBanner?.classList.add('show');
+                                    }
+                                });
+                            });
+                        })
+                        .catch(err => console.error('SW registration failed:', err));
+                });
+            }
+            
+            // Online/Offline
+            function updateOnlineStatus() {
+                if (navigator.onLine) {
+                    elements.offlineBanner?.classList.remove('show');
+                } else {
+                    elements.offlineBanner?.classList.add('show');
+                }
+            }
+            
+            window.addEventListener('online', updateOnlineStatus);
+            window.addEventListener('offline', updateOnlineStatus);
+            updateOnlineStatus();
+            
+            // Notification Permission
+            if ('Notification' in window && Notification.permission === 'default') {
+                document.addEventListener('click', () => {
+                    setTimeout(() => {
+                        Notification.requestPermission();
+                    }, 10000);
+                }, { once: true });
+            }
+            
+            // Prevent double-tap zoom
+            let lastTouchEnd = 0;
+            document.addEventListener('touchend', (e) => {
+                const now = Date.now();
+                if (now - lastTouchEnd <= 300) {
+                    e.preventDefault();
+                }
+                lastTouchEnd = now;
+            }, { passive: false });
+            
+            console.log('PWA initialized');
+        })();
+    </script>
 </body>
 </html>

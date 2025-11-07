@@ -2,13 +2,406 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#3b82f6">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    
+    <!-- Primary Meta Tags -->
     <title>TaskFlow Admin</title>
+    <meta name="title" content="TaskFlow Admin">
+    <meta name="description" content="Panel administrasi untuk mengelola TaskFlow">
+    <meta name="author" content="TaskFlow">
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#3b82f6">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="TaskFlow Admin">
+    <meta name="application-name" content="TaskFlow Admin">
+    <meta name="msapplication-TileColor" content="#3b82f6">
+    <meta name="msapplication-TileImage" content="/icons/logo.png">
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/logo72x72.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/logo.png">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/logo.png">
+    
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- PWA Styles -->
+    <style>
+        /* PWA Install Prompt */
+        .pwa-install-prompt {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 20px;
+            padding-bottom: calc(20px + env(safe-area-inset-bottom));
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+            display: none;
+            z-index: 9999;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+        }
+        
+        .pwa-install-prompt.show {
+            display: block;
+            transform: translateY(0);
+        }
+        
+        @media (min-width: 640px) {
+            .pwa-install-prompt {
+                bottom: 24px;
+                left: 50%;
+                right: auto;
+                transform: translateX(-50%) translateY(150%);
+                max-width: 420px;
+                width: calc(100% - 48px);
+                border-radius: 16px;
+                padding: 24px;
+            }
+            
+            .pwa-install-prompt.show {
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+        
+        .pwa-close-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: #9ca3af;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+        
+        .pwa-close-btn:hover {
+            background: #f3f4f6;
+            color: #374151;
+        }
+        
+        .pwa-content {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 20px;
+            padding-right: 32px;
+        }
+        
+        .pwa-icon {
+            width: 64px;
+            height: 64px;
+            flex-shrink: 0;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+        }
+        
+        .pwa-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .pwa-text {
+            flex: 1;
+        }
+        
+        .pwa-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 6px;
+        }
+        
+        .pwa-description {
+            font-size: 14px;
+            color: #6b7280;
+            line-height: 1.5;
+        }
+        
+        .pwa-features {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .pwa-feature {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            color: #4b5563;
+        }
+        
+        .pwa-feature-icon {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            color: #3b82f6;
+        }
+        
+        .pwa-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .pwa-btn {
+            flex: 1;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .pwa-btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        
+        .pwa-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+        }
+        
+        .pwa-btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+        
+        .pwa-btn-secondary:hover {
+            background: #e5e7eb;
+        }
+        
+        /* Mini Floating Button */
+        .pwa-mini-prompt {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+            z-index: 9998;
+            transition: all 0.3s;
+        }
+        
+        .pwa-mini-prompt.show {
+            display: flex;
+            animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55), pulse 2s infinite 1s;
+        }
+        
+        .pwa-mini-prompt:hover {
+            transform: scale(1.1) rotate(5deg);
+        }
+        
+        @keyframes bounceIn {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4); }
+            50% { box-shadow: 0 8px 32px rgba(59, 130, 246, 0.6), 0 0 0 8px rgba(59, 130, 246, 0.1); }
+        }
+        
+        /* Banners */
+        .banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 14px 20px;
+            text-align: center;
+            z-index: 9997;
+            display: none;
+            font-size: 14px;
+            font-weight: 600;
+            animation: slideDown 0.3s ease-out;
+        }
+        
+        .banner.show {
+            display: block;
+        }
+        
+        .offline-banner {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #78350f;
+        }
+        
+        .update-banner {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        
+        .update-btn {
+            padding: 8px 20px;
+            background: white;
+            color: #2563eb;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .pwa-btn:focus-visible,
+        .pwa-close-btn:focus-visible,
+        .pwa-mini-prompt:focus-visible {
+            outline: 3px solid #3b82f6;
+            outline-offset: 2px;
+        }
+        
+        @media (max-width: 640px) {
+            main {
+                padding-bottom: env(safe-area-inset-bottom, 20px);
+            }
+        }
+        
+        /* Modern Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, #cbd5e1, #94a3b8);
+            border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(to bottom, #94a3b8, #64748b);
+        }
+
+        /* Smooth transitions */
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Animation keyframes */
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Focus styles for accessibility */
+        button:focus-visible,
+        a:focus-visible {
+            outline: 2px solid #3b82f6;
+            outline-offset: 2px;
+        }
+
+        /* Loading state helper */
+        .loading {
+            position: relative;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        /* Gradient text effect */
+        .gradient-text {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Better touch targets for mobile */
+        @media (max-width: 1023px) {
+            button, a {
+                min-height: 44px;
+                min-width: 44px;
+            }
+        }
+
+        /* Ensure overlay covers everything including loading modals */
+        #sidebar-overlay {
+            position: fixed;
+            inset: 0;
+        }
+
+        /* Fix for z-index stacking */
+        #sidebar {
+            position: fixed;
+        }
+
+        @media (min-width: 1024px) {
+            #sidebar {
+                position: static;
+            }
+        }
+
+        /* Touch manipulation for better mobile responsiveness */
+        .touch-manipulation {
+            touch-action: manipulation;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        /* Prevent text selection on buttons */
+        button {
+            -webkit-user-select: none;
+            user-select: none;
+        }
+    </style>
 </head>
 <body class="font-sans antialiased bg-gradient-to-br from-gray-50 to-gray-100">
+
+<!-- Offline Banner -->
+<div id="offline-banner" class="banner offline-banner">
+    ⚠️ Anda sedang offline. Beberapa fitur mungkin terbatas.
+</div>
 
 <div class="flex h-screen overflow-hidden">
     
@@ -211,6 +604,55 @@
     </div>
 </div>
 
+<!-- PWA Install Prompt -->
+<div id="pwa-install-prompt" class="pwa-install-prompt">
+    <div class="pwa-content">
+        <div class="pwa-icon">
+            <img src="/icons/logo72x72.png" alt="TaskFlow Admin Icon">
+        </div>
+        <div class="pwa-text">
+            <div class="pwa-title">Instal TaskFlow Admin</div>
+            <div class="pwa-description">Akses lebih cepat dan mudah dari home screen Anda</div>
+        </div>
+    </div>
+    
+    <div class="pwa-features">
+        <div class="pwa-feature">
+            <svg class="pwa-feature-icon" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+            <span>Notifikasi push real-time</span>
+        </div>
+        <div class="pwa-feature">
+            <svg class="pwa-feature-icon" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+            <span>Pengalaman seperti aplikasi native</span>
+        </div>
+    </div>
+    
+    <div class="pwa-buttons">
+        <button id="pwa-install-btn" class="pwa-btn pwa-btn-primary">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10 3V13M10 13L6 9M10 13L14 9" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M4 17H16" stroke-linecap="round"/>
+            </svg>
+            Instal Sekarang
+        </button>
+        <button id="pwa-later-btn" class="pwa-btn pwa-btn-secondary">
+            Nanti
+        </button>
+    </div>
+</div>
+
+<!-- PWA Mini Prompt -->
+<div id="pwa-mini-prompt" class="pwa-mini-prompt" role="button" tabindex="0" aria-label="Instal Aplikasi">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+        <path d="M12 3V15M12 15L7 10M12 15L17 10" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M5 20H19" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+</div>
+
 <script>
     // Sidebar Toggle with smooth animations
     const sidebar = document.getElementById('sidebar');
@@ -307,105 +749,269 @@
             }
         }
     }, { passive: false });
+    
+    // PWA Implementation - Fully Fixed Version
+    (function() {
+        'use strict';
+        
+        const CONFIG = {
+            SHOW_DELAY: 3000,
+            STORAGE_KEYS: {
+                PROMPT_SHOWN: 'pwa-full-prompt-shown'
+            }
+        };
+        
+        let deferredPrompt = null;
+        
+        const elements = {
+            fullPrompt: document.getElementById('pwa-install-prompt'),
+            miniPrompt: document.getElementById('pwa-mini-prompt'),
+            installBtn: document.getElementById('pwa-install-btn'),
+            laterBtn: document.getElementById('pwa-later-btn'),
+            closeBtn: document.querySelector('.pwa-close-btn'),
+            offlineBanner: document.getElementById('offline-banner'),
+        };
+        
+        const storage = {
+            get(key) {
+                try {
+                    const value = localStorage.getItem(key);
+                    return value ? JSON.parse(value) : null;
+                } catch (e) { 
+                    console.error('Storage get error:', e);
+                    return null; 
+                }
+            },
+            set(key, value) {
+                try { 
+                    localStorage.setItem(key, JSON.stringify(value)); 
+                    console.log('Storage set:', key, value);
+                } catch (e) {
+                    console.error('Storage set error:', e);
+                }
+            },
+            remove(key) {
+                try { 
+                    localStorage.removeItem(key); 
+                    console.log('Storage removed:', key);
+                } catch (e) {
+                    console.error('Storage remove error:', e);
+                }
+            }
+        };
+        
+        // Cek apakah full prompt sudah pernah ditampilkan
+        function hasFullPromptBeenShown() {
+            const shown = storage.get(CONFIG.STORAGE_KEYS.PROMPT_SHOWN) === true;
+            console.log('hasFullPromptBeenShown:', shown);
+            return shown;
+        }
+        
+        function markFullPromptAsShown() {
+            storage.set(CONFIG.STORAGE_KEYS.PROMPT_SHOWN, true);
+            console.log('Full prompt marked as shown');
+        }
+        
+        function shouldShowFullPrompt() {
+            if (window.matchMedia('(display-mode: standalone)').matches) {
+                console.log('App already installed (standalone mode)');
+                return false;
+            }
+            if (hasFullPromptBeenShown()) {
+                console.log('Full prompt already shown before');
+                return false;
+            }
+            return true;
+        }
+        
+        function showFullPrompt() {
+            console.log('showFullPrompt called, deferredPrompt:', !!deferredPrompt);
+            if (!deferredPrompt) {
+                console.warn('No deferredPrompt available');
+                return;
+            }
+            
+            console.log('Showing full prompt...');
+            elements.miniPrompt?.classList.remove('show');
+            elements.fullPrompt?.classList.add('show');
+            markFullPromptAsShown();
+        }
+        
+        function showMiniPrompt() {
+            console.log('showMiniPrompt called, deferredPrompt:', !!deferredPrompt);
+            if (!deferredPrompt) {
+                console.warn('No deferredPrompt available');
+                return;
+            }
+            
+            console.log('Showing mini prompt...');
+            elements.fullPrompt?.classList.remove('show');
+            setTimeout(() => {
+                elements.miniPrompt?.classList.add('show');
+            }, 300);
+        }
+        
+        function hideAllPrompts() {
+            console.log('Hiding all prompts');
+            elements.fullPrompt?.classList.remove('show');
+            elements.miniPrompt?.classList.remove('show');
+        }
+        
+        async function handleInstall() {
+            console.log('handleInstall called');
+            if (!deferredPrompt) {
+                console.warn('No deferredPrompt in handleInstall');
+                return;
+            }
+            
+            hideAllPrompts();
+            
+            try {
+                console.log('Showing native install prompt...');
+                await deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log('User choice:', outcome);
+                
+                if (outcome === 'accepted') {
+                    storage.remove(CONFIG.STORAGE_KEYS.PROMPT_SHOWN);
+                }
+                
+                deferredPrompt = null;
+            } catch (error) {
+                console.error('Install error:', error);
+            }
+        }
+        
+        // Event Listeners
+        if (elements.installBtn) {
+            elements.installBtn.addEventListener('click', (e) => {
+                console.log('Install button clicked');
+                e.preventDefault();
+                e.stopPropagation();
+                handleInstall();
+            });
+        }
+        
+        if (elements.laterBtn) {
+            elements.laterBtn.addEventListener('click', (e) => {
+                console.log('Later button clicked');
+                e.preventDefault();
+                e.stopPropagation();
+                hideAllPrompts();
+                setTimeout(() => showMiniPrompt(), 300);
+            });
+        }
+        
+        if (elements.closeBtn) {
+            elements.closeBtn.addEventListener('click', (e) => {
+                console.log('Close button clicked');
+                e.preventDefault();
+                e.stopPropagation();
+                hideAllPrompts();
+                setTimeout(() => showMiniPrompt(), 300);
+            });
+        }
+        
+        // CRITICAL FIX: Mini prompt click handler dengan logging
+        if (elements.miniPrompt) {
+            elements.miniPrompt.addEventListener('click', (e) => {
+                console.log('Mini prompt clicked!');
+                e.preventDefault();
+                e.stopPropagation();
+                
+                console.log('Current deferredPrompt:', !!deferredPrompt);
+                console.log('Mini prompt has "show" class:', elements.miniPrompt.classList.contains('show'));
+                console.log('Full prompt has "show" class:', elements.fullPrompt.classList.contains('show'));
+                
+                // Force hide mini, force show full
+                elements.miniPrompt.classList.remove('show');
+                
+                // Use timeout to ensure transition
+                setTimeout(() => {
+                    if (deferredPrompt) {
+                        console.log('Adding show class to full prompt');
+                        elements.fullPrompt.classList.add('show');
+                    } else {
+                        console.error('No deferredPrompt available when clicking mini prompt!');
+                    }
+                }, 100);
+            });
+            
+            // Also add keyboard support
+            elements.miniPrompt.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    console.log('Mini prompt activated via keyboard');
+                    e.preventDefault();
+                    elements.miniPrompt.click();
+                }
+            });
+        }
+        
+        // beforeinstallprompt - Simpan event
+        window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('beforeinstallprompt event fired');
+            e.preventDefault();
+            deferredPrompt = e;
+            console.log('deferredPrompt saved:', !!deferredPrompt);
+            
+            // Tunggu sebentar, lalu cek apakah boleh tampilkan full prompt
+            setTimeout(() => {
+                if (shouldShowFullPrompt()) {
+                    console.log('Will show full prompt');
+                    showFullPrompt();
+                } else {
+                    console.log('Will show mini prompt');
+                    showMiniPrompt();
+                }
+            }, CONFIG.SHOW_DELAY);
+        });
+        
+        // appinstalled
+        window.addEventListener('appinstalled', () => {
+            console.log('App installed!');
+            hideAllPrompts();
+            storage.remove(CONFIG.STORAGE_KEYS.PROMPT_SHOWN);
+        });
+        
+        // Service Worker Update
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(() => console.log('Service Worker registered'))
+                .catch(err => console.error('SW registration failed:', err));
+        }
+        
+        // Online/Offline Banner
+        function updateOnlineStatus() {
+            const isOnline = navigator.onLine;
+            console.log('Online status:', isOnline);
+            elements.offlineBanner?.classList.toggle('show', !isOnline);
+        }
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+        updateOnlineStatus();
+        
+        console.log('✅ PWA Script initialized with full debugging');
+        console.log('Elements found:', {
+            fullPrompt: !!elements.fullPrompt,
+            miniPrompt: !!elements.miniPrompt,
+            installBtn: !!elements.installBtn,
+            laterBtn: !!elements.laterBtn,
+            closeBtn: !!elements.closeBtn
+        });
+    })();
 </script>
-
-<style>
-    /* Modern Scrollbar */
-    ::-webkit-scrollbar {
-        width: 6px;
-        height: 6px;
-    }
-    
-    ::-webkit-scrollbar-track {
-        background: transparent;
-    }
-    
-    ::-webkit-scrollbar-thumb {
-        background: linear-gradient(to bottom, #cbd5e1, #94a3b8);
-        border-radius: 3px;
-    }
-    
-    ::-webkit-scrollbar-thumb:hover {
-        background: linear-gradient(to bottom, #94a3b8, #64748b);
-    }
-
-    /* Smooth transitions */
-    * {
-        -webkit-tap-highlight-color: transparent;
-    }
-
-    /* Animation keyframes */
-    @keyframes slideInRight {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
+<script>
+    // Reset PWA prompt saat logout
+    document.addEventListener('DOMContentLoaded', function() {
+        const logoutBtn = document.querySelector('form[action*="logout"] button');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', function() {
+                try {
+                    localStorage.removeItem('pwa-full-prompt-shown');
+                } catch (e) {}
+            });
         }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-
-    /* Focus styles for accessibility */
-    button:focus-visible,
-    a:focus-visible {
-        outline: 2px solid #3b82f6;
-        outline-offset: 2px;
-    }
-
-    /* Loading state helper */
-    .loading {
-        position: relative;
-        pointer-events: none;
-        opacity: 0.6;
-    }
-
-    /* Gradient text effect */
-    .gradient-text {
-        background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-
-    /* Better touch targets for mobile */
-    @media (max-width: 1023px) {
-        button, a {
-            min-height: 44px;
-            min-width: 44px;
-        }
-    }
-
-    /* Ensure overlay covers everything including loading modals */
-    #sidebar-overlay {
-        position: fixed;
-        inset: 0;
-    }
-
-    /* Fix for z-index stacking */
-    #sidebar {
-        position: fixed;
-    }
-
-    @media (min-width: 1024px) {
-        #sidebar {
-            position: static;
-        }
-    }
-
-    /* Touch manipulation for better mobile responsiveness */
-    .touch-manipulation {
-        touch-action: manipulation;
-        -webkit-user-select: none;
-        user-select: none;
-    }
-
-    /* Prevent text selection on buttons */
-    button {
-        -webkit-user-select: none;
-        user-select: none;
-    }
-</style>
-
+    });
+</script>
 </body>
 </html>
