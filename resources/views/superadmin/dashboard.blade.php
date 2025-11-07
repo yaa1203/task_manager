@@ -100,7 +100,7 @@
             </div>
         </div>
 
-        {{-- Kartu Total Users (menggantikan Total Super Admins) --}}
+        {{-- Kartu Total Users --}}
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
             <div class="p-6">
                 <div class="flex items-center justify-between mb-4">
@@ -212,7 +212,7 @@
                     </div>
                     <div class="text-center p-3 bg-blue-50 rounded-lg">
                         <div class="text-2xl font-bold text-blue-600" id="pendingCount">{{ $pendingTasks ?? 0 }}</div>
-                        <div class="text-xs text-gray-600 mt-1">Belum Selesai</div>
+                        <div class="text-xs text-blue-600 mt-1">Belum Selesai</div>
                     </div>
                     <div class="text-center p-3 bg-red-50 rounded-lg">
                         <div class="text-2xl font-bold text-red-600" id="overdueCount">{{ $overdueTasks ?? 0 }}</div>
@@ -243,11 +243,11 @@
                 <div class="space-y-4">
                     @forelse($recentUsers->take(5) as $user)
                     <div class="flex items-start gap-3">
-                        <div class="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                        <div class="w-2 h-2 bg-{{ $user->role === 'admin' ? 'purple' : 'green' }}-500 rounded-full mt-2 flex-shrink-0"></div>
                         <div class="flex-1 min-w-0">
                             <p class="text-sm text-gray-900">
                                 <span class="font-semibold">{{ $user->name }}</span> 
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-{{ $user->role === 'superadmin' ? 'purple' : ($user->role === 'admin' ? 'blue' : 'green') }}-100 text-{{ $user->role === 'superadmin' ? 'purple' : ($user->role === 'admin' ? 'blue' : 'green') }}-800">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-{{ $user->role === 'admin' ? 'purple' : 'green' }}-100 text-{{ $user->role === 'admin' ? 'purple' : 'green' }}-800">
                                     {{ ucfirst($user->role) }}
                                 </span>
                                 bergabung dengan sistem
@@ -280,12 +280,9 @@
                     </div>
                     <div>
                         <h2 class="text-base sm:text-lg font-semibold text-gray-900">Pengguna Terbaru</h2>
-                        <p class="text-xs sm:text-sm text-gray-600">Daftar pengguna yang baru bergabung</p>
+                        <p class="text-xs sm:text-sm text-gray-600">Daftar admin & user yang baru bergabung</p>
                     </div>
                 </div>
-                <a href="{{ route('pengguna.admin') }}" class="text-xs sm:text-sm text-green-600 hover:text-green-700 font-medium transition">
-                    Lihat Semua →
-                </a>
             </div>
         </div>
         <div class="overflow-x-auto">
@@ -310,11 +307,11 @@
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
-                    @forelse($recentUsers->take(6) as $user)
+                    @forelse($recentUsers->take(5) as $user)
                     <tr class="hover:bg-gray-50 transition">
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center">
-                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-{{ $user->role === 'superadmin' ? 'purple' : ($user->role === 'admin' ? 'blue' : 'green') }}-500 to-{{ $user->role === 'superadmin' ? 'purple' : ($user->role === 'admin' ? 'blue' : 'green') }}-600 flex items-center justify-center flex-shrink-0">
+                                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-{{ $user->role === 'admin' ? 'purple' : 'green' }}-500 to-{{ $user->role === 'admin' ? 'purple' : 'green' }}-600 flex items-center justify-center flex-shrink-0">
                                     <span class="text-white font-semibold text-sm">
                                         {{ strtoupper(substr($user->name, 0, 2)) }}
                                     </span>
@@ -328,7 +325,7 @@
                             <div class="text-sm text-gray-900">{{ $user->email }}</div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-{{ $user->role === 'superadmin' ? 'purple' : ($user->role === 'admin' ? 'blue' : 'green') }}-100 text-{{ $user->role === 'superadmin' ? 'purple' : ($user->role === 'admin' ? 'blue' : 'green') }}-800">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-{{ $user->role === 'admin' ? 'purple' : 'green' }}-100 text-{{ $user->role === 'admin' ? 'purple' : 'green' }}-800">
                                 {{ ucfirst($user->role) }}
                             </span>
                         </td>
@@ -337,7 +334,7 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-left text-sm font-medium">
                             {{-- Link detail yang disesuaikan dengan role --}}
-                            @if($user->role === 'admin' || $user->role === 'superadmin')
+                            @if($user->role === 'admin')
                                 <a href="{{ route('pengguna.admin', ['id' => $user->id]) }}" class="text-purple-600 hover:text-purple-900">
                                     Detail
                                 </a>
@@ -355,7 +352,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
                             </svg>
                             <p class="text-sm text-gray-500">Tidak ada pengguna ditemukan</p>
-                        </tr>
+                        </td>
                     </tr>
                     @endforelse
                 </tbody>
