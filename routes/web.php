@@ -41,7 +41,7 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home')->middleware('no.cache');
 
-// =============================================================
+// // =============================================================
 // 🔸 Dashboard Umum (User biasa)
 // =============================================================
 Route::middleware(['auth', 'role:user'])->group(function () {
@@ -49,7 +49,7 @@ Route::middleware(['auth', 'role:user'])->group(function () {
 
     // Task dan Project (User)
     Route::resource('tasks', TaskController::class);
-    Route::resource('projects', ProjectController::class);
+  
 
     // Analytics (User)
     Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
@@ -84,7 +84,6 @@ Route::middleware(['auth', 'role:user'])->group(function () {
 Route::middleware('guest')->group(function () {
     Route::get('/register/admin', [AdminRegisterController::class, 'create'])->name('register.admin');
     Route::post('/register/admin', [AdminRegisterController::class, 'store']);
-
     Route::get('/register/superadmin', [SuperAdminRegisterController::class, 'create'])->name('register.superadmin');
     Route::post('/register/superadmin', [SuperAdminRegisterController::class, 'store']);
 });
@@ -92,8 +91,17 @@ Route::middleware('guest')->group(function () {
 // =============================================================
 // 🔸 Admin Area (hanya untuk role admin)
 // =============================================================
+
+
 Route::middleware(['auth', 'role:admin'])->group(function () {
 
+  Route::get('/admin/profile', [ProfileController::class, 'profileAdmin'])->name('admin.profile');
+Route::patch('/admin/profile', [ProfileController::class, 'updateAdmin'])->name('admin.profile.update');
+Route::put('/admin/profile/password', [ProfileController::class, 'updatePasswordAdmin'])->name('admin.password.update');
+Route::delete('/admin/profile', [ProfileController::class, 'destroyAdmin'])->name('admin.profile.destroy');
+Route::post('/admin/profile/send-verification', [ProfileController::class, 'sendVerificationAdmin'])->name('admin.profile.verify');
+
+ 
     // Dashboard Admin
     Route::get('/admin/dashboard', [DashboardController::class, 'adminIndex'])->name('admin.dashboard');
 
@@ -173,9 +181,10 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
 // 🔸 Profile Routes
 // =============================================================
 Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+Route::put('/profile/password', [ProfileController::class, 'updatePasswordUser'])->name('profile.password.update');
+Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
 // =============================================================

@@ -539,14 +539,15 @@
             </div>
             
             <div class="space-y-1">
-                <a href="{{ url('dashboard') }}" target="_blank" 
+                 <a href="{{ url('/admin/profile') }}" target="_blank" 
                    class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-white hover:text-blue-600 rounded-lg transition-all group">
                     <div class="w-8 h-8 bg-gray-100 group-hover:bg-blue-50 rounded-lg flex items-center justify-center transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 20a6 6 0 0112 0"/>
                         </svg>
                     </div>
-                    <span>Lihat Website</span>
+                    <span>Lihat Profile</span>
                 </a>
                 
                 <form method="POST" action="{{ route('logout') }}">
@@ -578,7 +579,7 @@
                 
                 <div class="flex items-center gap-2">
                     @if(file_exists(public_path('icons/logo72x72.png')))
-                        <img src="{{ asset('icons/logo72x72.png') }}" alt="Logo" class="w-8 h-8 rounded-lg shadow-md" />
+                        <img src="{{ asset('icons/logo72x72.png') }}" alt="Logo" class="relative w-8 h-8 rounded-full shadow-md" />
                     @else
                         <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-lg shadow-md flex items-center justify-center">
                             <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
