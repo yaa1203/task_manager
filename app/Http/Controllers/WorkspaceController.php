@@ -824,14 +824,17 @@ class WorkspaceController extends Controller
         return view('calendar.index', compact('tasks'));
     }
 
+    /// Di WorkspaceController.php, ubah method superadminIndex
+
     /**
      * Superadmin workspace index - Show all workspaces from all admins
+     * ✅ FIXED: Default filter changed to 'all' instead of 'false'
      */
     public function superadminIndex(Request $request)
     {
         $search = $request->input('search');
         $sortBy = $request->input('sort_by', 'created_at');
-        $archived = $request->input('archived', 'false');
+        $archived = $request->input('archived', 'all'); // ✅ Changed default from 'false' to 'all'
         
         $query = Workspace::withCount(['tasks'])
             ->with(['admin.category'])
@@ -847,11 +850,13 @@ class WorkspaceController extends Controller
             });
         }
         
+        // ✅ Only filter when explicitly set to 'true' or 'false'
         if ($archived === 'true') {
             $query->where('is_archived', true);
         } elseif ($archived === 'false') {
             $query->where('is_archived', false);
         }
+        // If $archived === 'all', no filter is applied (shows all)
         
         switch ($sortBy) {
             case 'name':

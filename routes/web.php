@@ -74,6 +74,11 @@ Route::middleware(['auth', 'role:user'])->group(function () {
         Route::get('{workspace}/tasks/{task}/submissions/{submission}/download', [WorkspaceController::class, 'downloadSubmissionFile'])->name('submission.download');
     });
 
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/password', [ProfileController::class, 'updatePasswordUser'])->name('profile.password.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
     // Calendar (User)
     Route::get('/calendar', [WorkspaceController::class, 'userCalendar'])->name('calendar.index');
 });
@@ -177,6 +182,13 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
         Route::post('/{workspace}/toggle-archive', [WorkspaceController::class, 'superadminToggleArchive'])->name('toggle-archive');
         Route::delete('/{workspace}', [WorkspaceController::class, 'superadminDestroy'])->name('destroy');
     });
+
+    // Profile Routes
+    Route::get('/superadmin/profile', [ProfileController::class, 'profileSuperAdmin'])->name('superadmin.profile');
+    Route::patch('/superadmin/profile', [ProfileController::class, 'updateSuperAdmin'])->name('superadmin.profile.update');
+    Route::put('/superadmin/password', [ProfileController::class, 'updatePasswordSuperAdmin'])->name('superadmin.password.update');
+    Route::delete('/superadmin/profile', [ProfileController::class, 'destroySuperAdmin'])->name('superadmin.profile.destroy');
+    Route::post('/superadmin/email/verification-notification', [ProfileController::class, 'sendVerificationSuperAdmin'])->name('superadmin.verification.send');
 });
 
 // =============================================================

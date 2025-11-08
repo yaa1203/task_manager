@@ -111,22 +111,22 @@
                     Cari
                 </button>
                 
-                {{-- Tombol Reset --}}
-                @if($search || $archived === 'true')
-                <a href="{{ route('space.index') }}" 
-                   class="px-5 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-colors whitespace-nowrap font-medium text-sm">
-                    Reset
-                </a>
+                {{-- Tombol Reset - Updated condition --}}
+                @if($search || $archived !== 'all')
+                    <a href="{{ route('space.index') }}" 
+                    class="px-5 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-colors whitespace-nowrap font-medium text-sm">
+                        Reset
+                    </a>
                 @endif
             </div>
 
-            {{-- Archive Filter --}}
+            {{-- Archive Filter - Updated order and default selection --}}
             <div class="flex gap-2">
                 <select name="archived" onchange="this.form.submit()" 
                         class="px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 hover:bg-white focus:ring-2 focus:ring-purple-500 text-sm whitespace-nowrap transition-all cursor-pointer">
+                    <option value="all" {{ $archived === 'all' ? 'selected' : '' }}>Semua</option>
                     <option value="false" {{ $archived === 'false' ? 'selected' : '' }}>Aktif</option>
                     <option value="true" {{ $archived === 'true' ? 'selected' : '' }}>Terarsip</option>
-                    <option value="all" {{ $archived === 'all' ? 'selected' : '' }}>Semua</option>
                 </select>
 
                 {{-- Sort Filter --}}
@@ -140,8 +140,8 @@
         </form>
     </div>
 
-    {{-- Active Filter Indicator --}}
-    @if($search || $archived !== 'false')
+    {{-- Active Filter Indicator - Updated condition --}}
+    @if($search || $archived !== 'all')
     <div class="mb-4 p-4 bg-purple-50 border border-purple-200 rounded-xl">
         <div class="flex items-center gap-2 flex-wrap">
             <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -154,9 +154,9 @@
                         Pencarian: {{ $search }}
                     </span>
                 @endif
-                @if($archived !== 'false')
+                @if($archived !== 'all')
                     <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-purple-100 text-purple-800 ml-2">
-                        @if($archived === 'true') Terarsip @else Semua @endif
+                        @if($archived === 'true') Terarsip @else Aktif @endif
                     </span>
                 @endif
             </p>
