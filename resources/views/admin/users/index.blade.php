@@ -333,6 +333,17 @@
                         </td>
                         <td class="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm">
                             <div class="flex items-center gap-2">
+                                @if($user->is_blocked)
+                                <form action="{{ route('users.unblock', $user) }}" method="POST" class="inline">
+                                    @csrf
+                                    <button type="submit" class="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all text-xs font-semibold shadow-sm hover:shadow-md">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/>
+                                        </svg>
+                                        Buka Blokir
+                                    </button>
+                                </form>
+                                @else
                                 <a href="{{ route('users.show', $user) }}" 
                                    class="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-xs font-semibold shadow-sm hover:shadow-md">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -342,17 +353,6 @@
                                     Detail
                                 </a>
 
-                                @if($user->is_blocked)
-                                <form action="{{ route('users.unblock', $user) }}" method="POST" class="inline">
-                                    @csrf
-                                    <button type="submit" class="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all text-xs font-semibold shadow-sm hover:shadow-md">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/>
-                                        </svg>
-                                        Buka
-                                    </button>
-                                </form>
-                                @else
                                 <form action="{{ route('users.block', $user) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin memblokir akun {{ $user->name }}? User tidak akan bisa login ke sistem.');">
                                     @csrf
                                     <button type="submit" class="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-all text-xs font-semibold shadow-sm hover:shadow-md">
@@ -362,7 +362,6 @@
                                         Blokir
                                     </button>
                                 </form>
-                                @endif
 
                                 <form action="{{ route('users.destroy', $user) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pengguna ini? Tindakan ini tidak dapat dibatalkan.');">
                                     @csrf
@@ -374,6 +373,7 @@
                                         Hapus
                                     </button>
                                 </form>
+                                @endif
                             </div>
                         </td>
                     </tr>
@@ -502,6 +502,17 @@
 
                 {{-- Action Buttons --}}
                 <div class="flex gap-2 flex-wrap">
+                    @if($user->is_blocked)
+                    <form action="{{ route('users.unblock', $user) }}" method="POST" class="flex-1">
+                        @csrf
+                        <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all font-semibold text-sm shadow-sm hover:shadow-md">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/>
+                            </svg>
+                            Buka Blokir
+                        </button>
+                    </form>
+                    @else
                     <a href="{{ route('users.show', $user) }}" 
                        class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-semibold text-sm shadow-sm hover:shadow-md">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -511,17 +522,6 @@
                         Detail
                     </a>
 
-                    @if($user->is_blocked)
-                    <form action="{{ route('users.unblock', $user) }}" method="POST" class="flex-1">
-                        @csrf
-                        <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all font-semibold text-sm shadow-sm hover:shadow-md">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/>
-                            </svg>
-                            Buka 
-                        </button>
-                    </form>
-                    @else
                     <form action="{{ route('users.block', $user) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin memblokir akun {{ $user->name }}? User tidak akan bisa login ke sistem.');" class="flex-1">
                         @csrf
                         <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-all font-semibold text-sm shadow-sm hover:shadow-md">
@@ -531,7 +531,6 @@
                             Blokir
                         </button>
                     </form>
-                    @endif
 
                     <form action="{{ route('users.destroy', $user) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pengguna ini? Tindakan ini tidak dapat dibatalkan.');" class="flex-1">
                         @csrf
@@ -543,6 +542,7 @@
                             Hapus
                         </button>
                     </form>
+                    @endif
                 </div>
             </div>
         </div>

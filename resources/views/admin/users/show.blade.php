@@ -68,22 +68,8 @@
         </div>
     </div>
 
-    {{-- Kartu Statistik --}}
+    {{-- Kartu Statistik (Hanya dari workspace aktif) --}}
     <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
-        @php
-            $totalTasks = $tasks->count();
-            $completedTasks = $tasks->filter(function($task) use ($user) {
-                return $task->submissions->where('user_id', $user->id)->isNotEmpty();
-            })->count();
-            
-            $overdueTasks = $tasks->filter(function($task) use ($user) {
-                $hasSubmitted = $task->submissions->where('user_id', $user->id)->isNotEmpty();
-                return !$hasSubmitted && $task->due_date && now()->gt($task->due_date);
-            })->count();
-            
-            $unfinishedTasks = $totalTasks - $completedTasks;
-        @endphp
-
         <div class="bg-white rounded-lg sm:rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
             <div class="p-4 sm:p-5 lg:p-6">
                 <div class="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between mb-3 sm:mb-4">
@@ -96,7 +82,7 @@
                 </div>
                 <h3 class="text-xs sm:text-sm font-medium text-gray-600 mb-1">Total Tugas</h3>
                 <p class="text-2xl sm:text-3xl font-bold text-gray-900">{{ $totalTasks }}</p>
-                <p class="text-xs sm:text-sm text-gray-500 mt-1">Tugas yang diberikan</p>
+                <p class="text-xs sm:text-sm text-gray-500 mt-1">Tugas aktif</p>
             </div>
         </div>
 
@@ -149,6 +135,25 @@
         </div>
     </div>
 
+    {{-- Info Workspace Archived --}}
+    @if($archivedTasks->count() > 0)
+    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-lg">
+        <div class="flex items-start">
+            <svg class="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <div class="ml-3">
+                <p class="text-sm font-medium text-yellow-800">
+                    Terdapat {{ $archivedTasks->count() }} tugas dari workspace yang diarsipkan
+                </p>
+                <p class="text-xs text-yellow-700 mt-1">
+                    Tugas dari workspace yang diarsipkan tidak dapat diakses dan tidak dihitung dalam statistik.
+                </p>
+            </div>
+        </div>
+    </div>
+    @endif
+
     {{-- Bagian Tugas --}}
     <div class="bg-white rounded-lg sm:rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div class="px-4 sm:px-6 py-4 border-b border-gray-200 bg-gray-50">
@@ -164,9 +169,16 @@
                         <p class="text-xs sm:text-sm text-gray-600">Semua tugas dengan status pengiriman</p>
                     </div>
                 </div>
-                <span class="px-3 py-1 bg-purple-100 text-purple-700 text-xs sm:text-sm font-semibold rounded-full self-start sm:self-auto">
-                    {{ $tasks->count() }} Tugas
-                </span>
+                <div class="flex gap-2 flex-wrap">
+                    <span class="px-3 py-1 bg-green-100 text-green-700 text-xs sm:text-sm font-semibold rounded-full">
+                        {{ $activeTasks->count() }} Aktif
+                    </span>
+                    @if($archivedTasks->count() > 0)
+                    <span class="px-3 py-1 bg-gray-100 text-gray-700 text-xs sm:text-sm font-semibold rounded-full">
+                        {{ $archivedTasks->count() }} Diarsipkan
+                    </span>
+                    @endif
+                </div>
             </div>
         </div>
 
@@ -178,26 +190,34 @@
                             $userSubmission = $task->submissions->where('user_id', $user->id)->first();
                             $hasSubmitted = $userSubmission !== null;
                             $workspace = $task->workspace;
+                            $isArchived = $workspace->is_archived;
                         @endphp
-                        <div class="bg-white rounded-lg border-2 border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-200 hover:border-blue-300">
-                            <!-- Header Tugas - Lebih Compact -->
-                            <div class="p-3 lg:p-4 border-b border-gray-100" style="background: linear-gradient(135deg, {{ $workspace->color }}15 0%, {{ $workspace->color }}05 100%);">
+                        <div class="bg-white rounded-lg border-2 overflow-hidden hover:shadow-lg transition-all duration-200 
+                            {{ $isArchived ? 'border-gray-300 opacity-75' : 'border-gray-200 hover:border-blue-300' }}">
+                            
+                            {{-- Archived Badge --}}
+                            @if($isArchived)
+                            <div class="bg-gray-100 border-b border-gray-200 px-3 py-2">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
+                                    </svg>
+                                    <span class="text-xs font-medium text-gray-700">Workspace Diarsipkan</span>
+                                </div>
+                            </div>
+                            @endif
+
+                            <!-- Header Tugas -->
+                            <div class="p-3 lg:p-4 border-b border-gray-100" 
+                                 style="background: linear-gradient(135deg, {{ $workspace->color }}15 0%, {{ $workspace->color }}05 100%);">
                                 <div class="flex items-start justify-between mb-2 gap-2">
                                     <div class="flex-1 min-w-0">
                                         <div class="flex items-center gap-2 mb-1.5">
                                             <div class="w-6 h-6 lg:w-7 lg:h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-gray-700" 
                                                  style="background-color: {{ $workspace->color }}30;">
-                                                @php
-                                                $iconSvgs = [
-                                                    'folder' => '<svg class="w-3.5 h-3.5 lg:w-4 lg:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>',
-                                                    'briefcase' => '<svg class="w-3.5 h-3.5 lg:w-4 lg:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>',
-                                                    'chart' => '<svg class="w-3.5 h-3.5 lg:w-4 lg:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>',
-                                                    'target' => '<svg class="w-3.5 h-3.5 lg:w-4 lg:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
-                                                    'cog' => '<svg class="w-3.5 h-3.5 lg:w-4 lg:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>',
-                                                    'clipboard' => '<svg class="w-3.5 h-3.5 lg:w-4 lg:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>',
-                                                ];
-                                                @endphp
-                                                {!! $iconSvgs[$workspace->icon] ?? $iconSvgs['folder'] !!}
+                                                <svg class="w-3.5 h-3.5 lg:w-4 lg:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                                                </svg>
                                             </div>
                                             <span class="text-xs text-gray-600 font-medium truncate">{{ $workspace->name }}</span>
                                         </div>
@@ -220,7 +240,6 @@
                                     </span>
                                 </div>
 
-                                <!-- Info Tugas -->
                                 @if($task->due_date)
                                 <div class="flex items-center gap-1 text-xs text-gray-600">
                                     <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -231,7 +250,7 @@
                                 @endif
                             </div>
 
-                            <!-- Detail Tugas - Lebih Compact -->
+                            <!-- Detail Tugas -->
                             <div class="p-3 lg:p-4">
                                 <!-- Status -->
                                 <div class="mb-3">
@@ -284,14 +303,24 @@
 
                                 <!-- Tombol Aksi -->
                                 <div class="pt-2 border-t border-gray-100">
-                                    <a href="{{ route('workspace.tasks.show', [$workspace, $task]) }}" 
-                                       class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm text-xs font-medium">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                        </svg>
-                                        <span>Lihat Detail</span>
-                                    </a>
+                                    @if($isArchived)
+                                        <button disabled 
+                                                class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed text-xs font-medium">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                            </svg>
+                                            <span>Workspace Diarsipkan</span>
+                                        </button>
+                                    @else
+                                        <a href="{{ route('workspace.tasks.show', [$workspace, $task]) }}" 
+                                           class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm text-xs font-medium">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                            </svg>
+                                            <span>Lihat Detail</span>
+                                        </a>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -304,8 +333,17 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                         </svg>
                     </div>
-                    <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-1">Tidak Ada Tugas yang Diberikan</h3>
-                    <p class="text-xs sm:text-sm text-gray-500">Pengguna ini belum memiliki tugas yang diberikan</p>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Tidak ada tugas</h3>
+                    <p class="text-gray-500 max-w-md mx-auto">Pengguna ini belum memiliki tugas yang ditugaskan.</p>
+                    <div class="mt-6">
+                        <a href="{{ route('workspaces.index') }}" 
+                           class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm text-sm font-medium">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            Buat Tugas Baru
+                        </a>
+                    </div>
                 </div>
             @endif
         </div>
@@ -313,6 +351,19 @@
 </div>
 
 <style>
+/* Custom styles untuk memastikan tampilan tetap tajam dan tidak blur */
+* {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+/* Memastikan tidak ada efek blur pada transisi */
+.transition-all {
+    transition: all 0.2s ease;
+}
+
+/* Style untuk line-clamp */
 .line-clamp-1 {
     display: -webkit-box;
     -webkit-line-clamp: 1;
@@ -327,39 +378,41 @@
     overflow: hidden;
 }
 
-/* Smooth animations */
-@keyframes fade-in {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+/* Memastikan gambar tetap tajam */
+img {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
 }
 
-.animate-fade-in {
-    animation: fade-in 0.3s ease-out;
+/* Animasi hover yang halus */
+.hover\:shadow-lg:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
-/* Better touch feedback on mobile */
-@media (max-width: 640px) {
-    button:active, a:active {
-        transform: scale(0.97);
-        transition: transform 0.1s;
-    }
+/* Memastikan konten tetap di tengah */
+.max-w-6xl {
+    margin-left: auto;
+    margin-right: auto;
 }
 
-/* Prevent text from breaking awkwardly */
-.break-words {
-    word-break: break-word;
-    overflow-wrap: break-word;
+/* Scrollbar yang lebih baik */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
 }
 
-/* Smooth transitions */
-* {
-    -webkit-tap-highlight-color: transparent;
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
 }
 </style>
 @endsection
