@@ -482,8 +482,8 @@
                             'url' => 'notifications', 
                             'label' => 'Notifikasi', 
                             'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>',
-                            'isNotification' => true,
-                            'desc' => 'Pesan masuk'
+                            'desc' => 'Pesan masuk',
+                            'hasNotification' => true
                         ]
                     ];
                     @endphp
@@ -512,6 +512,17 @@
                                 </div>
                             </div>
                         </span>
+                        
+                        @if(isset($item['hasNotification']) && $item['hasNotification'])
+                            @php
+                                $unreadNotifCount = Auth::user()->unreadNotifications->count();
+                            @endphp
+                            @if($unreadNotifCount > 0)
+                            <span class="relative flex-shrink-0 ml-2 px-2 py-0.5 min-w-[24px] h-6 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center ring-2 {{ request()->routeIs($item['route']) ? 'ring-white/30' : 'ring-white' }} shadow-lg">
+                                {{ $unreadNotifCount > 99 ? '99+' : $unreadNotifCount }}
+                            </span>
+                            @endif
+                        @endif
                     </a>
                     @endforeach
                 </div>
@@ -588,9 +599,12 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                               d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                     </svg>
-                    @if(Auth::user()->unreadNotifications->count() > 0)
-                        <span class="absolute top-0 right-0 h-5 w-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center ring-2 ring-white shadow-lg animate-pulse">
-                            {{ Auth::user()->unreadNotifications->count() > 99 ? '99+' : Auth::user()->unreadNotifications->count() }}
+                    @php
+                        $mobileUnreadCount = Auth::user()->unreadNotifications->count();
+                    @endphp
+                    @if($mobileUnreadCount > 0)
+                        <span class="absolute top-0 right-0 h-5 w-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center ring-2 ring-white shadow-lg">
+                            {{ $mobileUnreadCount > 99 ? '99+' : $mobileUnreadCount }}
                         </span>
                     @endif
                 </a>
@@ -695,7 +709,7 @@
         if (window.innerWidth >= 1024) closeSidebar();
     });
 
-    // PWA Logic (same as before)
+    // PWA Logic
     (function() {
         let deferredPrompt = null;
         const elements = {

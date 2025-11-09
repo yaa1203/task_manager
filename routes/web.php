@@ -169,10 +169,20 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
         Route::get('/admin', [UserController::class, 'superAdminIndex'])->name('pengguna.admin');
         Route::get('/admin/{user}', [UserController::class, 'superAdminShow'])->name('pengguna.admin.show');
         Route::delete('/admin/{user}', [UserController::class, 'superAdminDestroy'])->name('pengguna.admin.destroy');
+        // Routes untuk blokir/unblokir admin oleh superadmin
+        Route::post('/pengguna/admin/{user}/block', [UserController::class, 'superAdminBlock'])
+            ->name('pengguna.admin.block');
+        Route::post('/pengguna/admin/{user}/unblock', [UserController::class, 'superAdminUnblock'])
+            ->name('pengguna.admin.unblock');
 
         Route::get('/user', [UserController::class, 'superUserIndex'])->name('pengguna.user');
         Route::get('/user/{user}', [UserController::class, 'superUserShow'])->name('pengguna.user.show');
         Route::delete('/user/{user}', [UserController::class, 'superUserDestroy'])->name('pengguna.user.destroy');
+        // Routes untuk Super Admin - Blokir/Unblokir User
+        Route::post('/pengguna/user/{user}/block', [UserController::class, 'superUserBlock'])
+            ->name('pengguna.user.block');
+        Route::post('/pengguna/user/{user}/unblock', [UserController::class, 'superUserUnblock'])
+            ->name('pengguna.user.unblock');
     });
 
     // Workspace SuperAdmin
