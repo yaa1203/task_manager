@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div>
-                <h2 class="font-semibold text-xl text-gray-800">📂 Ruang Kerja Saya</h2>
+                <h2 class="font-semibold text-xl text-gray-800">Ruang Kerja Saya</h2>
                 <p class="text-sm text-gray-600 mt-1">Kelola dan lacak semua tugas Anda di berbagai ruang kerja</p>
             </div>
         </div>

@@ -74,6 +74,11 @@ Route::middleware(['auth', 'role:user'])->group(function () {
         Route::get('{workspace}/tasks/{task}/submissions/{submission}/download', [WorkspaceController::class, 'downloadSubmissionFile'])->name('submission.download');
     });
 
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/password', [ProfileController::class, 'updatePasswordUser'])->name('profile.password.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
     // Calendar (User)
     Route::get('/calendar', [WorkspaceController::class, 'userCalendar'])->name('calendar.index');
 });
@@ -93,13 +98,13 @@ Route::middleware('guest')->group(function () {
 // =============================================================
 
 
-Route::middleware(['auth', 'role:admin'])->group(function () {
+Route::middleware(['auth', 'role:admin', 'no.cache'])->group(function () {
 
-  Route::get('/admin/profile', [ProfileController::class, 'profileAdmin'])->name('admin.profile');
-Route::patch('/admin/profile', [ProfileController::class, 'updateAdmin'])->name('admin.profile.update');
-Route::put('/admin/profile/password', [ProfileController::class, 'updatePasswordAdmin'])->name('admin.password.update');
-Route::delete('/admin/profile', [ProfileController::class, 'destroyAdmin'])->name('admin.profile.destroy');
-Route::post('/admin/profile/send-verification', [ProfileController::class, 'sendVerificationAdmin'])->name('admin.profile.verify');
+    Route::get('/admin/profile', [ProfileController::class, 'profileAdmin'])->name('admin.profile');
+    Route::patch('/admin/profile', [ProfileController::class, 'updateAdmin'])->name('admin.profile.update');
+    Route::put('/admin/profile/password', [ProfileController::class, 'updatePasswordAdmin'])->name('admin.password.update');
+    Route::delete('/admin/profile', [ProfileController::class, 'destroyAdmin'])->name('admin.profile.destroy');
+    Route::post('/admin/profile/send-verification', [ProfileController::class, 'sendVerificationAdmin'])->name('admin.profile.verify');
 
  
     // Dashboard Admin
@@ -111,6 +116,8 @@ Route::post('/admin/profile/send-verification', [ProfileController::class, 'send
         Route::get('/{user}', [UserController::class, 'show'])->name('show');
         Route::delete('/{user}', [UserController::class, 'destroy'])->name('destroy');
     });
+    Route::post('/users/{user}/block', [UserController::class, 'block'])->name('users.block');
+    Route::post('/users/{user}/unblock', [UserController::class, 'unblock'])->name('users.unblock');
 
     // Analytics Admin
     Route::prefix('analytict')->name('analytict.')->group(function () {
@@ -162,10 +169,20 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
         Route::get('/admin', [UserController::class, 'superAdminIndex'])->name('pengguna.admin');
         Route::get('/admin/{user}', [UserController::class, 'superAdminShow'])->name('pengguna.admin.show');
         Route::delete('/admin/{user}', [UserController::class, 'superAdminDestroy'])->name('pengguna.admin.destroy');
+        // Routes untuk blokir/unblokir admin oleh superadmin
+        Route::post('/pengguna/admin/{user}/block', [UserController::class, 'superAdminBlock'])
+            ->name('pengguna.admin.block');
+        Route::post('/pengguna/admin/{user}/unblock', [UserController::class, 'superAdminUnblock'])
+            ->name('pengguna.admin.unblock');
 
         Route::get('/user', [UserController::class, 'superUserIndex'])->name('pengguna.user');
         Route::get('/user/{user}', [UserController::class, 'superUserShow'])->name('pengguna.user.show');
         Route::delete('/user/{user}', [UserController::class, 'superUserDestroy'])->name('pengguna.user.destroy');
+        // Routes untuk Super Admin - Blokir/Unblokir User
+        Route::post('/pengguna/user/{user}/block', [UserController::class, 'superUserBlock'])
+            ->name('pengguna.user.block');
+        Route::post('/pengguna/user/{user}/unblock', [UserController::class, 'superUserUnblock'])
+            ->name('pengguna.user.unblock');
     });
 
     // Workspace SuperAdmin
@@ -175,6 +192,13 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
         Route::post('/{workspace}/toggle-archive', [WorkspaceController::class, 'superadminToggleArchive'])->name('toggle-archive');
         Route::delete('/{workspace}', [WorkspaceController::class, 'superadminDestroy'])->name('destroy');
     });
+
+    // Profile Routes
+    Route::get('/superadmin/profile', [ProfileController::class, 'profileSuperAdmin'])->name('superadmin.profile');
+    Route::patch('/superadmin/profile', [ProfileController::class, 'updateSuperAdmin'])->name('superadmin.profile.update');
+    Route::put('/superadmin/password', [ProfileController::class, 'updatePasswordSuperAdmin'])->name('superadmin.password.update');
+    Route::delete('/superadmin/profile', [ProfileController::class, 'destroySuperAdmin'])->name('superadmin.profile.destroy');
+    Route::post('/superadmin/email/verification-notification', [ProfileController::class, 'sendVerificationSuperAdmin'])->name('superadmin.verification.send');
 });
 
 // =============================================================

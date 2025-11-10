@@ -20,8 +20,11 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role', // 'admin' atau 'user'
-        'category_id', // Kategori pengguna
+        'role',
+        'category_id',
+        'is_blocked',
+        'blocked_at',
+        'blocked_by',
     ];
 
     /**
@@ -38,6 +41,8 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'is_blocked' => 'boolean',
+        'blocked_at' => 'datetime',
     ];
 
     // ---------------------------------------------------
@@ -267,5 +272,37 @@ class User extends Authenticatable
                 $query->where('admin_id', $this->id);
             })
             ->count();
+    }
+
+    /**
+     * Get the admin who blocked this user
+     */
+    public function blocker()
+    {
+        return $this->belongsTo(User::class, 'blocked_by');
+    }
+
+    /**
+     * Check if user is blocked
+     */
+    public function isBlocked()
+    {
+        return $this->is_blocked;
+    }
+
+    /**
+     * Scope to filter only active (not blocked) users
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_blocked', false);
+    }
+
+    /**
+     * Scope to filter only blocked users
+     */
+    public function scopeBlocked($query)
+    {
+        return $query->where('is_blocked', true);
     }
 }

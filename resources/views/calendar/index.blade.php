@@ -2,16 +2,9 @@
     <x-slot name="header">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div>
-                <h2 class="font-semibold text-xl text-gray-800">📅 Kalender Tugas</h2>
+                <h2 class="font-semibold text-xl text-gray-800">Kalender Tugas</h2>
                 <p class="text-sm text-gray-600 mt-1">Lihat jadwal dan kelola tugas Anda dalam tampilan kalender</p>
             </div>
-            <a href="{{ route('my-workspaces.index') }}" 
-               class="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium shadow-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                </svg>
-                Kembali
-            </a>
         </div>
     </x-slot>
 

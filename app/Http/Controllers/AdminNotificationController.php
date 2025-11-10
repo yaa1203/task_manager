@@ -20,8 +20,22 @@ class AdminNotificationController extends Controller
 
         // Ambil notifikasi terbaru, pagination 10
         $notifications = $user->notifications()->latest()->paginate(10);
+        
+        // Hitung total unread dari SEMUA notifikasi (bukan dari paginated)
+        $unreadCount = $user->unreadNotifications()->count();
+        
+        // Hitung total read
+        $readCount = $user->notifications()->whereNotNull('read_at')->count();
+        
+        // Total semua notifikasi
+        $totalCount = $user->notifications()->count();
 
-        return view('admin.notifications.index', compact('notifications'));
+        return view('admin.notifications.index', compact(
+            'notifications', 
+            'unreadCount', 
+            'readCount', 
+            'totalCount'
+        ));
     }
 
     /**

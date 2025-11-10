@@ -13,14 +13,19 @@ use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
+    /**
+     * User Dashboard
+     * FIXED: Filter archived workspaces
+     */
     public function index()
     {
         $userId = Auth::id();
 
-        // Ambil semua workspace yang user terlibat di dalamnya
+        // ✅ PERBAIKAN: Hanya ambil workspace yang TIDAK diarsipkan
         $workspaces = Workspace::whereHas('tasks.assignedUsers', function ($q) use ($userId) {
             $q->where('user_id', $userId);
         })
+        ->where('is_archived', false) // ⚠️ CRITICAL: Filter workspace yang diarsipkan
         ->with(['tasks' => function($q) use ($userId) {
             $q->whereHas('assignedUsers', function($query) use ($userId) {
                 $query->where('user_id', $userId);
@@ -79,6 +84,10 @@ class DashboardController extends Controller
         ));
     }
 
+    /**
+     * Admin Dashboard
+     * FIXED: Filter archived workspaces
+     */
     public function AdminIndex()
     {
         $admin = Auth::user();
@@ -87,18 +96,20 @@ class DashboardController extends Controller
         $category = $admin->category->name ?? 'Admin';
 
         // ✅ Ambil hanya user dengan kategori yang sama dengan admin ini
+        // ✅ PERBAIKAN: Hitung tasks hanya dari workspace yang TIDAK diarsipkan
         $users = User::where('role', 'user')
             ->where('category_id', $adminCategoryId)
             ->withCount(['assignedTasks' => function ($q) use ($adminId) {
                 $q->whereHas('workspace', function ($w) use ($adminId) {
-                    $w->where('admin_id', $adminId);
+                    $w->where('admin_id', $adminId)
+                      ->where('is_archived', false); // ⚠️ CRITICAL: Filter workspace yang diarsipkan
                 });
             }])
             ->latest()
             ->take(6)
             ->get();
 
-        // Hitung statistik tiap user
+        // Hitung statistik tiap user (hanya dari workspace aktif)
         $users->each(function ($user) use ($adminId) {
             $user->diligence_score = $this->calculateDiligenceScore($user, $adminId);
             $user->late_submissions_count = $this->countLateSubmissions($user, $adminId);
@@ -111,26 +122,31 @@ class DashboardController extends Controller
             ->where('category_id', $adminCategoryId)
             ->count();
 
-        // Total tasks milik admin ini
+        // ✅ PERBAIKAN: Total tasks milik admin ini (hanya dari workspace yang TIDAK diarsipkan)
         $totalTasks = Task::whereHas('workspace', function ($w) use ($adminId) {
-            $w->where('admin_id', $adminId);
+            $w->where('admin_id', $adminId)
+              ->where('is_archived', false); // ⚠️ CRITICAL: Filter workspace yang diarsipkan
         })->count();
 
-        // Total workspaces milik admin ini
-        $totalWorkspaces = Workspace::where('admin_id', $adminId)->count();
+        // ✅ PERBAIKAN: Total workspaces milik admin ini (hanya yang TIDAK diarsipkan)
+        $totalWorkspaces = Workspace::where('admin_id', $adminId)
+            ->where('is_archived', false) // ⚠️ CRITICAL: Filter workspace yang diarsipkan
+            ->count();
 
-        // ✅ Hitung status tugas untuk chart (hanya tugas milik admin ini)
+        // ✅ PERBAIKAN: Hitung status tugas untuk chart (hanya tugas dari workspace yang TIDAK diarsipkan)
         $now = Carbon::now();
         
         $completedTasks = Task::whereHas('workspace', function ($w) use ($adminId) {
-            $w->where('admin_id', $adminId);
+            $w->where('admin_id', $adminId)
+              ->where('is_archived', false); // ⚠️ CRITICAL: Filter workspace yang diarsipkan
         })
         ->whereHas('submissions')
         ->distinct('id')
         ->count();
         
         $overdueTasks = Task::whereHas('workspace', function ($w) use ($adminId) {
-            $w->where('admin_id', $adminId);
+            $w->where('admin_id', $adminId)
+              ->where('is_archived', false); // ⚠️ CRITICAL: Filter workspace yang diarsipkan
         })
         ->whereDoesntHave('submissions')
         ->whereNotNull('due_date')
@@ -138,7 +154,8 @@ class DashboardController extends Controller
         ->count();
         
         $pendingTasks = Task::whereHas('workspace', function ($w) use ($adminId) {
-            $w->where('admin_id', $adminId);
+            $w->where('admin_id', $adminId)
+              ->where('is_archived', false); // ⚠️ CRITICAL: Filter workspace yang diarsipkan
         })
         ->whereDoesntHave('submissions')
         ->where(function($q) use ($now) {
@@ -167,6 +184,10 @@ class DashboardController extends Controller
         ]);
     }
 
+    /**
+     * Calculate diligence score
+     * FIXED: Only count from non-archived workspaces
+     */
     private function calculateDiligenceScore($user, $adminId)
     {
         $onTime = $this->countOnTimeSubmissions($user, $adminId);
@@ -174,45 +195,68 @@ class DashboardController extends Controller
         return max(0, ($onTime * 10) - ($late * 5));
     }
 
+    /**
+     * Count late submissions
+     * FIXED: Only count from non-archived workspaces
+     */
     private function countLateSubmissions($user, $adminId)
     {
         return DB::table('user_task_submissions')
             ->join('tasks', 'user_task_submissions.task_id', '=', 'tasks.id')
             ->join('workspaces', 'tasks.workspace_id', '=', 'workspaces.id')
             ->where('workspaces.admin_id', $adminId)
+            ->where('workspaces.is_archived', false) // ⚠️ CRITICAL: Filter workspace yang diarsipkan
             ->where('user_task_submissions.user_id', $user->id)
             ->whereRaw('user_task_submissions.created_at > tasks.due_date')
             ->count();
     }
 
+    /**
+     * Count on-time submissions
+     * FIXED: Only count from non-archived workspaces
+     */
     private function countOnTimeSubmissions($user, $adminId)
     {
         return DB::table('user_task_submissions')
             ->join('tasks', 'user_task_submissions.task_id', '=', 'tasks.id')
             ->join('workspaces', 'tasks.workspace_id', '=', 'workspaces.id')
             ->where('workspaces.admin_id', $adminId)
+            ->where('workspaces.is_archived', false) // ⚠️ CRITICAL: Filter workspace yang diarsipkan
             ->where('user_task_submissions.user_id', $user->id)
             ->whereRaw('user_task_submissions.created_at <= tasks.due_date')
             ->count();
     }
 
+    /**
+     * Calculate completion rate
+     * FIXED: Only count from non-archived workspaces
+     */
     private function calculateCompletionRate($user, $adminId)
     {
         $totalAssigned = $user->assignedTasks()
-            ->whereHas('workspace', fn($w) => $w->where('admin_id', $adminId))
+            ->whereHas('workspace', function($w) use ($adminId) {
+                $w->where('admin_id', $adminId)
+                  ->where('is_archived', false); // ⚠️ CRITICAL: Filter workspace yang diarsipkan
+            })
             ->count();
 
         if ($totalAssigned === 0) return 0;
 
         $completed = $user->submissions()
-            ->whereHas('task.workspace', fn($w) => $w->where('admin_id', $adminId))
+            ->whereHas('task.workspace', function($w) use ($adminId) {
+                $w->where('admin_id', $adminId)
+                  ->where('is_archived', false); // ⚠️ CRITICAL: Filter workspace yang diarsipkan
+            })
             ->distinct('task_id')
             ->count();
 
         return round(($completed / $totalAssigned) * 100, 1);
     }
 
-    // Dashboard Super Admin
+    /**
+     * SuperAdmin Dashboard
+     * FIXED: Filter archived workspaces
+     */
     public function superAdminDashboard()
     {
         // ✅ Hanya user biasa (role = 'user')
@@ -221,8 +265,8 @@ class DashboardController extends Controller
         // ✅ Hanya admin biasa (role = 'admin')
         $totalAdmins = User::where('role', 'admin')->count();
         
-        // Hitung total workspace
-        $totalWorkspaces = Workspace::count();
+        // ✅ PERBAIKAN: Hitung total workspace (hanya yang TIDAK diarsipkan)
+        $totalWorkspaces = Workspace::where('is_archived', false)->count();
         
         // Hitung total kategori
         $totalCategories = Category::count();
@@ -233,24 +277,33 @@ class DashboardController extends Controller
             ->take(6)
             ->get();
         
-        // ✅ HITUNG STATUS TUGAS UNTUK CHART (SEMUA TUGAS DI SISTEM)
+        // ✅ PERBAIKAN: HITUNG STATUS TUGAS UNTUK CHART (HANYA dari workspace yang TIDAK diarsipkan)
         $now = Carbon::now();
         
-        $completedTasks = Task::whereHas('submissions')
-            ->distinct('id')
-            ->count();
+        $completedTasks = Task::whereHas('workspace', function($w) {
+            $w->where('is_archived', false); // ⚠️ CRITICAL: Filter workspace yang diarsipkan
+        })
+        ->whereHas('submissions')
+        ->distinct('id')
+        ->count();
         
-        $overdueTasks = Task::whereDoesntHave('submissions')
-            ->whereNotNull('due_date')
-            ->where('due_date', '<', $now)
-            ->count();
+        $overdueTasks = Task::whereHas('workspace', function($w) {
+            $w->where('is_archived', false); // ⚠️ CRITICAL: Filter workspace yang diarsipkan
+        })
+        ->whereDoesntHave('submissions')
+        ->whereNotNull('due_date')
+        ->where('due_date', '<', $now)
+        ->count();
         
-        $pendingTasks = Task::whereDoesntHave('submissions')
-            ->where(function($q) use ($now) {
-                $q->whereNull('due_date')
-                ->orWhere('due_date', '>=', $now);
-            })
-            ->count();
+        $pendingTasks = Task::whereHas('workspace', function($w) {
+            $w->where('is_archived', false); // ⚠️ CRITICAL: Filter workspace yang diarsipkan
+        })
+        ->whereDoesntHave('submissions')
+        ->where(function($q) use ($now) {
+            $q->whereNull('due_date')
+              ->orWhere('due_date', '>=', $now);
+        })
+        ->count();
         
         return view('superadmin.dashboard', compact(
             'totalAdmins',

@@ -51,7 +51,8 @@
     @endif
 
     {{-- Kartu Statistik --}}
-    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-4 sm:mb-6">
+    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-6 mb-4 sm:mb-6">
+        {{-- Total Pengguna --}}
         <div class="bg-white rounded-lg sm:rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
             <div class="p-3 sm:p-4 lg:p-5">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 sm:mb-3">
@@ -67,6 +68,7 @@
             </div>
         </div>
 
+        {{-- Pengguna Aktif --}}
         <div class="bg-white rounded-lg sm:rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
             <div class="p-3 sm:p-4 lg:p-5">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 sm:mb-3">
@@ -78,10 +80,37 @@
                     <span class="hidden sm:inline-flex px-2 sm:px-3 py-1 bg-green-50 text-green-700 text-xs font-semibold rounded-full">Aktif</span>
                 </div>
                 <h3 class="text-xs sm:text-sm font-medium text-gray-600 mb-0.5 sm:mb-1 line-clamp-1">Pengguna Aktif</h3>
-                <p class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">{{ $users->total() }}</p>
+                <p class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
+                    {{ \App\Models\User::where('role', 'user')
+                        ->where('category_id', Auth::user()->category_id)
+                        ->where('is_blocked', false)
+                        ->count() }}
+                </p>
             </div>
         </div>
 
+        {{-- Pengguna Diblokir (NEW) --}}
+        <div class="bg-white rounded-lg sm:rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+            <div class="p-3 sm:p-4 lg:p-5">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 sm:mb-3">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-red-100 rounded-lg sm:rounded-xl flex items-center justify-center mb-2 sm:mb-0">
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <span class="hidden sm:inline-flex px-2 sm:px-3 py-1 bg-red-50 text-red-700 text-xs font-semibold rounded-full">Blokir</span>
+                </div>
+                <h3 class="text-xs sm:text-sm font-medium text-gray-600 mb-0.5 sm:mb-1 line-clamp-1">Pengguna Diblokir</h3>
+                <p class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
+                    {{ \App\Models\User::where('role', 'user')
+                        ->where('category_id', Auth::user()->category_id)
+                        ->where('is_blocked', true)
+                        ->count() }}
+                </p>
+            </div>
+        </div>
+
+        {{-- Bergabung Bulan Ini --}}
         <div class="bg-white rounded-lg sm:rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
             <div class="p-3 sm:p-4 lg:p-5">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 sm:mb-3">
@@ -102,6 +131,7 @@
             </div>
         </div>
 
+        {{-- Bergabung Minggu Ini --}}
         <div class="bg-white rounded-lg sm:rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
             <div class="p-3 sm:p-4 lg:p-5">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 sm:mb-3">
@@ -217,21 +247,26 @@
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-100">
                     @forelse($users as $user)
-                    <tr class="hover:bg-gray-50 transition-colors duration-150">
+                    <tr class="hover:bg-gray-50 transition-colors duration-150 {{ $user->is_blocked ? 'bg-red-50' : '' }}">
                         <td class="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0 shadow-md">
+                                <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl {{ $user->is_blocked ? 'bg-gradient-to-br from-gray-400 to-gray-500' : 'bg-gradient-to-br from-blue-500 to-blue-600' }} flex items-center justify-center flex-shrink-0 shadow-md">
                                     <span class="text-white font-bold text-sm">
                                         {{ strtoupper(substr($user->name, 0, 2)) }}
                                     </span>
                                 </div>
                                 <div>
-                                    <div class="text-sm font-semibold text-gray-900">{{ $user->name }}</div>
+                                    <div class="text-sm font-semibold {{ $user->is_blocked ? 'text-gray-500' : 'text-gray-900' }}">
+                                        {{ $user->name }}
+                                        @if($user->is_blocked)
+                                        <span class="ml-2 text-xs text-red-600 font-normal">(Diblokir)</span>
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
                         </td>
                         <td class="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
-                            <div class="flex items-center gap-2 text-sm text-gray-700">
+                            <div class="flex items-center gap-2 text-sm {{ $user->is_blocked ? 'text-gray-500' : 'text-gray-700' }}">
                                 <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
                                 </svg>
@@ -253,11 +288,6 @@
                         </td>
                         <td class="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
                             <div class="flex flex-col gap-1.5">
-                                @php
-                                    $scoreClass = $user->diligence_score >= 50 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 
-                                                ($user->diligence_score >= 20 ? 'bg-amber-50 text-amber-700 border-amber-200' : 
-                                                'bg-rose-50 text-rose-700 border-rose-200');
-                                @endphp
                                 <div class="flex items-center gap-2 text-xs">
                                     <span class="inline-flex items-center gap-1 text-emerald-700 font-semibold">
                                         <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
@@ -275,14 +305,23 @@
                             </div>
                         </td>
                         <td class="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
-                            <div class="text-sm font-medium text-gray-900">{{ $user->created_at->format('d M Y') }}</div>
+                            <div class="text-sm font-medium {{ $user->is_blocked ? 'text-gray-500' : 'text-gray-900' }}">{{ $user->created_at->format('d M Y') }}</div>
                             <div class="text-xs text-gray-500">{{ $user->created_at->diffForHumans() }}</div>
                         </td>
                         <td class="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                            @if($user->is_blocked)
+                            <span class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-50 text-red-700 border border-red-200">
+                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd"/>
+                                </svg>
+                                Diblokir
+                            </span>
+                            @else
                             <span class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                                 <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
                                 Aktif
                             </span>
+                            @endif
                         </td>
                         <td class="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
                             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
@@ -294,6 +333,17 @@
                         </td>
                         <td class="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm">
                             <div class="flex items-center gap-2">
+                                @if($user->is_blocked)
+                                <form action="{{ route('users.unblock', $user) }}" method="POST" class="inline">
+                                    @csrf
+                                    <button type="submit" class="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all text-xs font-semibold shadow-sm hover:shadow-md">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/>
+                                        </svg>
+                                        Buka Blokir
+                                    </button>
+                                </form>
+                                @else
                                 <a href="{{ route('users.show', $user) }}" 
                                    class="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-xs font-semibold shadow-sm hover:shadow-md">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -302,6 +352,17 @@
                                     </svg>
                                     Detail
                                 </a>
+
+                                <form action="{{ route('users.block', $user) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin memblokir akun {{ $user->name }}? User tidak akan bisa login ke sistem.');">
+                                    @csrf
+                                    <button type="submit" class="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-all text-xs font-semibold shadow-sm hover:shadow-md">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd"/>
+                                        </svg>
+                                        Blokir
+                                    </button>
+                                </form>
+
                                 <form action="{{ route('users.destroy', $user) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pengguna ini? Tindakan ini tidak dapat dibatalkan.');">
                                     @csrf
                                     @method('DELETE')
@@ -312,12 +373,13 @@
                                         Hapus
                                     </button>
                                 </form>
+                                @endif
                             </div>
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="px-4 sm:px-6 py-12 sm:py-20 text-center">
+                        <td colspan="8" class="px-4 sm:px-6 py-12 sm:py-20 text-center">
                             <div class="flex flex-col items-center justify-center">
                                 <div class="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-4 sm:mb-6 shadow-inner">
                                     <svg class="w-8 h-8 sm:w-10 sm:h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -338,17 +400,22 @@
     {{-- Mobile Card View --}}
     <div class="lg:hidden space-y-3 sm:space-y-4">
         @forelse($users as $user)
-        <div class="bg-white rounded-lg sm:rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-lg transition-all duration-300">
+        <div class="bg-white rounded-lg sm:rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-lg transition-all duration-300 {{ $user->is_blocked ? 'bg-red-50 border-red-200' : '' }}">
             <div class="p-4 sm:p-5">
                 {{-- Header --}}
                 <div class="flex items-start gap-3 mb-4">
-                    <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-lg sm:rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0 shadow-lg">
+                    <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-lg sm:rounded-xl {{ $user->is_blocked ? 'bg-gradient-to-br from-gray-400 to-gray-500' : 'bg-gradient-to-br from-blue-500 to-blue-600' }} flex items-center justify-center flex-shrink-0 shadow-lg">
                         <span class="text-white font-bold text-lg">
                             {{ strtoupper(substr($user->name, 0, 2)) }}
                         </span>
                     </div>
                     <div class="flex-1 min-w-0">
-                        <h3 class="text-base font-bold text-gray-900 mb-1">{{ $user->name }}</h3>
+                        <h3 class="text-base font-bold {{ $user->is_blocked ? 'text-gray-600' : 'text-gray-900' }} mb-1">
+                            {{ $user->name }}
+                            @if($user->is_blocked)
+                            <span class="ml-2 text-xs text-red-600 font-normal">(Diblokir)</span>
+                            @endif
+                        </h3>
                         <div class="flex items-center gap-2 text-xs text-gray-500 mb-2">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
@@ -356,10 +423,19 @@
                             <span class="truncate">{{ $user->email }}</span>
                         </div>
                         <div class="flex items-center gap-2 flex-wrap">
+                            @if($user->is_blocked)
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-red-100 text-red-700 border border-red-300">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd"/>
+                                </svg>
+                                Diblokir
+                            </span>
+                            @else
                             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                                 <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
                                 Aktif
                             </span>
+                            @endif
                             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
@@ -378,7 +454,6 @@
 
                 {{-- Performance Statistics --}}
                 <div class="space-y-3 mb-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg sm:rounded-xl p-4 border border-gray-200">
-
                     {{-- On-time vs Late --}}
                     <div class="flex items-center justify-between text-xs">
                         <span class="inline-flex items-center gap-1 text-emerald-700 font-semibold">
@@ -426,7 +501,18 @@
                 </div>
 
                 {{-- Action Buttons --}}
-                <div class="flex gap-2">
+                <div class="flex gap-2 flex-wrap">
+                    @if($user->is_blocked)
+                    <form action="{{ route('users.unblock', $user) }}" method="POST" class="flex-1">
+                        @csrf
+                        <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all font-semibold text-sm shadow-sm hover:shadow-md">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/>
+                            </svg>
+                            Buka Blokir
+                        </button>
+                    </form>
+                    @else
                     <a href="{{ route('users.show', $user) }}" 
                        class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-semibold text-sm shadow-sm hover:shadow-md">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -435,6 +521,17 @@
                         </svg>
                         Detail
                     </a>
+
+                    <form action="{{ route('users.block', $user) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin memblokir akun {{ $user->name }}? User tidak akan bisa login ke sistem.');" class="flex-1">
+                        @csrf
+                        <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-all font-semibold text-sm shadow-sm hover:shadow-md">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd"/>
+                            </svg>
+                            Blokir
+                        </button>
+                    </form>
+
                     <form action="{{ route('users.destroy', $user) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pengguna ini? Tindakan ini tidak dapat dibatalkan.');" class="flex-1">
                         @csrf
                         @method('DELETE')
@@ -445,6 +542,7 @@
                             Hapus
                         </button>
                     </form>
+                    @endif
                 </div>
             </div>
         </div>

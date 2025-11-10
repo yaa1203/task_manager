@@ -1,7 +1,7 @@
 @extends('admin.layouts.admin')
 
 @section('content')
-<div class="max-w-7xl mx-auto">
+<div class="max-w-6xl mx-auto">
     <!-- Bagian Header -->
     <div class="mb-6 sm:mb-8">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
@@ -77,13 +77,7 @@
                             </div>
                         </div>
                     </div>
-
-                    @if($workspace->description)
-                    <p class="text-xs sm:text-sm text-gray-600 line-clamp-2 mb-3 sm:mb-4">
-                        {{ $workspace->description }}
-                    </p>
-                    @endif
-
+                    
                     <!-- Statistik -->
                     <div class="flex items-center gap-2 sm:gap-3 lg:gap-4 text-xs">
                         <div class="flex items-center gap-1.5 text-gray-700 bg-white/80 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg border border-gray-200">
@@ -110,7 +104,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                         <span class="hidden sm:inline">{{ $workspace->updated_at->diffForHumans() }}</span>
-                        <span class="sm:hidden">{{ $workspace->updated_at->format('d M') }}</span>
+                        <span class="sm:hidden">{{ $workspace->updated_at->format('d M Y') }}</span>
                     </span>
                     <svg class="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 group-hover:text-indigo-600 group-hover:translate-x-1 transition-all duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>

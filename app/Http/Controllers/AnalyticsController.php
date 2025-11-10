@@ -9,11 +9,12 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class AnalyticsController extends Controller
 {
-    // Cache duration in seconds (2 minutes)
+    // Cache duration in seconds (2 minutes) - hanya untuk user analytics
     const CACHE_DURATION = 120;
 
     /**
@@ -58,13 +59,16 @@ class AnalyticsController extends Controller
 
     /**
      * Get user analytics data
+     * FIXED: Filter out archived workspaces
      */
     private function getUserAnalyticsData($userId)
     {
-        // Fetch workspaces with tasks
+        // ✅ HANYA ambil workspace yang TIDAK diarsipkan (is_archived = false)
         $workspaces = Workspace::whereHas('tasks.assignedUsers', function ($q) use ($userId) {
             $q->where('user_id', $userId);
-        })->with(['tasks' => function($q) use ($userId) {
+        })
+        ->where('is_archived', false) // ⚠️ CRITICAL: Filter workspace yang diarsipkan
+        ->with(['tasks' => function($q) use ($userId) {
             $q->whereHas('assignedUsers', function($query) use ($userId) {
                 $query->where('user_id', $userId);
             })->with(['submissions' => function($query) use ($userId) {
@@ -219,41 +223,53 @@ class AnalyticsController extends Controller
     }
 
     /**
-     * Get admin analytics data with caching
+     * ✅ FIXED: Get admin analytics data WITHOUT caching
+     * Data selalu fresh dari database untuk menghindari stale data
      */
     public function adminData()
     {
         try {
             $adminId = Auth::id();
 
-            Log::info('Fetching admin analytics for admin: ' . $adminId);
+            if (!$adminId) {
+                return $this->adminErrorResponse('Unauthorized', 'Admin not authenticated', 401);
+            }
 
-            // Use cache to prevent excessive database queries
-            $cacheKey = "analytics_admin_{$adminId}";
-            
-            $data = Cache::remember($cacheKey, self::CACHE_DURATION, function () use ($adminId) {
-                return $this->getAdminAnalyticsData($adminId);
-            });
+            Log::info('Fetching FRESH admin analytics for admin: ' . $adminId);
 
-            return $this->successResponse($data);
+            // ✅ TIDAK PAKAI CACHE - langsung ambil data fresh
+            $data = $this->getAdminAnalyticsData($adminId);
+
+            // Return dengan no-cache headers
+            return response()->json($data)
+                ->header('Content-Type', 'application/json; charset=utf-8')
+                ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT')
+                ->header('X-Content-Type-Options', 'nosniff')
+                ->header('X-Frame-Options', 'DENY');
 
         } catch (\Exception $e) {
-            Log::error('Admin analytics data error: ' . $e->getMessage());
-            return $this->errorResponse('Internal Server Error', 'Failed to load admin analytics data', 500);
+            Log::error('Admin analytics data error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            return $this->adminErrorResponse('Internal Server Error', 'Failed to load admin analytics data', 500);
         }
     }
 
     /**
      * Get admin analytics data
+     * FIXED: Filter out archived workspaces
      */
     private function getAdminAnalyticsData($adminId)
     {
-        // Fetch only workspaces owned by this admin
+        // ✅ HANYA ambil workspace yang TIDAK diarsipkan (is_archived = false)
         $workspaces = Workspace::where('admin_id', $adminId)
+            ->where('is_archived', false) // ⚠️ CRITICAL: Filter workspace yang diarsipkan
             ->with(['tasks.assignedUsers', 'tasks.submissions'])
             ->get();
 
-        // Collect all tasks owned by admin
+        // Collect all tasks owned by admin (from non-archived workspaces only)
         $allTasks = $workspaces->flatMap->tasks;
 
         $totalAssignments = 0;
@@ -286,14 +302,15 @@ class AnalyticsController extends Controller
             'done' => $completedAssignments,
         ];
 
-        // Only users from workspaces owned by this admin
+        // ✅ Hanya hitung user dari workspace yang TIDAK diarsipkan
         $totalUsers = User::where('role', 'user')
             ->whereHas('assignedTasks.workspace', function ($q) use ($adminId) {
-                $q->where('admin_id', $adminId);
+                $q->where('admin_id', $adminId)
+                  ->where('is_archived', false); // Filter workspace yang diarsipkan
             })
             ->count();
 
-        // Active users (in last 7 days)
+        // Active users (in last 7 days) - only from non-archived workspaces
         $activeUserIds = collect();
         foreach ($allTasks as $task) {
             if (!$task->submissions) continue;
@@ -309,7 +326,8 @@ class AnalyticsController extends Controller
 
         $activeUsers = User::where('role', 'user')
             ->whereHas('assignedTasks.workspace', function ($q) use ($adminId) {
-                $q->where('admin_id', $adminId);
+                $q->where('admin_id', $adminId)
+                  ->where('is_archived', false); // Filter workspace yang diarsipkan
             })
             ->whereIn('id', $activeUserIds->unique())
             ->count();
@@ -332,5 +350,83 @@ class AnalyticsController extends Controller
             ],
             'timestamp' => time(),
         ];
+    }
+
+    /**
+     * Admin error response helper (no cache)
+     */
+    private function adminErrorResponse($error, $message, $statusCode = 500)
+    {
+        $defaultData = [
+            'tasks' => [
+                'done' => 0,
+                'unfinished' => 0,
+                'overdue' => 0
+            ],
+            'users' => [
+                'total' => 0,
+                'active' => 0
+            ],
+            'summary' => [
+                'total_tasks' => 0,
+                'completion_rate' => 0,
+                'unfinished_workload' => 0,
+                'overdue_workload' => 0
+            ]
+        ];
+
+        return response()->json(array_merge([
+            'error' => $error,
+            'message' => $message,
+        ], $defaultData), $statusCode)
+        ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+        ->header('Pragma', 'no-cache')
+        ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT');
+    }
+
+    /**
+     * ✅ HELPER: Clear analytics cache for specific user
+     * Dipanggil ketika workspace di-archive/restore
+     */
+    public static function clearUserCache($userId)
+    {
+        Cache::forget("analytics_user_{$userId}");
+        Log::info("Cleared analytics cache for user: {$userId}");
+    }
+
+    /**
+     * ✅ HELPER: Clear analytics cache for specific admin
+     * Dipanggil ketika workspace di-archive/restore
+     * NOTE: Admin data sekarang tidak di-cache, tapi tetap keep function ini untuk backward compatibility
+     */
+    public static function clearAdminCache($adminId)
+    {
+        Cache::forget("analytics_admin_{$adminId}");
+        Log::info("Cleared analytics cache for admin: {$adminId}");
+    }
+
+    /**
+     * ✅ HELPER: Clear all related caches when workspace is archived/restored
+     * Dipanggil dari WorkspaceController
+     */
+    public static function clearWorkspaceRelatedCaches(Workspace $workspace)
+    {
+        // Clear admin cache (meskipun admin sudah no-cache, tetap clear untuk safety)
+        self::clearAdminCache($workspace->admin_id);
+
+        // Clear cache for all users assigned to tasks in this workspace
+        $userIds = $workspace->tasks()
+            ->with('assignedUsers')
+            ->get()
+            ->pluck('assignedUsers')
+            ->flatten()
+            ->pluck('id')
+            ->unique();
+
+        foreach ($userIds as $userId) {
+            self::clearUserCache($userId);
+        }
+
+        Log::info("Cleared all analytics caches for workspace: {$workspace->id}");
     }
 }

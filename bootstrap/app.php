@@ -7,6 +7,7 @@ use App\Http\Middleware\AdminOwnsData;
 use App\Http\Middleware\NoCache;
 use Illuminate\Foundation\Configuration\Middleware;
 use App\Http\Middleware\SuperAdminMiddleware;
+use App\Http\Middleware\CheckUserBlocked;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -21,6 +22,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin.owns' => \App\Http\Middleware\AdminOwnsData::class,
             'no.cache' => \App\Http\Middleware\NoCache::class,
             'superadmin' => \App\Http\Middleware\SuperAdminMiddleware::class,
+        ]);
+        $middleware->web(append: [
+            \App\Http\Middleware\CheckUserBlocked::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

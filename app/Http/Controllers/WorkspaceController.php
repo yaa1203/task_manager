@@ -84,10 +84,12 @@ class WorkspaceController extends Controller
         ]);
 
         $validated['user_id'] = Auth::id();
-
         $validated['admin_id'] = Auth::id();
 
         $workspace = Workspace::create($validated);
+
+        // ✅ Clear admin analytics cache after creating workspace
+        AnalyticsController::clearAdminCache(Auth::id());
 
         return redirect()->route('workspaces.show', $workspace)
             ->with('success', 'Workspace created successfully!');
@@ -107,8 +109,10 @@ class WorkspaceController extends Controller
         // Load tasks with their assigned users and submissions
         $workspace->load(['tasks.assignedUsers', 'tasks.submissions']);
 
-        // Get all users for task assignment
-        $users = User::where('role', 'user')->get();
+        // Get all users for task assignment (exclude blocked users)
+        $users = User::where('role', 'user')
+            ->where('is_blocked', false)
+            ->get();
 
         return view('admin.workspace.show', compact('workspace', 'users'));
     }
@@ -177,6 +181,7 @@ class WorkspaceController extends Controller
 
     /**
      * Archive/Unarchive workspace
+     * ✅ FIXED: Clear analytics cache when toggling archive status
      */
     public function toggleArchive(Workspace $workspace)
     {
@@ -185,6 +190,9 @@ class WorkspaceController extends Controller
         $workspace->update([
             'is_archived' => !$workspace->is_archived
         ]);
+
+        // ✅ CRITICAL: Clear all related analytics caches
+        AnalyticsController::clearWorkspaceRelatedCaches($workspace);
 
         $message = $workspace->is_archived 
             ? 'Workspace archived successfully!' 
@@ -196,6 +204,7 @@ class WorkspaceController extends Controller
 
     /**
      * Remove the specified workspace
+     * ✅ FIXED: Clear analytics cache when deleting workspace
      */
     public function destroy(Workspace $workspace)
     {
@@ -204,6 +213,9 @@ class WorkspaceController extends Controller
         if ($workspace->admin_id !== Auth::id()) {
             abort(403, 'Anda tidak memiliki akses ke workspace ini.');
         }
+
+        // ✅ Clear all related analytics caches before deletion
+        AnalyticsController::clearWorkspaceRelatedCaches($workspace);
 
         $workspace->delete();
 
@@ -222,9 +234,9 @@ class WorkspaceController extends Controller
         $adminCategoryId = $admin->category_id;
         $categoryName = $admin->category->name ?? 'Tidak ada kategori';
         
-        // ✅ Hanya ambil user dengan kategori yang sama dengan admin
         $users = User::where('role', 'user')
             ->where('category_id', $adminCategoryId)
+            ->where('is_blocked', false)
             ->orderBy('name', 'asc')
             ->get();
 
@@ -233,6 +245,7 @@ class WorkspaceController extends Controller
 
     /**
      * Store task in workspace
+     * ✅ FIXED: Clear analytics cache when creating task
      */
     public function storeTask(Request $request, Workspace $workspace, Task $task)
     {
@@ -254,28 +267,27 @@ class WorkspaceController extends Controller
             'link' => 'nullable|url',
         ]);
 
-        // ✅ Determine user IDs - hanya user dengan kategori yang sama
         if ($request->assign_to_all) {
             $userIds = User::where('role', 'user')
                 ->where('category_id', $adminCategoryId)
+                ->where('is_blocked', false)
                 ->pluck('id')
                 ->toArray();
         } else {
-            // Validasi bahwa semua user_ids memiliki kategori yang sama dengan admin
             $validUserIds = User::where('role', 'user')
                 ->where('category_id', $adminCategoryId)
+                ->where('is_blocked', false)
                 ->whereIn('id', $validated['user_ids'])
                 ->pluck('id')
                 ->toArray();
             
             if (count($validUserIds) !== count($validated['user_ids'])) {
-                return back()->withErrors(['user_ids' => 'Beberapa user yang dipilih tidak termasuk dalam kategori Anda.']);
+                return back()->withErrors(['user_ids' => 'Beberapa user yang dipilih tidak termasuk dalam kategori Anda atau telah diblokir.']);
             }
             
             $userIds = $validUserIds;
         }
 
-        // Handle file upload
         $filePath = null;
         if ($request->hasFile('file')) {
             $file = $request->file('file');
@@ -286,7 +298,6 @@ class WorkspaceController extends Controller
             }
         }
 
-        // Create single task
         $task = Task::create([
             'admin_id' => Auth::id(),
             'workspace_id' => $workspace->id,
@@ -301,10 +312,14 @@ class WorkspaceController extends Controller
             'due_date' => $validated['due_date'] ?? null,
         ]);
 
-        // Attach users to task
         $task->assignedUsers()->attach($userIds);
 
-        // Send notifications to all assigned users
+        // ✅ Clear analytics cache for admin and all assigned users
+        AnalyticsController::clearAdminCache(Auth::id());
+        foreach ($userIds as $userId) {
+            AnalyticsController::clearUserCache($userId);
+        }
+
         foreach ($userIds as $userId) {
             $assignedUser = User::find($userId);
             if ($assignedUser) {
@@ -336,9 +351,9 @@ class WorkspaceController extends Controller
         $adminCategoryId = $admin->category_id;
         $categoryName = $admin->category->name ?? 'Tidak ada kategori';
         
-        // ✅ Hanya ambil user dengan kategori yang sama dengan admin
         $users = User::where('role', 'user')
             ->where('category_id', $adminCategoryId)
+            ->where('is_blocked', false)
             ->orderBy('name', 'asc')
             ->get();
 
@@ -347,17 +362,14 @@ class WorkspaceController extends Controller
 
     /**
      * Update task in workspace
+     * ✅ FIXED: Clear analytics cache when updating task
+     * ✅ FIXED: Send notification only to newly assigned users
      */
     public function updateTask(Request $request, Workspace $workspace, Task $task)
     {
         $this->authorize('update', $workspace);
-
-        if ($task->admin_id !== Auth::id()) {
-            abort(403, 'Anda tidak memiliki akses ke task ini.');
-        }
-
-        if ($task->workspace_id !== $workspace->id) {
-            abort(404);
+        if ($task->admin_id !== Auth::id() || $task->workspace_id !== $workspace->id) {
+            abort(403);
         }
 
         $admin = Auth::user();
@@ -376,56 +388,77 @@ class WorkspaceController extends Controller
             'remove_file' => 'nullable|boolean',
         ]);
 
-        // ✅ Validasi bahwa semua user_ids memiliki kategori yang sama dengan admin
         $validUserIds = User::where('role', 'user')
             ->where('category_id', $adminCategoryId)
+            ->where('is_blocked', false)
             ->whereIn('id', $validated['user_ids'])
             ->pluck('id')
             ->toArray();
-        
+
         if (count($validUserIds) !== count($validated['user_ids'])) {
-            return back()->withErrors(['user_ids' => 'Beberapa user yang dipilih tidak termasuk dalam kategori Anda.']);
+            return back()->withErrors(['user_ids' => 'Beberapa user tidak valid atau diblokir.']);
         }
 
-        // Handle file upload
-        $filePath = $task->file_path;
-        $originalFilename = $task->original_filename;
-        
-        // Remove old file if requested
-        if ($request->remove_file && $task->file_path) {
-            Storage::disk('public')->delete($task->file_path);
-            $filePath = null;
-            $originalFilename = null;
-        }
-        
-        // Upload new file if provided
-        if ($request->hasFile('file')) {
-            // Delete old file if exists
-            if ($task->file_path) {
-                Storage::disk('public')->delete($task->file_path);
-            }
-            
-            $file = $request->file('file');
-            $filePath = $file->store('task_files', 'public');
-            $originalFilename = $file->getClientOriginalName();
-        }
+        // ✅ Get old assigned users BEFORE sync
+        $oldUserIds = $task->assignedUsers()->pluck('user_id')->toArray();
 
-        $task->update([
+        $updateData = [
             'title' => $validated['title'],
             'description' => $validated['description'] ?? null,
-            'file_path' => $filePath,
-            'original_filename' => $originalFilename,
             'link' => $validated['link'] ?? null,
             'status' => $validated['status'],
             'priority' => $validated['priority'],
             'due_date' => $validated['due_date'] ?? null,
-        ]);
+        ];
 
-        // Sync assigned users (hanya yang valid)
+        if ($request->has('remove_file') && $request->remove_file) {
+            if ($task->file_path) {
+                Storage::disk('public')->delete($task->file_path);
+            }
+            $updateData['file_path'] = null;
+            $updateData['original_filename'] = null;
+        }
+        elseif ($request->hasFile('file')) {
+            if ($task->file_path) {
+                Storage::disk('public')->delete($task->file_path);
+            }
+            $file = $request->file('file');
+            $updateData['file_path'] = $file->store('task_files', 'public');
+            $updateData['original_filename'] = $file->getClientOriginalName();
+        }
+
+        $task->update($updateData);
         $task->assignedUsers()->sync($validUserIds);
 
+        // ✅ Find newly assigned users (users that are in new list but not in old list)
+        $newlyAssignedUserIds = array_diff($validUserIds, $oldUserIds);
+
+        // ✅ Send notification ONLY to newly assigned users
+        if (!empty($newlyAssignedUserIds)) {
+            foreach ($newlyAssignedUserIds as $userId) {
+                $newUser = User::find($userId);
+                if ($newUser) {
+                    $newUser->notify(new TaskAssignedNotification($task));
+                }
+            }
+        }
+
+        // ✅ Clear analytics cache for admin and all affected users (old + new)
+        AnalyticsController::clearAdminCache(Auth::id());
+        $allAffectedUsers = array_unique(array_merge($oldUserIds, $validUserIds));
+        foreach ($allAffectedUsers as $userId) {
+            AnalyticsController::clearUserCache($userId);
+        }
+
+        $newUserCount = count($newlyAssignedUserIds);
+        $successMessage = 'Task updated successfully!';
+        
+        if ($newUserCount > 0) {
+            $successMessage .= " Notifikasi dikirim ke {$newUserCount} user baru.";
+        }
+
         return redirect()->route('workspaces.show', $workspace)
-            ->with('success', 'Task updated successfully!');
+            ->with('success', $successMessage);
     }
 
     /**
@@ -450,6 +483,7 @@ class WorkspaceController extends Controller
 
     /**
      * Delete task from workspace
+     * ✅ FIXED: Clear analytics cache when deleting task
      */
     public function destroyTask(Workspace $workspace, Task $task)
     {
@@ -463,20 +497,30 @@ class WorkspaceController extends Controller
             abort(404);
         }
 
+        // Get assigned users before deletion for cache clearing
+        $userIds = $task->assignedUsers()->pluck('user_id')->toArray();
+
         $task->delete();
+
+        // ✅ Clear analytics cache for admin and all assigned users
+        AnalyticsController::clearAdminCache(Auth::id());
+        foreach ($userIds as $userId) {
+            AnalyticsController::clearUserCache($userId);
+        }
 
         return redirect()->route('workspaces.show', $workspace)
             ->with('success', 'Task deleted successfully!');
     }
 
     /**
-     * User workspace index
+     * User workspace index - FIXED: Only show non-archived workspaces
      */
     public function userIndex()
     {
         $workspaces = Workspace::whereHas('tasks.assignedUsers', function ($q) {
                 $q->where('user_id', Auth::id());
             })
+            ->where('is_archived', false)
             ->withCount(['tasks'])
             ->get();
 
@@ -484,10 +528,14 @@ class WorkspaceController extends Controller
     }
 
     /**
-     * User workspace detail
+     * User workspace detail - FIXED: Check if workspace is archived
      */
     public function userShow(Workspace $workspace)
     {
+        if ($workspace->is_archived) {
+            abort(403, 'Workspace ini telah diarsipkan dan tidak dapat diakses.');
+        }
+
         $isAccessible = $workspace->tasks()->whereHas('assignedUsers', function ($q) {
                 $q->where('user_id', Auth::id());
             })->exists();
@@ -505,10 +553,14 @@ class WorkspaceController extends Controller
     }
 
     /**
-     * User view task detail
+     * User view task detail - FIXED: Check if workspace is archived
      */
     public function userShowTask(Workspace $workspace, Task $task)
     {
+        if ($workspace->is_archived) {
+            abort(403, 'Workspace ini telah diarsipkan dan tidak dapat diakses.');
+        }
+
         $isAccessible = $task->assignedUsers()
             ->where('user_id', Auth::id())
             ->exists();
@@ -519,7 +571,6 @@ class WorkspaceController extends Controller
             abort(404);
         }
 
-        // Load task dengan data lengkap
         $task->load(['assignedUsers', 'creator']);
         
         $submissions = $task->submissions()
@@ -533,56 +584,48 @@ class WorkspaceController extends Controller
     }
 
     /**
-     * User submit task - FIXED VERSION (Without status column)
+     * User submit task - FIXED: Check if workspace is archived
+     * ✅ FIXED: Clear analytics cache when submitting task
      */
     public function submitTask(Request $request, Workspace $workspace, Task $task)
     {
-        // Cek apakah user diizinkan mengakses task ini
+        if ($workspace->is_archived) {
+            abort(403, 'Workspace ini telah diarsipkan dan tidak dapat diakses.');
+        }
+
         $isAccessible = $task->assignedUsers()
             ->where('user_id', Auth::id())
             ->exists();
 
         abort_unless($isAccessible, 403);
 
-        // Cek apakah task ini milik workspace yang benar
         if ($task->workspace_id !== $workspace->id) {
             abort(404);
         }
 
-        // Validasi input
         $request->validate([
             'file' => 'nullable|file|max:10240',
             'link' => 'nullable|url',
             'notes' => 'nullable|string|max:1000',
         ]);
 
-        // Buat array data submission dasar (hanya kolom yang ada di database)
         $submissionData = [
             'link' => $request->link,
             'notes' => $request->notes,
-            // submitted_at otomatis dari timestamps (created_at/updated_at)
         ];
         
-        // Handle file upload
         if ($request->hasFile('file')) {
             $file = $request->file('file');
             
             if ($file->isValid()) {
-                // Simpan nama asli file
                 $originalFilename = $file->getClientOriginalName();
-                
-                // Buat nama file unik untuk penyimpanan
                 $extension = $file->getClientOriginalExtension();
                 $filename = uniqid() . '_' . time() . '.' . $extension;
-                
-                // Simpan file ke direktori submissions
                 $filePath = $file->storeAs('submissions', $filename, 'public');
                 
-                // Tambahkan ke submission data
                 $submissionData['file_path'] = $filePath;
                 $submissionData['original_filename'] = $originalFilename;
                 
-                // Debug log untuk memastikan
                 \Log::info('Submission Upload:', [
                     'original' => $originalFilename,
                     'stored' => $filePath,
@@ -592,7 +635,6 @@ class WorkspaceController extends Controller
             }
         }
 
-        // Update atau create submission
         $submission = UserTaskSubmission::updateOrCreate(
             [
                 'task_id' => $task->id,
@@ -601,13 +643,15 @@ class WorkspaceController extends Controller
             $submissionData
         );
 
-        // Verifikasi hasil save
         \Log::info('Submission Result:', [
             'id' => $submission->id,
             'original_filename_saved' => $submission->original_filename,
         ]);
 
-        // Kirim notifikasi ke pemilik workspace
+        // ✅ Clear analytics cache for user and admin
+        AnalyticsController::clearUserCache(Auth::id());
+        AnalyticsController::clearAdminCache($task->admin_id);
+
         $workspaceOwner = User::find($workspace->user_id);
         if ($workspaceOwner) {
             $workspaceOwner->notify(new TaskSubmittedNotification(
@@ -621,15 +665,17 @@ class WorkspaceController extends Controller
     }
 
     /**
-     * View task file in browser - UNTUK USER DAN ADMIN
+     * View task file in browser - FIXED: Check if workspace is archived
      */
     public function viewTaskFile(Workspace $workspace, Task $task)
     {
-        // Check authorization berdasarkan role
+        if ($workspace->is_archived) {
+            abort(403, 'Workspace ini telah diarsipkan dan tidak dapat diakses.');
+        }
+
         if (Auth::user()->role === 'admin') {
             $this->authorize('view', $workspace);
         } else {
-            // Untuk user biasa, cek apakah dia assigned ke task ini
             $isAccessible = $task->assignedUsers()
                 ->where('user_id', Auth::id())
                 ->exists();
@@ -651,7 +697,6 @@ class WorkspaceController extends Controller
         $mimeType = Storage::disk('public')->mimeType($task->file_path);
         $extension = strtolower(pathinfo($task->file_path, PATHINFO_EXTENSION));
         
-        // Handle image files
         $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp'];
         if (in_array($extension, $imageExtensions)) {
             return response()->file($path, [
@@ -660,7 +705,6 @@ class WorkspaceController extends Controller
             ]);
         }
         
-        // Handle PDF files
         if ($extension === 'pdf') {
             return response()->file($path, [
                 'Content-Type' => $mimeType,
@@ -668,7 +712,6 @@ class WorkspaceController extends Controller
             ]);
         }
         
-        // Handle text files
         $textExtensions = ['txt', 'md', 'csv'];
         if (in_array($extension, $textExtensions)) {
             return response()->file($path, [
@@ -677,7 +720,6 @@ class WorkspaceController extends Controller
             ]);
         }
         
-        // For other file types, return with appropriate headers for preview
         return response()->file($path, [
             'Content-Type' => $mimeType,
             'Content-Disposition' => 'inline; filename="' . basename($task->file_path) . '"',
@@ -686,15 +728,17 @@ class WorkspaceController extends Controller
     }
 
     /**
-     * Download task file - UNTUK USER DAN ADMIN
+     * Download task file - FIXED: Check if workspace is archived
      */
     public function downloadTaskFile(Workspace $workspace, Task $task)
     {
-        // Check authorization berdasarkan role
+        if ($workspace->is_archived) {
+            abort(403, 'Workspace ini telah diarsipkan dan tidak dapat diakses.');
+        }
+
         if (Auth::user()->role === 'admin') {
             $this->authorize('view', $workspace);
         } else {
-            // Untuk user biasa, cek apakah dia assigned ke task ini
             $isAccessible = $task->assignedUsers()
                 ->where('user_id', Auth::id())
                 ->exists();
@@ -716,11 +760,14 @@ class WorkspaceController extends Controller
     }
 
     /**
-     * View submission file in browser
+     * View submission file in browser - FIXED: Check if workspace is archived
      */
     public function viewSubmissionFile(Workspace $workspace, Task $task, UserTaskSubmission $submission)
     {
-        // Check if user is admin or the submission owner
+        if ($workspace->is_archived) {
+            abort(403, 'Workspace ini telah diarsipkan dan tidak dapat diakses.');
+        }
+
         if (Auth::user()->role !== 'admin' && $submission->user_id !== Auth::id()) {
             abort(403);
         }
@@ -739,11 +786,14 @@ class WorkspaceController extends Controller
     }
 
     /**
-     * Download submission file
+     * Download submission file - FIXED: Check if workspace is archived
      */
     public function downloadSubmissionFile(Workspace $workspace, Task $task, UserTaskSubmission $submission)
     {
-        // Check if user is admin or the submission owner
+        if ($workspace->is_archived) {
+            abort(403, 'Workspace ini telah diarsipkan dan tidak dapat diakses.');
+        }
+
         if (Auth::user()->role !== 'admin' && $submission->user_id !== Auth::id()) {
             abort(403);
         }
@@ -756,13 +806,15 @@ class WorkspaceController extends Controller
     }
 
     /**
-     * User calendar view - Show all tasks in calendar format
+     * User calendar view - FIXED: Only show tasks from non-archived workspaces
      */
     public function userCalendar()
     {
-        // Get all tasks assigned to the current user with workspace and submissions
         $tasks = Task::whereHas('assignedUsers', function ($q) {
                 $q->where('user_id', Auth::id());
+            })
+            ->whereHas('workspace', function ($q) {
+                $q->where('is_archived', false);
             })
             ->with([
                 'workspace:id,name,color,icon',
@@ -793,20 +845,22 @@ class WorkspaceController extends Controller
         return view('calendar.index', compact('tasks'));
     }
 
+    /// Di WorkspaceController.php, ubah method superadminIndex
+
     /**
      * Superadmin workspace index - Show all workspaces from all admins
+     * ✅ FIXED: Default filter changed to 'all' instead of 'false'
      */
     public function superadminIndex(Request $request)
     {
         $search = $request->input('search');
         $sortBy = $request->input('sort_by', 'created_at');
-        $archived = $request->input('archived', 'false');
+        $archived = $request->input('archived', 'all'); // ✅ Changed default from 'false' to 'all'
         
         $query = Workspace::withCount(['tasks'])
-            ->with(['admin.category']) // Load category relationship
+            ->with(['admin.category'])
             ->latest();
         
-        // Apply search filter
         if ($search) {
             $query->where(function($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
@@ -817,14 +871,14 @@ class WorkspaceController extends Controller
             });
         }
         
-        // Apply archive filter
+        // ✅ Only filter when explicitly set to 'true' or 'false'
         if ($archived === 'true') {
             $query->where('is_archived', true);
         } elseif ($archived === 'false') {
             $query->where('is_archived', false);
         }
+        // If $archived === 'all', no filter is applied (shows all)
         
-        // Apply sorting
         switch ($sortBy) {
             case 'name':
                 $query->orderBy('name');
@@ -838,14 +892,12 @@ class WorkspaceController extends Controller
         
         $workspaces = $query->paginate(15);
         
-        // Get categories with counts
         $categories = \App\Models\Category::withCount([
             'users as admins_count' => function($query) {
                 $query->where('role', 'admin');
             }
         ])->get();
         
-        // Calculate workspace and task counts for each category
         foreach ($categories as $category) {
             $category->workspaces_count = Workspace::whereHas('admin', function($q) use ($category) {
                 $q->where('category_id', $category->id);
@@ -864,23 +916,27 @@ class WorkspaceController extends Controller
      */
     public function superadminShow(Workspace $workspace)
     {
-        // Load workspace with related data
         $workspace->load(['admin', 'tasks.assignedUsers', 'tasks.submissions']);
         
-        // Get all users for task assignment
-        $users = User::where('role', 'user')->get();
+        $users = User::where('role', 'user')
+            ->where('is_blocked', false)
+            ->get();
 
         return view('superadmin.space.show', compact('workspace', 'users'));
     }
 
     /**
      * Superadmin toggle archive workspace
+     * ✅ FIXED: Clear analytics cache when superadmin toggles archive
      */
     public function superadminToggleArchive(Workspace $workspace)
     {
         $workspace->update([
             'is_archived' => !$workspace->is_archived
         ]);
+
+        // ✅ CRITICAL: Clear all related analytics caches
+        AnalyticsController::clearWorkspaceRelatedCaches($workspace);
 
         $message = $workspace->is_archived 
             ? 'Workspace archived successfully!' 
@@ -892,9 +948,13 @@ class WorkspaceController extends Controller
 
     /**
      * Superadmin delete workspace
+     * ✅ FIXED: Clear analytics cache when superadmin deletes workspace
      */
     public function superadminDestroy(Workspace $workspace)
     {
+        // ✅ Clear all related analytics caches before deletion
+        AnalyticsController::clearWorkspaceRelatedCaches($workspace);
+
         $workspace->delete();
 
         return redirect()->route('space.index')

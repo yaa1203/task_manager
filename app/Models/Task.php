@@ -48,6 +48,12 @@ class Task extends Model
         return Carbon::parse($dateTimeString);
     }
 
+    // Tambahkan di model Task
+    public function scopeAvailableUsers($query)
+    {
+        return $query->where('is_blocked', false);
+    }
+
     // ================================
     // 🔗 Relationships
     // ================================

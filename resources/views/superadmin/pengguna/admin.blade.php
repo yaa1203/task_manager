@@ -3,7 +3,7 @@
 @section('page-title', 'Manajemen Admin')
 
 @section('content')
-<div class="max-w-7xl mx-auto">
+<div class="max-w-6xl mx-auto">
     {{-- Header Section --}}
     <div class="mb-8">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -50,7 +50,7 @@
     @endif
 
     {{-- Kartu Statistik --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
             <div class="p-6">
                 <div class="flex items-center justify-between mb-4">
@@ -77,7 +77,26 @@
                     <span class="px-3 py-1 bg-green-50 text-green-700 text-xs font-semibold rounded-full">Aktif</span>
                 </div>
                 <h3 class="text-sm font-medium text-gray-600 mb-1">Admin Aktif</h3>
-                <p class="text-3xl font-bold text-gray-900">{{ $admins->total() }}</p>
+                <p class="text-3xl font-bold text-gray-900">
+                    {{ \App\Models\User::where('role', 'admin')->where('is_blocked', false)->count() }}
+                </p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <span class="px-3 py-1 bg-red-50 text-red-700 text-xs font-semibold rounded-full">Blokir</span>
+                </div>
+                <h3 class="text-sm font-medium text-gray-600 mb-1">Admin Diblokir</h3>
+                <p class="text-3xl font-bold text-gray-900">
+                    {{ \App\Models\User::where('role', 'admin')->where('is_blocked', true)->count() }}
+                </p>
             </div>
         </div>
 
@@ -199,16 +218,21 @@
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-100">
                     @forelse($admins as $admin)
-                    <tr class="hover:bg-gray-50 transition-colors duration-150">
+                    <tr class="hover:bg-gray-50 transition-colors duration-150 {{ $admin->is_blocked ? 'bg-red-50' : '' }}">
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center gap-3">
-                                <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-md">
+                                <div class="w-11 h-11 rounded-xl {{ $admin->is_blocked ? 'bg-gradient-to-br from-gray-400 to-gray-500' : 'bg-gradient-to-br from-purple-500 to-purple-600' }} flex items-center justify-center flex-shrink-0 shadow-md">
                                     <span class="text-white font-bold text-sm">
                                         {{ strtoupper(substr($admin->name, 0, 2)) }}
                                     </span>
                                 </div>
                                 <div>
-                                    <div class="text-sm font-semibold text-gray-900">{{ $admin->name }}</div>
+                                    <div class="text-sm font-semibold {{ $admin->is_blocked ? 'text-gray-500' : 'text-gray-900' }}">
+                                        {{ $admin->name }}
+                                        @if($admin->is_blocked)
+                                        <span class="ml-2 text-xs text-red-600 font-normal">(Diblokir)</span>
+                                        @endif
+                                    </div>
                                     <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800">
                                         Admin
                                     </span>
@@ -216,7 +240,7 @@
                             </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center gap-2 text-sm text-gray-700">
+                            <div class="flex items-center gap-2 text-sm {{ $admin->is_blocked ? 'text-gray-500' : 'text-gray-700' }}">
                                 <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
                                 </svg>
@@ -224,14 +248,23 @@
                             </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm font-medium text-gray-900">{{ $admin->created_at->format('d M Y') }}</div>
+                            <div class="text-sm font-medium {{ $admin->is_blocked ? 'text-gray-500' : 'text-gray-900' }}">{{ $admin->created_at->format('d M Y') }}</div>
                             <div class="text-xs text-gray-500">{{ $admin->created_at->diffForHumans() }}</div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
+                            @if($admin->is_blocked)
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-50 text-red-700 border border-red-200">
+                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd"/>
+                                </svg>
+                                Diblokir
+                            </span>
+                            @else
                             <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                                 <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
                                 Aktif
                             </span>
+                            @endif
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200">
@@ -243,6 +276,17 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm">
                             <div class="flex items-center gap-2">
+                                @if($admin->is_blocked)
+                                <form action="{{ route('pengguna.admin.unblock', $admin->id) }}" method="POST" class="inline">
+                                    @csrf
+                                    <button type="submit" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all text-xs font-semibold shadow-sm hover:shadow-md">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/>
+                                        </svg>
+                                        Buka Blokir
+                                    </button>
+                                </form>
+                                @else
                                 <a href="{{ route('pengguna.admin.show', $admin->id) }}" 
                                    class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all text-xs font-semibold shadow-sm hover:shadow-md">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -251,6 +295,17 @@
                                     </svg>
                                     Detail
                                 </a>
+
+                                <form action="{{ route('pengguna.admin.block', $admin->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin memblokir admin {{ $admin->name }}? Admin tidak akan bisa login ke sistem.');">
+                                    @csrf
+                                    <button type="submit" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-all text-xs font-semibold shadow-sm hover:shadow-md">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd"/>
+                                        </svg>
+                                        Blokir
+                                    </button>
+                                </form>
+
                                 <form action="{{ route('pengguna.admin.destroy', $admin->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus admin ini? Tindakan ini tidak dapat dibatalkan.');">
                                     @csrf
                                     @method('DELETE')
@@ -261,6 +316,7 @@
                                         Hapus
                                     </button>
                                 </form>
+                                @endif
                             </div>
                         </td>
                     </tr>
@@ -287,17 +343,22 @@
     {{-- Mobile Card View --}}
     <div class="lg:hidden space-y-4">
         @forelse($admins as $admin)
-        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-lg transition-all duration-300">
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-lg transition-all duration-300 {{ $admin->is_blocked ? 'bg-red-50 border-red-200' : '' }}">
             <div class="p-5">
                 {{-- Header --}}
                 <div class="flex items-start gap-3 mb-4">
-                    <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-lg">
+                    <div class="w-14 h-14 rounded-xl {{ $admin->is_blocked ? 'bg-gradient-to-br from-gray-400 to-gray-500' : 'bg-gradient-to-br from-purple-500 to-purple-600' }} flex items-center justify-center flex-shrink-0 shadow-lg">
                         <span class="text-white font-bold text-lg">
                             {{ strtoupper(substr($admin->name, 0, 2)) }}
                         </span>
                     </div>
                     <div class="flex-1 min-w-0">
-                        <h3 class="text-base font-bold text-gray-900 mb-1">{{ $admin->name }}</h3>
+                        <h3 class="text-base font-bold {{ $admin->is_blocked ? 'text-gray-600' : 'text-gray-900' }} mb-1">
+                            {{ $admin->name }}
+                            @if($admin->is_blocked)
+                            <span class="ml-2 text-xs text-red-600 font-normal">(Diblokir)</span>
+                            @endif
+                        </h3>
                         <div class="flex items-center gap-2 text-xs text-gray-500 mb-2">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
@@ -308,10 +369,19 @@
                             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
                                 Admin
                             </span>
+                            @if($admin->is_blocked)
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-red-100 text-red-700 border border-red-300">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd"/>
+                                </svg>
+                                Diblokir
+                            </span>
+                            @else
                             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                                 <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
                                 Aktif
                             </span>
+                            @endif
                             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200">
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
@@ -340,7 +410,18 @@
                 </div>
 
                 {{-- Action Buttons --}}
-                <div class="flex gap-2">
+                <div class="flex gap-2 flex-wrap">
+                    @if($admin->is_blocked)
+                    <form action="{{ route('pengguna.admin.unblock', $admin->id) }}" method="POST" class="flex-1">
+                        @csrf
+                        <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all font-semibold text-sm shadow-sm hover:shadow-md">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/>
+                            </svg>
+                            Buka Blokir
+                        </button>
+                    </form>
+                    @else
                     <a href="{{ route('pengguna.admin.show', $admin->id) }}" 
                        class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-all font-semibold text-sm shadow-sm hover:shadow-md">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -349,6 +430,17 @@
                         </svg>
                         Detail
                     </a>
+
+                    <form action="{{ route('pengguna.admin.block', $admin->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin memblokir admin {{ $admin->name }}? Admin tidak akan bisa login ke sistem.');" class="flex-1">
+                        @csrf
+                        <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-yellow-600 text-white rounded-xl hover:bg-yellow-700 transition-all font-semibold text-sm shadow-sm hover:shadow-md">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd"/>
+                            </svg>
+                            Blokir
+                        </button>
+                    </form>
+
                     <form action="{{ route('pengguna.admin.destroy', $admin->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus admin ini? Tindakan ini tidak dapat dibatalkan.');" class="flex-1">
                         @csrf
                         @method('DELETE')
@@ -359,6 +451,7 @@
                             Hapus
                         </button>
                     </form>
+                    @endif
                 </div>
             </div>
         </div>

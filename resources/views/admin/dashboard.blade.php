@@ -3,7 +3,7 @@
 @section('page-title', 'Dashboard')
 
 @section('content')
-<div class="max-w-7xl mx-auto">
+<div class="max-w-6xl mx-auto">
     {{-- Bagian Header --}}
     <div class="mb-8">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -225,7 +225,7 @@
                 <ul class="space-y-3">
                     @forelse($users->take(4) as $user)
                     <li class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition group">
-                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center flex-shrink-0">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center flex-shrink-0">
                             <span class="text-white font-semibold text-sm">
                                 {{ strtoupper(substr($user->name, 0, 2)) }}
                             </span>

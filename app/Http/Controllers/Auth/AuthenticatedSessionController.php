@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use Illuminate\Validation\ValidationException;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -24,15 +25,23 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
+        // Cek apakah user ada dan diblokir sebelum autentikasi
+        $user = \App\Models\User::where('email', $request->email)->first();
+        
+        if ($user && $user->is_blocked) {
+            throw ValidationException::withMessages([
+                'email' => 'Akun Anda telah diblokir oleh administrator. Silakan hubungi admin untuk informasi lebih lanjut.',
+            ]);
+        }
+
         // Autentikasi pengguna
         $request->authenticate();
 
         // Regenerasi session agar lebih aman
         $request->session()->regenerate();
 
+        // Pastikan user terdeteksi (double check setelah authenticate)
         $user = Auth::user();
-
-        // Pastikan user terdeteksi
         if (!$user) {
             return redirect()->route('login')->withErrors([
                 'email' => 'Gagal login. Silakan coba lagi.',

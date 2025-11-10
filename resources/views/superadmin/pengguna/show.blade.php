@@ -3,7 +3,7 @@
 @section('page-title', 'Detail Admin & Anggota Tim')
 
 @section('content')
-<div class="max-w-7xl mx-auto">
+<div class="max-w-6xl mx-auto">
     {{-- Back Button --}}
     <div class="mb-6">
         <a href="{{ route('pengguna.admin') }}" 

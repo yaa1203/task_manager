@@ -11,14 +11,14 @@
                 <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-1.5 sm:mb-2">Notifikasi</h1>
                 <p class="text-xs sm:text-sm lg:text-base text-gray-600">Tetap up-to-date dengan aktivitas sistem</p>
             </div>
-            @if($notifications->where('read_at', null)->count() > 0)
+            @if($unreadCount > 0)
             <div class="flex items-center gap-3">
                 <span class="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-indigo-50 text-indigo-700 text-xs sm:text-sm font-semibold rounded-full">
                     <span class="relative flex h-2 w-2">
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
                         <span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-600"></span>
                     </span>
-                    {{ $notifications->where('read_at', null)->count() }} Baru
+                    {{ $unreadCount }} Baru
                 </span>
             </div>
             @endif
@@ -39,7 +39,7 @@
                     <span class="hidden sm:inline-flex px-2 sm:px-3 py-1 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full">Total</span>
                 </div>
                 <h3 class="text-xs sm:text-sm font-medium text-gray-600 mb-0.5 sm:mb-1 line-clamp-1">Semua</h3>
-                <p class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">{{ $notifications->total() }}</p>
+                <p class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">{{ $totalCount }}</p>
             </div>
         </div>
 
@@ -55,7 +55,7 @@
                     <span class="hidden sm:inline-flex px-2 sm:px-3 py-1 bg-indigo-50 text-indigo-700 text-xs font-semibold rounded-full whitespace-nowrap">Belum</span>
                 </div>
                 <h3 class="text-xs sm:text-sm font-medium text-gray-600 mb-0.5 sm:mb-1 line-clamp-1">Perhatian</h3>
-                <p class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">{{ $notifications->where('read_at', null)->count() }}</p>
+                <p class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">{{ $unreadCount }}</p>
             </div>
         </div>
 
@@ -71,7 +71,7 @@
                     <span class="hidden sm:inline-flex px-2 sm:px-3 py-1 bg-green-50 text-green-700 text-xs font-semibold rounded-full whitespace-nowrap">Dibaca</span>
                 </div>
                 <h3 class="text-xs sm:text-sm font-medium text-gray-600 mb-0.5 sm:mb-1 line-clamp-1">Dibaca</h3>
-                <p class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">{{ $notifications->where('read_at', '!=', null)->count() }}</p>
+                <p class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">{{ $readCount }}</p>
             </div>
         </div>
     </div>
@@ -92,7 +92,7 @@
                 </button>
             </div>
 
-            @if($notifications->where('read_at', null)->count() > 0)
+            @if($unreadCount > 0)
             <form action="{{ route('notifications.readAll') }}" method="POST" class="w-full sm:w-auto">
                 @csrf
                 <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-xs sm:text-sm font-medium rounded-lg transition-colors">

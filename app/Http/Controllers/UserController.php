@@ -74,6 +74,7 @@ class UserController extends Controller
             ->join('tasks', 'user_task_submissions.task_id', '=', 'tasks.id')
             ->join('workspaces', 'tasks.workspace_id', '=', 'workspaces.id')
             ->where('workspaces.admin_id', $adminId)
+            ->where('workspaces.is_archived', false) // ✅ Hanya workspace aktif
             ->whereIn('user_task_submissions.user_id', $userIds)
             ->select(
                 'user_task_submissions.user_id',
@@ -130,7 +131,7 @@ class UserController extends Controller
 
         $usersWithCount = $users->map(function ($user) use ($adminId) {
             $user->temp_completed_count = $user->submissions()
-                ->whereHas('task.workspace', fn($w) => $w->where('admin_id', $adminId))
+                ->whereHas('task.workspace', fn($w) => $w->where('admin_id', $adminId)->where('is_archived', false))
                 ->count();
             return $user;
         });
@@ -185,6 +186,7 @@ class UserController extends Controller
             ->join('tasks', 'user_task_submissions.task_id', '=', 'tasks.id')
             ->join('workspaces', 'tasks.workspace_id', '=', 'workspaces.id')
             ->where('workspaces.admin_id', $adminId)
+            ->where('workspaces.is_archived', false) // ✅ Hanya workspace aktif
             ->where('user_task_submissions.user_id', $user->id)
             ->whereRaw('user_task_submissions.created_at > tasks.due_date')
             ->count();
@@ -196,6 +198,7 @@ class UserController extends Controller
             ->join('tasks', 'user_task_submissions.task_id', '=', 'tasks.id')
             ->join('workspaces', 'tasks.workspace_id', '=', 'workspaces.id')
             ->where('workspaces.admin_id', $adminId)
+            ->where('workspaces.is_archived', false) // ✅ Hanya workspace aktif
             ->where('user_task_submissions.user_id', $user->id)
             ->whereRaw('user_task_submissions.created_at <= tasks.due_date')
             ->count();
@@ -204,13 +207,13 @@ class UserController extends Controller
     private function calculateCompletionRate($user, $adminId)
     {
         $totalAssigned = $user->assignedTasks()
-            ->whereHas('workspace', fn($w) => $w->where('admin_id', $adminId))
+            ->whereHas('workspace', fn($w) => $w->where('admin_id', $adminId)->where('is_archived', false))
             ->count();
 
         if ($totalAssigned === 0) return 0;
 
         $completed = $user->submissions()
-            ->whereHas('task.workspace', fn($w) => $w->where('admin_id', $adminId))
+            ->whereHas('task.workspace', fn($w) => $w->where('admin_id', $adminId)->where('is_archived', false))
             ->distinct('task_id')
             ->count();
 
@@ -237,6 +240,9 @@ class UserController extends Controller
         return back()->with('success', 'User berhasil dihapus.');
     }
 
+    /**
+     * ✅ FIXED: Show user detail dengan handle archived workspaces
+     */
     public function show(User $user)
     {
         $admin = Auth::user();
@@ -248,10 +254,12 @@ class UserController extends Controller
             return redirect()->route('users.index')->with('error', 'User ini tidak termasuk dalam kategori Anda.');
         }
 
+        // ✅ Ambil SEMUA task (termasuk dari workspace yang diarsipkan)
+        // Tapi tandai mana yang dari workspace archived
         $tasks = $user->assignedTasks()
             ->whereHas('workspace', fn($w) => $w->where('admin_id', $adminId))
             ->with([
-                'workspace',
+                'workspace', // Load workspace dengan status is_archived
                 'submissions' => fn($q) => $q->where('user_id', $user->id),
                 'assignedUsers',
                 'creator'
@@ -259,10 +267,18 @@ class UserController extends Controller
             ->latest()
             ->get();
 
-        $totalTasks = $tasks->count();
-        $completedTasks = $tasks->filter(fn($t) => $t->submissions->isNotEmpty())->count();
-        $pendingTasks = $totalTasks - $completedTasks;
-        $todoTasks = $tasks->filter(fn($t) => !$t->submissions->isNotEmpty() && $t->due_date && now()->gt($t->due_date))->count();
+        // ✅ Pisahkan task berdasarkan workspace status
+        $activeTasks = $tasks->filter(fn($t) => !$t->workspace->is_archived);
+        $archivedTasks = $tasks->filter(fn($t) => $t->workspace->is_archived);
+
+        // ✅ Hitung statistik HANYA dari workspace aktif
+        $totalTasks = $activeTasks->count();
+        $completedTasks = $activeTasks->filter(fn($t) => $t->submissions->isNotEmpty())->count();
+        $overdueTasks = $activeTasks->filter(function($t) {
+            $hasSubmitted = $t->submissions->isNotEmpty();
+            return !$hasSubmitted && $t->due_date && now()->gt($t->due_date);
+        })->count();
+        $unfinishedTasks = $totalTasks - $completedTasks;
 
         $diligenceScore = $this->countOnTimeSubmissions($user, $adminId) * 10
                         - $this->countLateSubmissions($user, $adminId) * 5;
@@ -270,29 +286,33 @@ class UserController extends Controller
         $completionRate = $this->calculateCompletionRate($user, $adminId);
 
         return view('admin.users.show', compact(
-            'user', 'tasks', 'totalTasks', 'completedTasks', 'pendingTasks',
-            'todoTasks', 'diligenceScore', 'completionRate'
+            'user', 
+            'tasks', // Kirim semua tasks (aktif + archived)
+            'activeTasks', // Tasks dari workspace aktif
+            'archivedTasks', // Tasks dari workspace archived
+            'totalTasks', // Statistik hanya dari workspace aktif
+            'completedTasks', 
+            'overdueTasks',
+            'unfinishedTasks', 
+            'diligenceScore', 
+            'completionRate'
         ));
     }
 
-    /**
-     * SUPER ADMIN: Tampilkan semua admin dari seluruh kategori (GLOBAL)
-     */
+    // ... (methods lainnya tetap sama)
+
     public function superAdminIndex(Request $request)
     {
         $sortBy = $request->get('sort_by', 'created_at');
         $search = $request->get('search');
         $categoryFilter = $request->get('category_filter');
 
-        // ✅ Ambil SEMUA admin dengan role 'admin' (tidak termasuk user biasa)
         $query = User::where('role', 'admin');
 
-        // Filter berdasarkan kategori (opsional)
         if ($categoryFilter) {
             $query->where('category_id', $categoryFilter);
         }
 
-        // Filter pencarian
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
@@ -300,7 +320,6 @@ class UserController extends Controller
             });
         }
 
-        // Sorting
         switch ($sortBy) {
             case 'name':
                 $admins = $query->orderBy('name', 'asc')->paginate(15);
@@ -314,23 +333,17 @@ class UserController extends Controller
 
         $admins->appends(['sort_by' => $sortBy, 'search' => $search, 'category_filter' => $categoryFilter]);
 
-        // Ambil semua kategori untuk filter
         $categories = \App\Models\Category::all();
 
         return view('superadmin.pengguna.admin', compact('admins', 'sortBy', 'search', 'categoryFilter', 'categories'));
     }
 
-    /**
-     * SUPER ADMIN: Hapus admin (GLOBAL)
-     */
     public function superAdminDestroy(User $user)
     {
-        // Cegah hapus akun superadmin
         if ($user->role === 'superadmin') {
             return back()->with('error', 'Tidak dapat menghapus akun Super Admin.');
         }
 
-        // Cegah hapus akun user biasa dari halaman ini
         if ($user->role === 'user') {
             return back()->with('error', 'Tidak dapat menghapus user biasa dari halaman ini.');
         }
@@ -339,50 +352,34 @@ class UserController extends Controller
         return back()->with('success', 'Admin berhasil dihapus dari sistem.');
     }
 
-    /**
-     * SUPER ADMIN: Show detail admin dengan anggota tim
-     * Menampilkan user-user yang pernah ditugaskan oleh admin ini
-     */
     public function superAdminShow(User $user)
     {
-        // Pastikan hanya admin yang bisa dilihat detailnya
         if ($user->role !== 'admin') {
             return redirect()->route('pengguna.admin')->with('error', 'Akses ditolak.');
         }
 
-        // Ambil semua user yang pernah ditugaskan oleh admin ini
-        // Menggunakan relasi assignedTasks dan filter berdasarkan admin_id
         $teamMembers = User::where('role', 'user')
             ->whereHas('assignedTasks', function($query) use ($user) {
-                // Filter task yang dibuat oleh admin ini
                 $query->where('tasks.admin_id', $user->id);
             })
             ->withCount(['assignedTasks as tasks_count' => function($query) use ($user) {
-                // Hitung jumlah task yang diterima dari admin ini
                 $query->where('tasks.admin_id', $user->id);
             }])
             ->with(['assignedTasks' => function($query) use ($user) {
-                // Ambil task pertama untuk mengetahui kapan user pertama kali ditugaskan
                 $query->where('tasks.admin_id', $user->id)
                     ->oldest('tasks.created_at')
                     ->limit(1);
             }])
             ->get()
             ->map(function($member) {
-                // Ambil tanggal pertama kali user ditugaskan oleh admin ini
                 $firstTask = $member->assignedTasks->first();
                 $member->first_assigned_at = $firstTask ? $firstTask->created_at : now();
-                unset($member->assignedTasks); // Hapus relasi setelah digunakan
+                unset($member->assignedTasks);
                 return $member;
             })
             ->sortBy('first_assigned_at');
 
-        // Hitung total task yang dibuat oleh admin ini
-        // Menggunakan relasi createdTasks dengan filter admin_id
         $totalTasks = Task::where('admin_id', $user->id)->count();
-
-        // Hitung total workspace yang dimiliki admin ini
-        // Menggunakan relasi workspaces dengan filter admin_id
         $workspaceCount = Workspace::where('admin_id', $user->id)->count();
 
         return view('superadmin.pengguna.show', compact(
@@ -393,24 +390,18 @@ class UserController extends Controller
         ));
     }
 
-    /**
-     * SUPER ADMIN: Tampilkan semua user biasa dari seluruh kategori (GLOBAL)
-     */
     public function superUserIndex(Request $request)
     {
         $sortBy = $request->get('sort_by', 'created_at');
         $search = $request->get('search');
         $categoryFilter = $request->get('category_filter');
 
-        // ✅ Ambil SEMUA user dengan role 'user' (tidak termasuk admin)
         $query = User::where('role', 'user');
 
-        // Filter berdasarkan kategori (opsional)
         if ($categoryFilter) {
             $query->where('category_id', $categoryFilter);
         }
 
-        // Filter pencarian
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
@@ -418,7 +409,6 @@ class UserController extends Controller
             });
         }
 
-        // Sorting
         switch ($sortBy) {
             case 'name':
                 $users = $query->orderBy('name', 'asc')->paginate(15);
@@ -432,28 +422,138 @@ class UserController extends Controller
 
         $users->appends(['sort_by' => $sortBy, 'search' => $search, 'category_filter' => $categoryFilter]);
 
-        // Ambil semua kategori untuk filter
         $categories = Category::all();
 
         return view('superadmin.pengguna.user', compact('users', 'sortBy', 'search', 'categoryFilter', 'categories'));
     }
 
-    /**
-     * SUPER ADMIN: Hapus user (GLOBAL)
-     */
     public function superUserDestroy(User $user)
     {
-        // Cegah hapus akun superadmin
         if ($user->role === 'superadmin') {
             return back()->with('error', 'Tidak dapat menghapus akun Super Admin.');
         }
 
-        // Cegah hapus akun admin dari halaman ini
         if ($user->role === 'admin') {
             return back()->with('error', 'Tidak dapat menghapus admin dari halaman ini.');
         }
 
         $user->delete();
         return back()->with('success', 'User berhasil dihapus dari sistem.');
+    }
+
+    public function block(User $user)
+    {
+        $admin = Auth::user();
+        $adminCategoryId = $admin->category_id;
+
+        if ($admin->id === $user->id) {
+            return back()->with('error', 'Anda tidak dapat memblokir akun sendiri.');
+        }
+
+        if ($user->category_id !== $adminCategoryId) {
+            return back()->with('error', 'Anda tidak memiliki izin untuk memblokir user dari kategori lain.');
+        }
+
+        if ($user->is_blocked) {
+            return back()->with('error', 'User ini sudah diblokir.');
+        }
+
+        $user->update([
+            'is_blocked' => true,
+            'blocked_at' => now(),
+            'blocked_by' => $admin->id,
+        ]);
+
+        return back()->with('success', "Akun {$user->name} berhasil diblokir. User tidak dapat login ke sistem.");
+    }
+
+    public function unblock(User $user)
+    {
+        $admin = Auth::user();
+        $adminCategoryId = $admin->category_id;
+
+        if ($user->category_id !== $adminCategoryId) {
+            return back()->with('error', 'Anda tidak memiliki izin untuk membuka blokir user dari kategori lain.');
+        }
+
+        if (!$user->is_blocked) {
+            return back()->with('error', 'User ini tidak dalam status terblokir.');
+        }
+
+        $user->update([
+            'is_blocked' => false,
+            'blocked_at' => null,
+            'blocked_by' => null,
+        ]);
+
+        return back()->with('success', "Akun {$user->name} berhasil dibuka blokirnya. User dapat login kembali.");
+    }
+
+    public function superAdminBlock(User $user)
+    {
+        if ($user->role === 'superadmin') {
+            return back()->with('error', 'Tidak dapat memblokir akun Super Admin.');
+        }
+
+        if ($user->is_blocked) {
+            return back()->with('error', 'Admin ini sudah diblokir.');
+        }
+
+        $user->update([
+            'is_blocked' => true,
+            'blocked_at' => now(),
+            'blocked_by' => Auth::id(),
+        ]);
+
+        return back()->with('success', "Akun admin {$user->name} berhasil diblokir.");
+    }
+
+    public function superAdminUnblock(User $user)
+    {
+        if (!$user->is_blocked) {
+            return back()->with('error', 'Admin ini tidak dalam status terblokir.');
+        }
+
+        $user->update([
+            'is_blocked' => false,
+            'blocked_at' => null,
+            'blocked_by' => null,
+        ]);
+
+        return back()->with('success', "Akun admin {$user->name} berhasil dibuka blokirnya.");
+    }
+
+    public function superUserBlock(User $user)
+    {
+        if (in_array($user->role, ['superadmin', 'admin'])) {
+            return back()->with('error', 'Tidak dapat memblokir akun ini dari halaman user.');
+        }
+
+        if ($user->is_blocked) {
+            return back()->with('error', 'User ini sudah diblokir.');
+        }
+
+        $user->update([
+            'is_blocked' => true,
+            'blocked_at' => now(),
+            'blocked_by' => Auth::id(),
+        ]);
+
+        return back()->with('success', "Akun user {$user->name} berhasil diblokir.");
+    }
+
+    public function superUserUnblock(User $user)
+    {
+        if (!$user->is_blocked) {
+            return back()->with('error', 'User ini tidak dalam status terblokir.');
+        }
+
+        $user->update([
+            'is_blocked' => false,
+            'blocked_at' => null,
+            'blocked_by' => null,
+        ]);
+
+        return back()->with('success', "Akun user {$user->name} berhasil dibuka blokirnya.");
     }
 }

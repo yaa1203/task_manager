@@ -91,7 +91,7 @@ class ProfileController extends Controller
     }
 
     /**
-     * Update profil admin (nama &  email).
+     * Update profil admin (nama & email).
      */
     public function updateAdmin(Request $request): RedirectResponse
     {
@@ -168,5 +168,99 @@ class ProfileController extends Controller
         $request->user()->sendEmailVerificationNotification();
 
         return redirect()->route('admin.profile')->with('status', 'Link verifikasi telah dikirim ke email Anda!');
+    }
+
+    /**
+     * ====================================
+     * BAGIAN SUPER ADMIN
+     * ====================================
+     */
+
+    /**
+     * Tampilkan halaman profil super admin.
+     */
+    public function profileSuperAdmin(Request $request): View
+    {
+        return view('superadmin.profiles.index', ['admin' => Auth::user()]);
+    }
+
+    /**
+     * Update profil super admin (nama & email).
+     */
+    public function updateSuperAdmin(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'name'  => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
+        ]);
+
+        if ($user->email !== $validated['email'] && $user instanceof MustVerifyEmail) {
+            $user->email_verified_at = null;
+        }
+
+        $user->fill($validated)->save();
+
+        return redirect()->route('superadmin.profile')->with('status', 'Profil super admin berhasil diperbarui!');
+    }
+
+    /**
+     * Ubah password super admin.
+     */
+    public function updatePasswordSuperAdmin(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'current_password' => ['required', 'current_password'],
+            'password' => ['required', 'confirmed', Password::defaults()],
+        ], [
+            'current_password.required' => 'Kata sandi saat ini wajib diisi.',
+            'current_password.current_password' => 'Kata sandi saat ini salah.',
+            'password.required' => 'Kata sandi baru wajib diisi.',
+            'password.confirmed' => 'Konfirmasi kata sandi tidak sesuai.',
+        ]);
+
+        $request->user()->update([
+            'password' => Hash::make($validated['password']),
+        ]);
+
+        return redirect()->route('superadmin.profile')->with('status', 'Kata sandi super admin berhasil diperbarui!');
+    }
+
+    /**
+     * Hapus akun super admin.
+     */
+    public function destroySuperAdmin(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'password' => ['required', 'current_password'],
+        ], [
+            'password.required' => 'Kata sandi wajib diisi untuk menghapus akun.',
+            'password.current_password' => 'Kata sandi yang Anda masukkan salah.',
+        ]);
+
+        $user = $request->user();
+
+        Auth::logout();
+        $user->delete();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect('/')->with('status', 'Akun super admin berhasil dihapus.');
+    }
+
+    /**
+     * Kirim ulang link verifikasi email super admin.
+     */
+    public function sendVerificationSuperAdmin(Request $request): RedirectResponse
+    {
+        if ($request->user()->hasVerifiedEmail()) {
+            return redirect()->route('superadmin.profile')->with('status', 'Email sudah terverifikasi.');
+        }
+
+        $request->user()->sendEmailVerificationNotification();
+
+        return redirect()->route('superadmin.profile')->with('status', 'Link verifikasi telah dikirim ke email Anda!');
     }
 }
