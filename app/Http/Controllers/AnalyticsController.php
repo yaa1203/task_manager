@@ -225,20 +225,22 @@ class AnalyticsController extends Controller
     /**
      * ✅ FIXED: Get admin analytics data WITHOUT caching
      * Data selalu fresh dari database untuk menghindari stale data
+     * ✅ UPDATED: Total users berdasarkan SEMUA user dengan kategori yang sama (tidak harus ditugaskan)
      */
     public function adminData()
     {
         try {
             $adminId = Auth::id();
+            $admin = Auth::user();
 
-            if (!$adminId) {
+            if (!$adminId || !$admin) {
                 return $this->adminErrorResponse('Unauthorized', 'Admin not authenticated', 401);
             }
 
             Log::info('Fetching FRESH admin analytics for admin: ' . $adminId);
 
             // ✅ TIDAK PAKAI CACHE - langsung ambil data fresh
-            $data = $this->getAdminAnalyticsData($adminId);
+            $data = $this->getAdminAnalyticsData($adminId, $admin->category_id);
 
             // Return dengan no-cache headers
             return response()->json($data)
@@ -258,14 +260,15 @@ class AnalyticsController extends Controller
     }
 
     /**
-     * Get admin analytics data
+     * ✅ UPDATED: Get admin analytics data
      * FIXED: Filter out archived workspaces
+     * UPDATED: Total users dan active users berdasarkan kategori yang sama (tidak harus ditugaskan)
      */
-    private function getAdminAnalyticsData($adminId)
+    private function getAdminAnalyticsData($adminId, $categoryId)
     {
         // ✅ HANYA ambil workspace yang TIDAK diarsipkan (is_archived = false)
         $workspaces = Workspace::where('admin_id', $adminId)
-            ->where('is_archived', false) // ⚠️ CRITICAL: Filter workspace yang diarsipkan
+            ->where('is_archived', false)
             ->with(['tasks.assignedUsers', 'tasks.submissions'])
             ->get();
 
@@ -302,15 +305,12 @@ class AnalyticsController extends Controller
             'done' => $completedAssignments,
         ];
 
-        // ✅ Hanya hitung user dari workspace yang TIDAK diarsipkan
+        // ✅ UPDATED: Hitung SEMUA user berdasarkan kategori yang sama (tidak harus ditugaskan)
         $totalUsers = User::where('role', 'user')
-            ->whereHas('assignedTasks.workspace', function ($q) use ($adminId) {
-                $q->where('admin_id', $adminId)
-                  ->where('is_archived', false); // Filter workspace yang diarsipkan
-            })
+            ->where('category_id', $categoryId)
             ->count();
 
-        // Active users (in last 7 days) - only from non-archived workspaces
+        // ✅ UPDATED: Active users (submitted dalam 7 hari terakhir) - dari kategori yang sama
         $activeUserIds = collect();
         foreach ($allTasks as $task) {
             if (!$task->submissions) continue;
@@ -324,11 +324,9 @@ class AnalyticsController extends Controller
             }
         }
 
+        // Count active users dari kategori yang sama
         $activeUsers = User::where('role', 'user')
-            ->whereHas('assignedTasks.workspace', function ($q) use ($adminId) {
-                $q->where('admin_id', $adminId)
-                  ->where('is_archived', false); // Filter workspace yang diarsipkan
-            })
+            ->where('category_id', $categoryId)
             ->whereIn('id', $activeUserIds->unique())
             ->count();
 
@@ -386,7 +384,6 @@ class AnalyticsController extends Controller
 
     /**
      * ✅ HELPER: Clear analytics cache for specific user
-     * Dipanggil ketika workspace di-archive/restore
      */
     public static function clearUserCache($userId)
     {
@@ -396,8 +393,6 @@ class AnalyticsController extends Controller
 
     /**
      * ✅ HELPER: Clear analytics cache for specific admin
-     * Dipanggil ketika workspace di-archive/restore
-     * NOTE: Admin data sekarang tidak di-cache, tapi tetap keep function ini untuk backward compatibility
      */
     public static function clearAdminCache($adminId)
     {
@@ -407,14 +402,11 @@ class AnalyticsController extends Controller
 
     /**
      * ✅ HELPER: Clear all related caches when workspace is archived/restored
-     * Dipanggil dari WorkspaceController
      */
     public static function clearWorkspaceRelatedCaches(Workspace $workspace)
     {
-        // Clear admin cache (meskipun admin sudah no-cache, tetap clear untuk safety)
         self::clearAdminCache($workspace->admin_id);
 
-        // Clear cache for all users assigned to tasks in this workspace
         $userIds = $workspace->tasks()
             ->with('assignedUsers')
             ->get()
