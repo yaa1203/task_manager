@@ -363,6 +363,7 @@ class WorkspaceController extends Controller
     /**
      * Update task in workspace
      * ✅ FIXED: Clear analytics cache when updating task
+     * ✅ FIXED: Send notification only to newly assigned users
      */
     public function updateTask(Request $request, Workspace $workspace, Task $task)
     {
@@ -398,7 +399,7 @@ class WorkspaceController extends Controller
             return back()->withErrors(['user_ids' => 'Beberapa user tidak valid atau diblokir.']);
         }
 
-        // Get old assigned users before sync for cache clearing
+        // ✅ Get old assigned users BEFORE sync
         $oldUserIds = $task->assignedUsers()->pluck('user_id')->toArray();
 
         $updateData = [
@@ -429,6 +430,19 @@ class WorkspaceController extends Controller
         $task->update($updateData);
         $task->assignedUsers()->sync($validUserIds);
 
+        // ✅ Find newly assigned users (users that are in new list but not in old list)
+        $newlyAssignedUserIds = array_diff($validUserIds, $oldUserIds);
+
+        // ✅ Send notification ONLY to newly assigned users
+        if (!empty($newlyAssignedUserIds)) {
+            foreach ($newlyAssignedUserIds as $userId) {
+                $newUser = User::find($userId);
+                if ($newUser) {
+                    $newUser->notify(new TaskAssignedNotification($task));
+                }
+            }
+        }
+
         // ✅ Clear analytics cache for admin and all affected users (old + new)
         AnalyticsController::clearAdminCache(Auth::id());
         $allAffectedUsers = array_unique(array_merge($oldUserIds, $validUserIds));
@@ -436,8 +450,15 @@ class WorkspaceController extends Controller
             AnalyticsController::clearUserCache($userId);
         }
 
+        $newUserCount = count($newlyAssignedUserIds);
+        $successMessage = 'Task updated successfully!';
+        
+        if ($newUserCount > 0) {
+            $successMessage .= " Notifikasi dikirim ke {$newUserCount} user baru.";
+        }
+
         return redirect()->route('workspaces.show', $workspace)
-            ->with('success', 'Task updated successfully!');
+            ->with('success', $successMessage);
     }
 
     /**
