@@ -4,6 +4,16 @@
 
 @section('content')
 <div class="max-w-6xl mx-auto">
+    {{-- Success Message --}}
+    @if(session('success'))
+    <div class="mb-4 sm:mb-6 bg-green-50 border border-green-200 rounded-lg sm:rounded-xl p-4 flex items-start gap-3">
+        <svg class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+        <p class="text-sm font-medium text-green-800">{{ session('success') }}</p>
+    </div>
+    @endif
+
     {{-- Bagian Header --}}
     <div class="mb-6 sm:mb-8">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
@@ -81,15 +91,18 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             {{-- Tab Filter - Horizontal Scroll di Mobile --}}
             <div class="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-                <button class="px-3 sm:px-4 py-2 sm:py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors whitespace-nowrap text-xs sm:text-sm font-medium shadow-sm">
+                <a href="{{ route('notifications.index', ['filter' => 'all']) }}" 
+                   class="px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg transition-colors whitespace-nowrap text-xs sm:text-sm font-medium shadow-sm {{ $filter === 'all' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50' }}">
                     Semua
-                </button>
-                <button class="px-3 sm:px-4 py-2 sm:py-2.5 bg-white text-gray-700 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors whitespace-nowrap text-xs sm:text-sm font-medium">
+                </a>
+                <a href="{{ route('notifications.index', ['filter' => 'unread']) }}" 
+                   class="px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg transition-colors whitespace-nowrap text-xs sm:text-sm font-medium {{ $filter === 'unread' ? 'bg-indigo-600 text-white shadow-sm' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50' }}">
                     Belum Dibaca
-                </button>
-                <button class="px-3 sm:px-4 py-2 sm:py-2.5 bg-white text-gray-700 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors whitespace-nowrap text-xs sm:text-sm font-medium">
+                </a>
+                <a href="{{ route('notifications.index', ['filter' => 'read']) }}" 
+                   class="px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg transition-colors whitespace-nowrap text-xs sm:text-sm font-medium {{ $filter === 'read' ? 'bg-indigo-600 text-white shadow-sm' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50' }}">
                     Sudah Dibaca
-                </button>
+                </a>
             </div>
 
             @if($unreadCount > 0)
@@ -205,8 +218,24 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                     </svg>
                 </div>
-                <h3 class="text-lg sm:text-xl font-bold text-gray-900 mb-2">Semua Bersih!</h3>
-                <p class="text-xs sm:text-sm text-gray-500 mb-4 sm:mb-6">Anda tidak memiliki notifikasi saat ini. Kami akan memberi tahu Anda ketika ada yang baru.</p>
+                <h3 class="text-lg sm:text-xl font-bold text-gray-900 mb-2">
+                    @if($filter === 'unread')
+                        Semua Sudah Dibaca!
+                    @elseif($filter === 'read')
+                        Belum Ada Notifikasi Dibaca
+                    @else
+                        Semua Bersih!
+                    @endif
+                </h3>
+                <p class="text-xs sm:text-sm text-gray-500 mb-4 sm:mb-6">
+                    @if($filter === 'unread')
+                        Tidak ada notifikasi yang belum dibaca. Kami akan memberi tahu Anda ketika ada yang baru.
+                    @elseif($filter === 'read')
+                        Tidak ada notifikasi yang sudah dibaca saat ini.
+                    @else
+                        Anda tidak memiliki notifikasi saat ini. Kami akan memberi tahu Anda ketika ada yang baru.
+                    @endif
+                </p>
                 <div class="flex justify-center gap-3">
                     <a href="{{ route('admin.dashboard') }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-medium rounded-lg transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

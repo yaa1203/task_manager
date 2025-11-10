@@ -9,16 +9,23 @@ use Illuminate\Support\Facades\Auth;
 
 class NotificationController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
+        $filter = $request->get('filter', 'all'); // all, unread, read
         
-        // Mengambil notifikasi yang belum dibaca terlebih dahulu
-        $notifications = $user->notifications()
-            ->orderBy('created_at', 'desc')
-            ->paginate(15);
-            
-        return view('notifikasi.index', compact('notifications'));
+        // Query notifikasi berdasarkan filter
+        $query = $user->notifications()->orderBy('created_at', 'desc');
+        
+        if ($filter === 'unread') {
+            $query->whereNull('read_at');
+        } elseif ($filter === 'read') {
+            $query->whereNotNull('read_at');
+        }
+        
+        $notifications = $query->paginate(15)->appends(['filter' => $filter]);
+        
+        return view('notifikasi.index', compact('notifications', 'filter'));
     }
     
     public function markAsRead(DatabaseNotification $notification)
@@ -30,13 +37,17 @@ class NotificationController extends Controller
         
         $notification->markAsRead();
         
-        return back()->with('success', 'Notification marked as read.');
+        if (request()->wantsJson()) {
+            return response()->json(['success' => true]);
+        }
+        
+        return back()->with('success', 'Notifikasi telah ditandai sebagai dibaca.');
     }
     
     public function markAllAsRead()
     {
         Auth::user()->unreadNotifications()->update(['read_at' => now()]);
         
-        return back()->with('success', 'All notifications marked as read.');
+        return back()->with('success', 'Semua notifikasi telah ditandai sebagai dibaca.');
     }
 }
