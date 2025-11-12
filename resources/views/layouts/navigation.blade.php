@@ -70,7 +70,7 @@
                 <!-- User Dropdown -->
                 <div class="relative" x-data="{ userOpen: false }" @click.away="userOpen = false">
                     <button @click="userOpen = !userOpen" class="flex items-center gap-2 p-1 rounded-full hover:bg-gray-100 transition">
-                        <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-md">
+                        <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-md">
                             {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
                         </div>
                         <span class="hidden md:block text-sm font-medium text-gray-700">{{ Auth::user()->name }}</span>
@@ -137,7 +137,7 @@
         <div class="p-6 border-b border-gray-100">
             <div class="flex justify-between items-center">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold">
                         {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
                     </div>
                     <div>
