@@ -10,7 +10,7 @@ class AdminNotificationController extends Controller
     /**
      * Tampilkan semua notifikasi untuk admin yang login
      */
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
 
@@ -18,23 +18,32 @@ class AdminNotificationController extends Controller
             abort(403, 'Akses ditolak');
         }
 
-        // Ambil notifikasi terbaru, pagination 10
-        $notifications = $user->notifications()->latest()->paginate(10);
+        // Ambil filter dari query parameter
+        $filter = $request->get('filter', 'all'); // all, unread, read
+
+        // Query notifikasi berdasarkan filter
+        $query = $user->notifications()->latest();
+
+        if ($filter === 'unread') {
+            $query->whereNull('read_at');
+        } elseif ($filter === 'read') {
+            $query->whereNotNull('read_at');
+        }
+
+        // Pagination dengan filter parameter
+        $notifications = $query->paginate(10)->appends(['filter' => $filter]);
         
-        // Hitung total unread dari SEMUA notifikasi (bukan dari paginated)
+        // Hitung statistik (selalu dari semua data, bukan dari paginated)
         $unreadCount = $user->unreadNotifications()->count();
-        
-        // Hitung total read
         $readCount = $user->notifications()->whereNotNull('read_at')->count();
-        
-        // Total semua notifikasi
         $totalCount = $user->notifications()->count();
 
         return view('admin.notifications.index', compact(
             'notifications', 
             'unreadCount', 
             'readCount', 
-            'totalCount'
+            'totalCount',
+            'filter'
         ));
     }
 
@@ -51,6 +60,10 @@ class AdminNotificationController extends Controller
 
         $notification = $user->notifications()->findOrFail($id);
         $notification->markAsRead();
+
+        if (request()->wantsJson()) {
+            return response()->json(['success' => true]);
+        }
 
         return back()->with('success', 'Notifikasi berhasil ditandai sudah dibaca.');
     }

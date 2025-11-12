@@ -5,7 +5,7 @@
                 <h2 class="font-semibold text-xl text-gray-800">Notifikasi</h2>
                 <p class="text-sm text-gray-600 mt-1">Tetap update dengan penugasan tugas Anda</p>
             </div>
-            @if($notifications->where('read_at', null)->count() > 0)
+            @if(Auth::user()->unreadNotifications()->count() > 0)
                 <form action="{{ route('notifikasi.markAllAsRead') }}" method="POST" class="w-full sm:w-auto">
                     @csrf
                     <button type="submit" 
@@ -46,7 +46,7 @@
                         <span class="text-xs text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">Total</span>
                     </div>
                     <p class="text-xs text-gray-600">Semua</p>
-                    <p class="text-xl sm:text-2xl font-bold text-gray-900">{{ $notifications->total() }}</p>
+                    <p class="text-xl sm:text-2xl font-bold text-gray-900">{{ Auth::user()->notifications()->count() }}</p>
                 </div>
 
                 <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-3 sm:p-4">
@@ -59,7 +59,7 @@
                         <span class="text-xs text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full">Belum</span>
                     </div>
                     <p class="text-xs text-gray-600">Perhatian</p>
-                    <p class="text-xl sm:text-2xl font-bold text-gray-900">{{ $notifications->where('read_at', null)->count() }}</p>
+                    <p class="text-xl sm:text-2xl font-bold text-gray-900">{{ Auth::user()->unreadNotifications()->count() }}</p>
                 </div>
 
                 <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-3 sm:p-4">
@@ -72,15 +72,24 @@
                         <span class="text-xs text-green-700 bg-green-50 px-2 py-0.5 rounded-full">Dibaca</span>
                     </div>
                     <p class="text-xs text-gray-600">Selesai</p>
-                    <p class="text-xl sm:text-2xl font-bold text-gray-900">{{ $notifications->where('read_at', '!=', null)->count() }}</p>
+                    <p class="text-xl sm:text-2xl font-bold text-gray-900">{{ Auth::user()->readNotifications()->count() }}</p>
                 </div>
             </div>
 
             {{-- Filter Tabs (Mobile Scrollable) --}}
             <div class="flex gap-2 overflow-x-auto pb-1 scrollbar-hide mb-4">
-                <button class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium whitespace-nowrap shadow-sm">Semua</button>
-                <button class="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg text-sm font-medium whitespace-nowrap hover:bg-gray-50">Belum Dibaca</button>
-                <button class="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg text-sm font-medium whitespace-nowrap hover:bg-gray-50">Sudah Dibaca</button>
+                <a href="{{ route('notifikasi.index', ['filter' => 'all']) }}" 
+                   class="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap {{ $filter === 'all' ? 'bg-indigo-600 text-white shadow-sm' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50' }}">
+                    Semua
+                </a>
+                <a href="{{ route('notifikasi.index', ['filter' => 'unread']) }}" 
+                   class="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap {{ $filter === 'unread' ? 'bg-indigo-600 text-white shadow-sm' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50' }}">
+                    Belum Dibaca
+                </a>
+                <a href="{{ route('notifikasi.index', ['filter' => 'read']) }}" 
+                   class="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap {{ $filter === 'read' ? 'bg-indigo-600 text-white shadow-sm' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50' }}">
+                    Sudah Dibaca
+                </a>
             </div>
 
             {{-- Daftar Notifikasi --}}
@@ -99,7 +108,7 @@
                     @endphp
 
                     <div class="bg-white rounded-lg border {{ $isUnread ? 'border-indigo-200 ring-2 ring-indigo-100' : 'border-gray-200' }} shadow-sm hover:shadow-md transition-all cursor-pointer"
-                         onclick="markAsReadAndRedirect('{{ route('notifikasi.read', $notification) }}', '{{ $redirectUrl }}')">
+                         onclick="markAsReadAndRedirect('{{ route('notifikasi.read', $notification) }}', '{{ $redirectUrl }}', {{ $isUnread ? 'true' : 'false' }})">
                         <div class="p-4 sm:p-5">
                             <div class="flex items-start gap-3 sm:gap-4">
                                 <!-- Ikon + Badge -->
@@ -174,8 +183,24 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                                 </svg>
                             </div>
-                            <h3 class="text-lg font-bold text-gray-900 mb-2">Semua Bersih!</h3>
-                            <p class="text-sm text-gray-500">Tidak ada notifikasi saat ini.</p>
+                            <h3 class="text-lg font-bold text-gray-900 mb-2">
+                                @if($filter === 'unread')
+                                    Semua Sudah Dibaca!
+                                @elseif($filter === 'read')
+                                    Belum Ada Notifikasi Dibaca
+                                @else
+                                    Semua Bersih!
+                                @endif
+                            </h3>
+                            <p class="text-sm text-gray-500">
+                                @if($filter === 'unread')
+                                    Tidak ada notifikasi yang belum dibaca.
+                                @elseif($filter === 'read')
+                                    Tidak ada notifikasi yang sudah dibaca.
+                                @else
+                                    Tidak ada notifikasi saat ini.
+                                @endif
+                            </p>
                         </div>
                     </div>
                 @endforelse
@@ -194,8 +219,14 @@
 
     <!-- AJAX Mark as Read -->
     <script>
-        function markAsReadAndRedirect(markUrl, redirectUrl) {
+        function markAsReadAndRedirect(markUrl, redirectUrl, isUnread) {
             if (redirectUrl === '#') return;
+
+            // Hanya mark as read jika masih unread
+            if (!isUnread) {
+                window.location.href = redirectUrl;
+                return;
+            }
 
             fetch(markUrl, {
                 method: 'PUT',
@@ -205,20 +236,7 @@
                 },
             })
             .then(() => {
-                // Update UI: hapus ring & badge
-                const card = event.target.closest('[onclick]');
-                if (card) {
-                    card.classList.remove('ring-2', 'ring-indigo-100', 'border-indigo-200');
-                    card.classList.add('border-gray-200');
-                    const badge = card.querySelector('.animate-ping');
-                    if (badge) badge.parentElement.remove();
-                    const baru = card.querySelector('span:contains("Baru")');
-                    if (baru) baru.remove();
-                    const klik = card.querySelector('span:text("Klik untuk baca")');
-                    if (klik) klik.outerHTML = '<span class="ml-auto text-green-600 flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Dibaca</span>';
-                }
-                // Redirect
-                setTimeout(() => window.location.href = redirectUrl, 300);
+                window.location.href = redirectUrl;
             })
             .catch(() => {
                 window.location.href = redirectUrl;

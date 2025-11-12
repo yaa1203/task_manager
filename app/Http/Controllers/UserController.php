@@ -299,8 +299,6 @@ class UserController extends Controller
         ));
     }
 
-    // ... (methods lainnya tetap sama)
-
     public function superAdminIndex(Request $request)
     {
         $sortBy = $request->get('sort_by', 'created_at');
