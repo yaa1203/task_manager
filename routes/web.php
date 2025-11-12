@@ -161,6 +161,10 @@ Route::middleware(['auth', 'role:admin', 'no.cache'])->group(function () {
 // 🔸 SuperAdmin Area
 // =============================================================
 Route::middleware(['auth', 'role:superadmin'])->group(function () {
+
+Route::get('/superadmin/analytics', [AnalyticsController::class, 'superAdminIndex'])->name('superadmin.analytics.index');
+Route::get('/superadmin/analytics/data', [AnalyticsController::class, 'superAdminData'])->name('superadmin.analytics.data');
+
     Route::get('/superadmin/dashboard', [DashboardController::class, 'superAdminDashboard'])->name('superadmin.dashboard');
     Route::resource('categories', SuperAdminCategoryController::class);
 
