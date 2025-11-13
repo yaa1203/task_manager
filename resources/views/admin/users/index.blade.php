@@ -51,7 +51,7 @@
     @endif
 
     {{-- Kartu Statistik --}}
-    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-6 mb-4 sm:mb-6">
+    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-4 sm:mb-6">
         {{-- Total Pengguna --}}
         <div class="bg-white rounded-lg sm:rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
             <div class="p-3 sm:p-4 lg:p-5">
@@ -126,27 +126,6 @@
                     {{ \App\Models\User::where('role', 'user')
                         ->where('category_id', Auth::user()->category_id)
                         ->where('created_at', '>=', now()->startOfMonth())
-                        ->count() }}
-                </p>
-            </div>
-        </div>
-
-        {{-- Bergabung Minggu Ini --}}
-        <div class="bg-white rounded-lg sm:rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-            <div class="p-3 sm:p-4 lg:p-5">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 sm:mb-3">
-                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-purple-100 rounded-lg sm:rounded-xl flex items-center justify-center mb-2 sm:mb-0">
-                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                        </svg>
-                    </div>
-                    <span class="hidden sm:inline-flex px-2 sm:px-3 py-1 bg-purple-50 text-purple-700 text-xs font-semibold rounded-full">Minggu</span>
-                </div>
-                <h3 class="text-xs sm:text-sm font-medium text-gray-600 mb-0.5 sm:mb-1 line-clamp-1">Minggu Ini</h3>
-                <p class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
-                    {{ \App\Models\User::where('role', 'user')
-                        ->where('category_id', Auth::user()->category_id)
-                        ->where('created_at', '>=', now()->startOfWeek())
                         ->count() }}
                 </p>
             </div>

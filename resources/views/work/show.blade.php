@@ -228,7 +228,16 @@
                                             @elseif($task->priority === 'medium') bg-yellow-100 text-yellow-800 border-yellow-200
                                             @else bg-gray-100 text-gray-800 border-gray-200
                                             @endif">
-                                            {{ ucfirst($task->priority) }}
+                                            @php
+                                                $priorityText = match($task->priority) {
+                                                    'urgent' => 'Segera',
+                                                    'high' => 'Tinggi',
+                                                    'medium' => 'Sedang',
+                                                    'low' => 'Rendah',
+                                                    default => ucfirst($task->priority),
+                                                };
+                                            @endphp
+                                            {{ $priorityText }}
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">
@@ -286,7 +295,16 @@
                                     @elseif($task->priority === 'medium') bg-yellow-100 text-yellow-800 border-yellow-200
                                     @else bg-gray-100 text-gray-800 border-gray-200
                                     @endif">
-                                    {{ ucfirst($task->priority) }}
+                                    @php
+                                        $priorityText = match($task->priority) {
+                                            'urgent' => 'Segera',
+                                            'high' => 'Tinggi',
+                                            'medium' => 'Sedang',
+                                            'low' => 'Rendah',
+                                            default => ucfirst($task->priority),
+                                        };
+                                    @endphp
+                                    {{ $priorityText }}
                                 </span>
                             </div>
 

@@ -14,7 +14,7 @@
                 <p class="text-sm text-red-700 font-medium">Gagal memuat analitik</p>
                 <p id="error-message" class="text-xs text-red-600 mt-1"></p>
             </div>
-            <button onclick="hideError()" class="ml-auto text-red-500 hover:text-red-700">
+            <button onclick="analyticsHideError()" class="ml-auto text-red-500 hover:text-red-700">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
@@ -262,302 +262,308 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    let charts = { task: null };
-    let isLoading = false;
-    let isInitialized = false;
-
-    document.addEventListener("DOMContentLoaded", function() {
-        if (isInitialized) {
-            console.log('Already initialized, skipping...');
-            return;
-        }
-        isInitialized = true;
+    // Analytics namespace untuk menghindari konflik dengan layout
+    (function() {
+        'use strict';
         
-        console.log('Admin Analytics loaded');
-        loadAnalytics();
-    });
+        let analyticsCharts = { task: null };
+        let analyticsIsLoading = false;
+        let analyticsIsInitialized = false;
 
-    function showError(message) {
-        const errorAlert = document.getElementById('error-alert');
-        const errorMessage = document.getElementById('error-message');
-        if (errorAlert && errorMessage) {
-            errorMessage.textContent = message;
-            errorAlert.classList.remove('hidden');
-        }
-        console.error('Analytics Error:', message);
-    }
-
-    function hideError() {
-        const errorAlert = document.getElementById('error-alert');
-        if (errorAlert) {
-            errorAlert.classList.add('hidden');
-        }
-    }
-
-    function showEmptyState(chartId) {
-        const emptyEl = document.getElementById(chartId + '-empty');
-        const loadingEl = document.getElementById(chartId + '-loading');
-        const canvas = document.getElementById('taskChart');
-        
-        if (emptyEl) {
-            emptyEl.classList.remove('hidden');
-            emptyEl.style.display = 'flex';
-        }
-        if (loadingEl) loadingEl.style.display = 'none';
-        if (canvas) {
-            canvas.style.display = 'none';
-            canvas.style.visibility = 'hidden';
-        }
-    }
-
-    function hideEmptyState(chartId) {
-        const emptyEl = document.getElementById(chartId + '-empty');
-        const loadingEl = document.getElementById(chartId + '-loading');
-        const canvas = document.getElementById('taskChart');
-        
-        if (emptyEl) {
-            emptyEl.classList.add('hidden');
-            emptyEl.style.display = 'none';
-        }
-        if (loadingEl) loadingEl.style.display = 'none';
-        if (canvas) {
-            canvas.style.display = 'block';
-            canvas.style.visibility = 'visible';
-        }
-    }
-
-    async function loadAnalytics() {
-        if (isLoading) {
-            console.log('Already loading, skipping...');
-            return;
-        }
-
-        isLoading = true;
-        hideError();
-
-        // Cache busting dengan timestamp
-        const timestamp = new Date().getTime();
-        const url = `${window.location.origin}/superadmin/analytics/data?_=${timestamp}`;
-        console.log('Fetching admin analytics from:', url);
-
-        try {
-            const response = await fetch(url, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Cache-Control': 'no-cache, no-store, must-revalidate',
-                    'Pragma': 'no-cache',
-                    'Expires': '0'
-                },
-                cache: 'no-store'
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+        // Fungsi helper untuk analytics saja
+        window.analyticsShowError = function(message) {
+            const errorAlert = document.getElementById('error-alert');
+            const errorMessage = document.getElementById('error-message');
+            if (errorAlert && errorMessage) {
+                errorMessage.textContent = message;
+                errorAlert.classList.remove('hidden');
             }
+            console.error('Analytics Error:', message);
+        };
 
-            const data = await response.json();
-            console.log('Admin analytics data received:', data);
-
-            if (!data || typeof data !== 'object') {
-                throw new Error('Invalid data structure');
-            }
-
-            updateUI(data);
-
-        } catch (error) {
-            console.error('Error loading admin analytics:', error);
-            showError('Gagal memuat data analitik. Silakan periksa koneksi Anda.');
-            updateUI(getDefaultData());
-        } finally {
-            isLoading = false;
-        }
-    }
-
-    function getDefaultData() {
-        return {
-            tasks: { done: 0, unfinished: 0, overdue: 0 },
-            users: { total: 0 },
-            summary: { 
-                total_tasks: 0, 
-                completion_rate: 0,
-                overdue_workload: 0 
+        window.analyticsHideError = function() {
+            const errorAlert = document.getElementById('error-alert');
+            if (errorAlert) {
+                errorAlert.classList.add('hidden');
             }
         };
-    }
 
-   function updateUI(data) {
-    try {
-        const { tasks, accounts, summary } = data;
-        
-        const done = parseInt(tasks?.done) || 0;
-        const unfinished = parseInt(tasks?.unfinished) || 0;
-        const overdue = parseInt(tasks?.overdue) || 0;
-        const total = done + unfinished + overdue;
-        
-        const completionRate = parseFloat(summary?.completion_rate) || 0;
-        const totalUsers = parseInt(accounts?.total) || 0;
-        const overdueWorkload = parseInt(summary?.overdue_workload) || overdue;
-
-            const updates = {
-                'total-users': totalUsers,
-                'total-tasks': total,
-                'completed-tasks': done,
-                'unfinished-tasks': overdue,
-                'completion-rate': completionRate.toFixed(1),
-                'overdue-count': overdue,
-                'unfinished-count': unfinished,
-                'done-count': done,
-                'overdue-overview': overdue,
-                'unfinished-overview': unfinished,
-                'done-overview': done,
-                'total-tasks-overview': total,
-                'system-completion-percentage': completionRate.toFixed(1) + '%',
-                'overdue-workload-value': overdueWorkload
-            };
-
-            Object.entries(updates).forEach(([id, value]) => {
-                const el = document.getElementById(id);
-                if (el) {
-                    el.textContent = value;
-                }
-            });
-
-            const progressBar = document.getElementById('system-completion-bar');
-            if (progressBar) {
-                setTimeout(() => {
-                    progressBar.style.width = completionRate + '%';
-                }, 100);
+        function showEmptyState(chartId) {
+            const emptyEl = document.getElementById(chartId + '-empty');
+            const loadingEl = document.getElementById(chartId + '-loading');
+            const canvas = document.getElementById('taskChart');
+            
+            if (emptyEl) {
+                emptyEl.classList.remove('hidden');
+                emptyEl.style.display = 'flex';
             }
-            
-            const lastUpdate = document.getElementById('last-update');
-            if (lastUpdate) {
-                lastUpdate.textContent = 'Diperbarui ' + new Date().toLocaleTimeString('id-ID', { 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
-                });
+            if (loadingEl) loadingEl.style.display = 'none';
+            if (canvas) {
+                canvas.style.display = 'none';
+                canvas.style.visibility = 'hidden';
             }
-            
-            updateCharts(data);
-            
-            console.log('Admin UI successfully updated');
-        } catch (error) {
-            console.error('Error updating admin UI:', error);
-            showError('Error menampilkan data: ' + error.message);
         }
-    }
 
-    function updateCharts(data) {
-        try {
-            console.log('=== UPDATE ADMIN CHARTS ===');
+        function hideEmptyState(chartId) {
+            const emptyEl = document.getElementById(chartId + '-empty');
+            const loadingEl = document.getElementById(chartId + '-loading');
+            const canvas = document.getElementById('taskChart');
             
-            const done = parseInt(data.tasks?.done) || 0;
-            const unfinished = parseInt(data.tasks?.unfinished) || 0;
-            const overdue = parseInt(data.tasks?.overdue) || 0;
-            
-            const taskData = [overdue, unfinished, done];
-            const taskTotal = done + unfinished + overdue;
-            
-            console.log('Admin task data:', {
-                done, unfinished, overdue, total: taskTotal
-            });
+            if (emptyEl) {
+                emptyEl.classList.add('hidden');
+                emptyEl.style.display = 'none';
+            }
+            if (loadingEl) loadingEl.style.display = 'none';
+            if (canvas) {
+                canvas.style.display = 'block';
+                canvas.style.visibility = 'visible';
+            }
+        }
 
-            const taskCanvas = document.getElementById('taskChart');
-            
-            if (taskCanvas) {
-                if (charts.task) {
-                    console.log('Destroying existing admin chart');
-                    charts.task.destroy();
-                    charts.task = null;
+        async function loadAnalytics() {
+            if (analyticsIsLoading) {
+                console.log('Already loading, skipping...');
+                return;
+            }
+
+            analyticsIsLoading = true;
+            window.analyticsHideError();
+
+            const timestamp = new Date().getTime();
+            const url = `${window.location.origin}/analitik/data?_=${timestamp}`;
+            console.log('Fetching admin analytics from:', url);
+
+            try {
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    },
+                    cache: 'no-store'
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Admin analytics data received:', data);
+
+                if (!data || typeof data !== 'object') {
+                    throw new Error('Invalid data structure');
+                }
+
+                updateUI(data);
+
+            } catch (error) {
+                console.error('Error loading admin analytics:', error);
+                window.analyticsShowError('Gagal memuat data analitik. Silakan periksa koneksi Anda.');
+                updateUI(getDefaultData());
+            } finally {
+                analyticsIsLoading = false;
+            }
+        }
+
+        function getDefaultData() {
+            return {
+                tasks: { done: 0, unfinished: 0, overdue: 0 },
+                accounts: { total: 0 },
+                summary: { 
+                    total_tasks: 0, 
+                    completion_rate: 0,
+                    overdue_workload: 0 
+                }
+            };
+        }
+
+        function updateUI(data) {
+            try {
+                const { tasks, accounts, summary } = data;
+                
+                const done = parseInt(tasks?.done) || 0;
+                const unfinished = parseInt(tasks?.unfinished) || 0;
+                const overdue = parseInt(tasks?.overdue) || 0;
+                const total = done + unfinished + overdue;
+                
+                const completionRate = parseFloat(summary?.completion_rate) || 0;
+                const totalUsers = parseInt(accounts?.total) || 0;
+                const overdueWorkload = parseInt(summary?.overdue_workload) || overdue;
+
+                const updates = {
+                    'total-users': totalUsers,
+                    'total-tasks': total,
+                    'completed-tasks': done,
+                    'unfinished-tasks': overdue,
+                    'completion-rate': completionRate.toFixed(1),
+                    'overdue-count': overdue,
+                    'unfinished-count': unfinished,
+                    'done-count': done,
+                    'overdue-overview': overdue,
+                    'unfinished-overview': unfinished,
+                    'done-overview': done,
+                    'total-tasks-overview': total,
+                    'system-completion-percentage': completionRate.toFixed(1) + '%',
+                    'overdue-workload-value': overdueWorkload
+                };
+
+                Object.entries(updates).forEach(([id, value]) => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        el.textContent = value;
+                    }
+                });
+
+                const progressBar = document.getElementById('system-completion-bar');
+                if (progressBar) {
+                    setTimeout(() => {
+                        progressBar.style.width = completionRate + '%';
+                    }, 100);
                 }
                 
-                if (taskTotal === 0) {
-                    console.log('No tasks, showing empty state');
-                    showEmptyState('task-chart');
-                } else {
-                    console.log('Creating admin task chart with data:', taskData);
-                    hideEmptyState('task-chart');
+                const lastUpdate = document.getElementById('last-update');
+                if (lastUpdate) {
+                    lastUpdate.textContent = 'Diperbarui ' + new Date().toLocaleTimeString('id-ID', { 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                    });
+                }
+                
+                updateCharts(data);
+                
+                console.log('Admin UI successfully updated');
+            } catch (error) {
+                console.error('Error updating admin UI:', error);
+                window.analyticsShowError('Error menampilkan data: ' + error.message);
+            }
+        }
+
+        function updateCharts(data) {
+            try {
+                console.log('=== UPDATE ADMIN CHARTS ===');
+                
+                const done = parseInt(data.tasks?.done) || 0;
+                const unfinished = parseInt(data.tasks?.unfinished) || 0;
+                const overdue = parseInt(data.tasks?.overdue) || 0;
+                
+                const taskData = [overdue, unfinished, done];
+                const taskTotal = done + unfinished + overdue;
+                
+                console.log('Admin task data:', {
+                    done, unfinished, overdue, total: taskTotal
+                });
+
+                const taskCanvas = document.getElementById('taskChart');
+                
+                if (taskCanvas) {
+                    if (analyticsCharts.task) {
+                        console.log('Destroying existing admin chart');
+                        analyticsCharts.task.destroy();
+                        analyticsCharts.task = null;
+                    }
                     
-                    taskCanvas.style.display = 'block';
-                    taskCanvas.style.visibility = 'visible';
-                    
-                    try {
-                        const ctx = taskCanvas.getContext('2d');
-                        const isMobile = window.innerWidth < 640;
+                    if (taskTotal === 0) {
+                        console.log('No tasks, showing empty state');
+                        showEmptyState('task-chart');
+                    } else {
+                        console.log('Creating admin task chart with data:', taskData);
+                        hideEmptyState('task-chart');
                         
-                        charts.task = new Chart(ctx, {
-                            type: 'doughnut',
-                            data: {
-                                labels: ['Terlambat', 'Belum Selesai', 'Selesai'],
-                                datasets: [{
-                                    data: taskData,
-                                    backgroundColor: ['#ef4444', '#6b7280', '#10b981'],
-                                    borderWidth: isMobile ? 1 : 2,
-                                    borderColor: '#ffffff',
-                                    hoverOffset: 8
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                plugins: {
-                                    legend: { 
-                                        position: 'bottom', 
-                                        labels: { 
-                                            padding: isMobile ? 10 : 15, 
-                                            font: { size: isMobile ? 10 : 11 },
-                                            usePointStyle: true,
-                                            pointStyle: 'circle',
-                                            boxWidth: isMobile ? 10 : 12
-                                        } 
-                                    },
-                                    tooltip: {
-                                        callbacks: {
-                                            label: function(context) {
-                                                const label = context.label || '';
-                                                const value = context.parsed || 0;
-                                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-                                                return `${label}: ${value} (${percentage}%)`;
+                        taskCanvas.style.display = 'block';
+                        taskCanvas.style.visibility = 'visible';
+                        
+                        try {
+                            const ctx = taskCanvas.getContext('2d');
+                            const isMobile = window.innerWidth < 640;
+                            
+                            analyticsCharts.task = new Chart(ctx, {
+                                type: 'doughnut',
+                                data: {
+                                    labels: ['Terlambat', 'Belum Selesai', 'Selesai'],
+                                    datasets: [{
+                                        data: taskData,
+                                        backgroundColor: ['#ef4444', '#6b7280', '#10b981'],
+                                        borderWidth: isMobile ? 1 : 2,
+                                        borderColor: '#ffffff',
+                                        hoverOffset: 8
+                                    }]
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    plugins: {
+                                        legend: { 
+                                            position: 'bottom', 
+                                            labels: { 
+                                                padding: isMobile ? 10 : 15, 
+                                                font: { size: isMobile ? 10 : 11 },
+                                                usePointStyle: true,
+                                                pointStyle: 'circle',
+                                                boxWidth: isMobile ? 10 : 12
+                                            } 
+                                        },
+                                        tooltip: {
+                                            callbacks: {
+                                                label: function(context) {
+                                                    const label = context.label || '';
+                                                    const value = context.parsed || 0;
+                                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                                    return `${label}: ${value} (${percentage}%)`;
+                                                }
                                             }
                                         }
+                                    },
+                                    animation: {
+                                        animateRotate: true,
+                                        animateScale: true,
+                                        duration: 1000
                                     }
-                                },
-                                animation: {
-                                    animateRotate: true,
-                                    animateScale: true,
-                                    duration: 1000
                                 }
-                            }
-                        });
-                        console.log('✅ Admin chart created successfully');
-                    } catch (chartError) {
-                        console.error('❌ Error creating admin chart:', chartError);
-                        showError('Gagal membuat chart: ' + chartError.message);
+                            });
+                            console.log('✅ Admin chart created successfully');
+                        } catch (chartError) {
+                            console.error('❌ Error creating admin chart:', chartError);
+                            window.analyticsShowError('Gagal membuat chart: ' + chartError.message);
+                        }
                     }
                 }
+                
+                console.log('=== ADMIN CHARTS UPDATE COMPLETE ===');
+            } catch (error) {
+                console.error('❌ Fatal error in admin updateCharts:', error);
+                window.analyticsShowError('Gagal membuat diagram: ' + error.message);
             }
-            
-            console.log('=== ADMIN CHARTS UPDATE COMPLETE ===');
-        } catch (error) {
-            console.error('❌ Fatal error in admin updateCharts:', error);
-            showError('Gagal membuat diagram: ' + error.message);
         }
-    }
 
-    // Handle window resize
-    let resizeTimer;
-    window.addEventListener('resize', function() {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(function() {
-            if (charts.task) {
-                console.log('Window resized, re-rendering admin chart');
-                charts.task.resize();
+        // Initialize on DOM ready
+        document.addEventListener("DOMContentLoaded", function() {
+            if (analyticsIsInitialized) {
+                console.log('Already initialized, skipping...');
+                return;
             }
-        }, 250);
-    });
+            analyticsIsInitialized = true;
+            
+            console.log('Admin Analytics loaded');
+            loadAnalytics();
+        });
+
+        // Handle window resize
+        let resizeTimer;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(function() {
+                if (analyticsCharts.task) {
+                    console.log('Window resized, re-rendering admin chart');
+                    analyticsCharts.task.resize();
+                }
+            }, 250);
+        });
+    })();
 </script>
 
 <style>

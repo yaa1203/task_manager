@@ -215,9 +215,17 @@
                                     'low' => 'bg-gray-100 text-gray-700 border border-gray-200'
                                 ];
                                 $pConfig = $priorityConfig[$task->priority] ?? $priorityConfig['low'];
+
+                                $priorityText = match($task->priority) {
+                                    'low' => 'RENDAH',
+                                    'medium' => 'SEDANG',
+                                    'high' => 'TINGGI',
+                                    'urgent' => 'SEGERA',
+                                    default => strtoupper($task->priority),
+                                };
                             @endphp
                             {{ $pConfig }}">
-                            {{ strtoupper($task->priority) }}
+                            {{ $priorityText }}
                         </span>
                     </div>
 
@@ -274,6 +282,12 @@
                                 @php
                                     $userSubmission = $task->submissions->where('user_id', $user->id)->first();
                                     $hasSubmitted = $userSubmission !== null;
+                                    $isLate = false;
+                                    
+                                    // Check if user is late (deadline passed and no submission)
+                                    if ($task->due_date && !$hasSubmitted) {
+                                        $isLate = \Carbon\Carbon::now()->isAfter(\Carbon\Carbon::parse($task->due_date));
+                                    }
                                 @endphp
                                 <div class="flex items-center justify-between bg-gray-50 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 hover:border-purple-300 transition-all group/user">
                                     <div class="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 pr-2">
@@ -289,6 +303,12 @@
                                                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                                                 </svg>
                                             </div>
+                                            @elseif($isLate)
+                                            <div class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 sm:w-4 sm:h-4 bg-red-500 rounded-full border-2 border-white flex items-center justify-center">
+                                                <svg class="w-2 h-2 sm:w-2.5 sm:h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                                                </svg>
+                                            </div>
                                             @endif
                                         </div>
                                         <div class="min-w-0 flex-1">
@@ -302,6 +322,13 @@
                                                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                                             </svg>
                                             <span class="hidden sm:inline">Selesai</span>
+                                        </span>
+                                    @elseif($isLate)
+                                        <span class="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg text-xs font-bold bg-red-100 text-red-700 border border-red-200 flex-shrink-0">
+                                            <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                            <span class="hidden sm:inline">Terlambat</span>
                                         </span>
                                     @else
                                         <span class="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg text-xs font-bold bg-gray-100 text-gray-600 border border-gray-200 flex-shrink-0">

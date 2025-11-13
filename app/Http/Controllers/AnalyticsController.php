@@ -428,145 +428,141 @@ class AnalyticsController extends Controller
         return view('superadmin.analytic.index');
     }
 
-public function SuperadminData()
-{
-    try {
-        $superAdminId = Auth::id();
+    public function SuperadminData()
+    {
+        try {
+            $superAdminId = Auth::id();
 
-        if (!$superAdminId) {
-            return $this->adminErrorResponse('Unauthorized', 'Superadmin not authenticated', 401);
-        }
+            if (!$superAdminId) {
+                return $this->adminErrorResponse('Unauthorized', 'Superadmin not authenticated', 401);
+            }
 
-        Log::info('Fetching analytics (admins + users only) for Superadmin: ' . $superAdminId);
+            Log::info('Fetching analytics (admins + users only) for Superadmin: ' . $superAdminId);
 
-        // Ambil semua workspace aktif
-        $workspaces = Workspace::where('is_archived', false)
-            ->get(['id', 'admin_id', 'name', 'icon', 'color']);
+            // Ambil semua workspace aktif
+            $workspaces = Workspace::where('is_archived', false)
+                ->get(['id', 'admin_id', 'name', 'icon', 'color']);
 
-        if ($workspaces->isEmpty()) {
-            return response()->json([
-                'tasks' => ['done' => 0, 'unfinished' => 0, 'overdue' => 0],
-                'accounts' => ['total' => 0, 'active' => 0, 'new_this_week' => 0],
-                'admins' => ['total' => 0],
-                'workspaces' => ['total' => 0, 'breakdown' => []],
-                'summary' => [
-                    'total_tasks' => 0,
-                    'completion_rate' => 0,
-                    'unfinished_workload' => 0,
-                    'overdue_workload' => 0
-                ],
-                'timestamp' => time(),
-            ]);
-        }
+            if ($workspaces->isEmpty()) {
+                return response()->json([
+                    'tasks' => ['done' => 0, 'unfinished' => 0, 'overdue' => 0],
+                    'accounts' => ['total' => 0, 'active' => 0, 'new_this_week' => 0],
+                    'admins' => ['total' => 0],
+                    'workspaces' => ['total' => 0, 'breakdown' => []],
+                    'summary' => [
+                        'total_tasks' => 0,
+                        'completion_rate' => 0,
+                        'unfinished_workload' => 0,
+                        'overdue_workload' => 0
+                    ],
+                    'timestamp' => time(),
+                ]);
+            }
 
-        // Ambil semua task dari tiap workspace
-        $allTasks = collect();
-        foreach ($workspaces as $ws) {
-            $tasks = $ws->tasks()
-                ->with(['assignedUsers:id', 'submissions:id,task_id,user_id'])
-                ->get(['id', 'workspace_id', 'due_date']);
-            $allTasks = $allTasks->merge($tasks);
-        }
+            // Ambil semua task dari tiap workspace
+            $allTasks = collect();
+            foreach ($workspaces as $ws) {
+                $tasks = $ws->tasks()
+                    ->with(['assignedUsers:id', 'submissions:id,task_id,user_id'])
+                    ->get(['id', 'workspace_id', 'due_date']);
+                $allTasks = $allTasks->merge($tasks);
+            }
 
-        // Hitung status tugas
-        $completed = $unfinished = $overdue = 0;
-        $totalAssignments = 0;
+            // Hitung status tugas
+            $completed = $unfinished = $overdue = 0;
+            $totalAssignments = 0;
 
-        foreach ($allTasks as $task) {
-            $assignedUsers = $task->assignedUsers ?? collect();
-            $submissions = $task->submissions ?? collect();
-            $totalAssignments += $assignedUsers->count();
+            foreach ($allTasks as $task) {
+                $assignedUsers = $task->assignedUsers ?? collect();
+                $submissions = $task->submissions ?? collect();
+                $totalAssignments += $assignedUsers->count();
 
-            foreach ($assignedUsers as $user) {
-                $hasSubmitted = $submissions->first(fn($s) => $s->user_id == $user->id);
-                if ($hasSubmitted) {
-                    $completed++;
-                } else {
-                    $isOverdue = !empty($task->due_date) && \Carbon\Carbon::parse($task->due_date)->isPast();
-                    $isOverdue ? $overdue++ : $unfinished++;
+                foreach ($assignedUsers as $user) {
+                    $hasSubmitted = $submissions->first(fn($s) => $s->user_id == $user->id);
+                    if ($hasSubmitted) {
+                        $completed++;
+                    } else {
+                        $isOverdue = !empty($task->due_date) && \Carbon\Carbon::parse($task->due_date)->isPast();
+                        $isOverdue ? $overdue++ : $unfinished++;
+                    }
                 }
             }
-        }
 
-        // Ambil semua user & admin saja
-        $allAccounts = User::whereIn('role', ['admin', 'user'])
-            ->get(['id', 'name', 'role', 'created_at']);
+            // Ambil semua user & admin saja
+            $allAccounts = User::whereIn('role', ['admin', 'user'])
+                ->get(['id', 'name', 'role', 'created_at']);
 
-        $totalUsers = $allAccounts->where('role', 'user')->count();
-        $totalAdmins = $allAccounts->where('role', 'admin')->count();
+            $totalUsers = $allAccounts->where('role', 'user')->count();
+            $totalAdmins = $allAccounts->where('role', 'admin')->count();
 
-        // User aktif (yang kirim submission 7 hari terakhir)
-        $recentUserIds = DB::table('user_task_submissions')
-            ->whereNotNull('created_at')
-            ->where('created_at', '>=', now()->subDays(7))
-            ->distinct()
-            ->pluck('user_id')
-            ->toArray();
+            // User aktif (yang kirim submission 7 hari terakhir)
+            $recentUserIds = DB::table('user_task_submissions')
+                ->whereNotNull('created_at')
+                ->where('created_at', '>=', now()->subDays(7))
+                ->distinct()
+                ->pluck('user_id')
+                ->toArray();
 
-        $activeAccounts = $allAccounts->whereIn('id', $recentUserIds)->count();
+            $activeAccounts = $allAccounts->whereIn('id', $recentUserIds)->count();
 
-        // Statistik waktu
-        $newThisWeek = $allAccounts->where('created_at', '>=', now()->subDays(7))->count();
+            // Statistik waktu
+            $newThisWeek = $allAccounts->where('created_at', '>=', now()->subDays(7))->count();
 
-        // Hitung rate penyelesaian
-        $completionRate = $totalAssignments > 0
-            ? round(($completed / $totalAssignments) * 100, 1)
-            : 0;
+            // Hitung rate penyelesaian
+            $completionRate = $totalAssignments > 0
+                ? round(($completed / $totalAssignments) * 100, 1)
+                : 0;
 
-        // Breakdown workspace per admin
-        $adminIds = $workspaces->pluck('admin_id')->unique()->filter()->values()->all();
-        $admins = User::whereIn('id', $adminIds)->get(['id', 'name'])->keyBy('id');
+            // Breakdown workspace per admin
+            $adminIds = $workspaces->pluck('admin_id')->unique()->filter()->values()->all();
+            $admins = User::whereIn('id', $adminIds)->get(['id', 'name'])->keyBy('id');
 
-        $workspaceBreakdown = $workspaces->groupBy('admin_id')->map(function ($group, $adminId) use ($admins) {
-            $adminName = $admins[$adminId]->name ?? 'Unknown Admin';
-            return [
-                'admin_id' => $adminId,
-                'admin_name' => $adminName,
-                'workspaces' => $group->count(),
+            $workspaceBreakdown = $workspaces->groupBy('admin_id')->map(function ($group, $adminId) use ($admins) {
+                $adminName = $admins[$adminId]->name ?? 'Unknown Admin';
+                return [
+                    'admin_id' => $adminId,
+                    'admin_name' => $adminName,
+                    'workspaces' => $group->count(),
+                ];
+            })->values()->all();
+
+            // Ringkasan
+            $summary = [
+                'total_tasks' => $totalAssignments,
+                'completion_rate' => $completionRate,
+                'unfinished_workload' => $unfinished,
+                'overdue_workload' => $overdue,
+                'total_admins' => $totalAdmins,
+                'total_users' => $totalUsers,
             ];
-        })->values()->all();
 
-        // Ringkasan
-        $summary = [
-            'total_tasks' => $totalAssignments,
-            'completion_rate' => $completionRate,
-            'unfinished_workload' => $unfinished,
-            'overdue_workload' => $overdue,
-            'total_admins' => $totalAdmins,
-            'total_users' => $totalUsers,
-        ];
+            // Response final
+            return response()->json([
+                'tasks' => [
+                    'done' => $completed,
+                    'unfinished' => $unfinished,
+                    'overdue' => $overdue,
+                ],
+                'accounts' => [
+                    'total' => $allAccounts->count(),
+                    'active' => $activeAccounts,
+                    'new_this_week' => $newThisWeek,
+                ],
+                'admins' => ['total' => $totalAdmins],
+                'workspaces' => [
+                    'total' => $workspaces->count(),
+                    'breakdown' => $workspaceBreakdown,
+                ],
+                'summary' => $summary,
+                'timestamp' => time(),
+            ]);
 
-        // Response final
-        return response()->json([
-            'tasks' => [
-                'done' => $completed,
-                'unfinished' => $unfinished,
-                'overdue' => $overdue,
-            ],
-            'accounts' => [
-                'total' => $allAccounts->count(),
-                'active' => $activeAccounts,
-                'new_this_week' => $newThisWeek,
-            ],
-            'admins' => ['total' => $totalAdmins],
-            'workspaces' => [
-                'total' => $workspaces->count(),
-                'breakdown' => $workspaceBreakdown,
-            ],
-            'summary' => $summary,
-            'timestamp' => time(),
-        ]);
-
-    } catch (\Exception $e) {
-        Log::error('Superadmin analytics error: ' . $e->getMessage());
-        return response()->json([
-            'error' => 'Internal Server Error',
-            'message' => $e->getMessage(),
-        ], 500);
+        } catch (\Exception $e) {
+            Log::error('Superadmin analytics error: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'Internal Server Error',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
     }
-}
-
-
-
-
 }

@@ -76,7 +76,7 @@
                 </div>
             </div>
 
-            {{-- Filter Tabs (Mobile Scrollable) --}}
+            {{-- Filter Tabs --}}
             <div class="flex gap-2 overflow-x-auto pb-1 scrollbar-hide mb-4">
                 <a href="{{ route('notifikasi.index', ['filter' => 'all']) }}" 
                    class="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap {{ $filter === 'all' ? 'bg-indigo-600 text-white shadow-sm' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50' }}">
@@ -107,8 +107,7 @@
                         }
                     @endphp
 
-                    <div class="bg-white rounded-lg border {{ $isUnread ? 'border-indigo-200 ring-2 ring-indigo-100' : 'border-gray-200' }} shadow-sm hover:shadow-md transition-all cursor-pointer"
-                         onclick="markAsReadAndRedirect('{{ route('notifikasi.read', $notification) }}', '{{ $redirectUrl }}', {{ $isUnread ? 'true' : 'false' }})">
+                    <div class="bg-white rounded-lg border {{ $isUnread ? 'border-indigo-200 ring-2 ring-indigo-100' : 'border-gray-200' }} shadow-sm hover:shadow-md transition-all">
                         <div class="p-4 sm:p-5">
                             <div class="flex items-start gap-3 sm:gap-4">
                                 <!-- Ikon + Badge -->
@@ -161,7 +160,16 @@
                                             </span>
                                         @endif
                                         @if($isUnread)
-                                            <span class="ml-auto text-indigo-600 font-medium">Klik untuk baca →</span>
+                                            <form action="{{ route('notifikasi.read', $notification->id) }}" method="POST" class="ml-auto">
+                                                @csrf
+                                                <button type="submit" 
+                                                        class="text-indigo-600 hover:text-indigo-700 font-medium flex items-center gap-1 transition">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                                    </svg>
+                                                    Tandai Dibaca
+                                                </button>
+                                            </form>
                                         @else
                                             <span class="ml-auto text-green-600 flex items-center gap-1">
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -216,33 +224,6 @@
             @endif
         </div>
     </div>
-
-    <!-- AJAX Mark as Read -->
-    <script>
-        function markAsReadAndRedirect(markUrl, redirectUrl, isUnread) {
-            if (redirectUrl === '#') return;
-
-            // Hanya mark as read jika masih unread
-            if (!isUnread) {
-                window.location.href = redirectUrl;
-                return;
-            }
-
-            fetch(markUrl, {
-                method: 'PUT',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json',
-                },
-            })
-            .then(() => {
-                window.location.href = redirectUrl;
-            })
-            .catch(() => {
-                window.location.href = redirectUrl;
-            });
-        }
-    </script>
 
     <style>
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }

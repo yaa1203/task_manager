@@ -130,7 +130,7 @@
                 </div>
                 <h3 class="text-xs sm:text-sm font-medium text-gray-600 mb-1">Belum Selesai</h3>
                 <p class="text-2xl sm:text-3xl font-bold text-gray-900">{{ $unfinishedTasks }}</p>
-                <p class="text-xs sm:text-sm text-gray-500 mt-1">Belum dikirim</p>
+                <p class="text-xs sm:text-sm text-gray-500 mt-1">Masih dalam progress</p>
             </div>
         </div>
     </div>
@@ -166,7 +166,7 @@
                     </div>
                     <div>
                         <h2 class="text-base sm:text-lg font-semibold text-gray-900">Tugas yang Diberikan</h2>
-                        <p class="text-xs sm:text-sm text-gray-600">Semua tugas dengan status pengiriman</p>
+                        <p class="text-xs sm:text-sm text-gray-600">Dari semua workspace dalam kategori Anda</p>
                     </div>
                 </div>
                 <div class="flex gap-2 flex-wrap">
@@ -191,6 +191,12 @@
                             $hasSubmitted = $userSubmission !== null;
                             $workspace = $task->workspace;
                             $isArchived = $workspace->is_archived;
+                            
+                            // ✅ Tentukan apakah tugas terlambat
+                            $isOverdue = false;
+                            if (!$hasSubmitted && $task->due_date) {
+                                $isOverdue = now()->gt($task->due_date);
+                            }
                         @endphp
                         <div class="bg-white rounded-lg border-2 overflow-hidden hover:shadow-lg transition-all duration-200 
                             {{ $isArchived ? 'border-gray-300 opacity-75' : 'border-gray-200 hover:border-blue-300' }}">
@@ -286,40 +292,40 @@
                                             <p class="text-xs text-gray-600 break-words line-clamp-2">{{ $userSubmission->notes }}</p>
                                         </div>
                                         @endif
+                                    @elseif($isOverdue)
+                                        {{-- ✅ Status Terlambat --}}
+                                        <div class="flex items-center gap-2 p-2.5 bg-red-50 rounded-lg border border-red-200">
+                                            <div class="w-7 h-7 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                                <svg class="w-3.5 h-3.5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                </svg>
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-xs font-semibold text-red-800">Terlambat</p>
+                                                <p class="text-xs text-red-600">
+                                                    Melewati deadline {{ \Carbon\Carbon::parse($task->due_date)->diffForHumans() }}
+                                                </p>
+                                            </div>
+                                        </div>
                                     @else
+                                        {{-- Status Belum Dikirim --}}
                                         <div class="flex items-center gap-2 p-2.5 bg-gray-50 rounded-lg border border-gray-200">
                                             <div class="w-7 h-7 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
                                                 <svg class="w-3.5 h-3.5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                                 </svg>
                                             </div>
                                             <div class="flex-1">
                                                 <p class="text-xs font-semibold text-gray-800">Belum Dikirim</p>
-                                                <p class="text-xs text-gray-600">Menunggu pengiriman</p>
+                                                <p class="text-xs text-gray-600">
+                                                    @if($task->due_date)
+                                                        {{ \Carbon\Carbon::parse($task->due_date)->diffForHumans() }}
+                                                    @else
+                                                        Menunggu pengiriman
+                                                    @endif
+                                                </p>
                                             </div>
                                         </div>
-                                    @endif
-                                </div>
-
-                                <!-- Tombol Aksi -->
-                                <div class="pt-2 border-t border-gray-100">
-                                    @if($isArchived)
-                                        <button disabled 
-                                                class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed text-xs font-medium">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                                            </svg>
-                                            <span>Workspace Diarsipkan</span>
-                                        </button>
-                                    @else
-                                        <a href="{{ route('workspace.tasks.show', [$workspace, $task]) }}" 
-                                           class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm text-xs font-medium">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                            </svg>
-                                            <span>Lihat Detail</span>
-                                        </a>
                                     @endif
                                 </div>
                             </div>

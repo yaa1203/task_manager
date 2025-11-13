@@ -36,13 +36,13 @@ class TaskSubmittedNotification extends Notification
     }
 
     /**
-     * Get the array representation of the notification.
+     * Mengembalikan representasi array dari notifikasi untuk penyimpanan di database.
      */
     public function toDatabase($notifiable): array
     {
         return [
-            'title' => 'New Task Submission',
-            'message' => "{$this->user->name} has submitted task: {$this->task->title}",
+            'title' => 'Pengumpulan Tugas Baru',
+            'message' => "{$this->user->name} telah mengumpulkan tugas: {$this->task->title}",
             'url' => route('workspace.tasks.show', [
                 'workspace' => $this->task->workspace_id,
                 'task' => $this->task->id
@@ -50,18 +50,18 @@ class TaskSubmittedNotification extends Notification
             'task_id' => $this->task->id,
             'user_id' => $this->user->id,
             'submission_id' => $this->submission->id,
-            'type' => 'task_submitted',
+            'type' => 'tugas_dikumpulkan',
         ];
     }
 
     /**
-     * Get the array representation of the notification.
+     * Mengembalikan representasi array dari notifikasi.
      */
     public function toArray($notifiable): array
     {
         return [
-            'title' => 'New Task Submission',
-            'message' => "{$this->user->name} has submitted task: {$this->task->title}",
+            'title' => 'Pengumpulan Tugas Baru',
+            'message' => "{$this->user->name} telah mengumpulkan tugas: {$this->task->title}",
             'url' => route('workspaces.tasks.show', [
                 'workspace' => $this->task->workspace_id,
                 'task' => $this->task->id
@@ -69,7 +69,7 @@ class TaskSubmittedNotification extends Notification
             'task_id' => $this->task->id,
             'user_id' => $this->user->id,
             'submission_id' => $this->submission->id,
-            'type' => 'task_submitted',
+            'type' => 'tugas_dikumpulkan',
         ];
     }
 }

@@ -46,18 +46,14 @@ Route::get('/', function () {
 // =============================================================
 Route::middleware(['auth', 'role:user'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
-    // Task dan Project (User)
-    Route::resource('tasks', TaskController::class);
   
-
     // Analytics (User)
     Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
     Route::get('/analytics/data', [AnalyticsController::class, 'data'])->name('analytics.data');
 
     // Notifikasi User
     Route::get('/notifikasi', [NotificationController::class, 'index'])->name('notifikasi.index');
-    Route::post('/notifikasi/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifikasi.read');
+    Route::post('/notifikasi/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifikasi.read');
     Route::post('/notifikasi/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])->name('notifikasi.markAllAsRead');
 
     // Workspace User
@@ -81,6 +77,11 @@ Route::middleware(['auth', 'role:user'])->group(function () {
 
     // Calendar (User)
     Route::get('/calendar', [WorkspaceController::class, 'userCalendar'])->name('calendar.index');
+
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/password', [ProfileController::class, 'updatePasswordUser'])->name('profile.password.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
 // =============================================================
@@ -162,8 +163,8 @@ Route::middleware(['auth', 'role:admin', 'no.cache'])->group(function () {
 // =============================================================
 Route::middleware(['auth', 'role:superadmin'])->group(function () {
 
-Route::get('/superadmin/analytics', [AnalyticsController::class, 'superAdminIndex'])->name('superadmin.analytics.index');
-Route::get('/superadmin/analytics/data', [AnalyticsController::class, 'superAdminData'])->name('superadmin.analytics.data');
+    Route::get('/analitik', [AnalyticsController::class, 'superAdminIndex'])->name('analitik.index');
+    Route::get('/analitik/data', [AnalyticsController::class, 'superAdminData'])->name('analitik.data');
 
     Route::get('/superadmin/dashboard', [DashboardController::class, 'superAdminDashboard'])->name('superadmin.dashboard');
     Route::resource('categories', SuperAdminCategoryController::class);
@@ -203,16 +204,6 @@ Route::get('/superadmin/analytics/data', [AnalyticsController::class, 'superAdmi
     Route::put('/superadmin/password', [ProfileController::class, 'updatePasswordSuperAdmin'])->name('superadmin.password.update');
     Route::delete('/superadmin/profile', [ProfileController::class, 'destroySuperAdmin'])->name('superadmin.profile.destroy');
     Route::post('/superadmin/email/verification-notification', [ProfileController::class, 'sendVerificationSuperAdmin'])->name('superadmin.verification.send');
-});
-
-// =============================================================
-// 🔸 Profile Routes
-// =============================================================
-Route::middleware('auth')->group(function () {
-Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-Route::put('/profile/password', [ProfileController::class, 'updatePasswordUser'])->name('profile.password.update');
-Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
 // =============================================================

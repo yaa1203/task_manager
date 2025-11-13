@@ -255,7 +255,7 @@ class DashboardController extends Controller
 
     /**
      * SuperAdmin Dashboard
-     * FIXED: Filter archived workspaces
+     * FIXED: Consistent with analytics - count by assignments, not tasks
      */
     public function superAdminDashboard()
     {
@@ -265,7 +265,7 @@ class DashboardController extends Controller
         // ✅ Hanya admin biasa (role = 'admin')
         $totalAdmins = User::where('role', 'admin')->count();
         
-        // ✅ PERBAIKAN: Hitung total workspace (hanya yang TIDAK diarsipkan)
+        // ✅ Hitung total workspace (hanya yang TIDAK diarsipkan)
         $totalWorkspaces = Workspace::where('is_archived', false)->count();
         
         // Hitung total kategori
@@ -277,33 +277,41 @@ class DashboardController extends Controller
             ->take(6)
             ->get();
         
-        // ✅ PERBAIKAN: HITUNG STATUS TUGAS UNTUK CHART (HANYA dari workspace yang TIDAK diarsipkan)
+        // ✅ FIXED: HITUNG STATUS TUGAS BERDASARKAN ASSIGNMENTS (SAMA SEPERTI ANALYTICS)
+        // Ambil semua workspace aktif
+        $workspaces = Workspace::where('is_archived', false)
+            ->with(['tasks.assignedUsers', 'tasks.submissions'])
+            ->get();
+
+        $completedTasks = 0;
+        $overdueTasks = 0;
+        $pendingTasks = 0;
         $now = Carbon::now();
-        
-        $completedTasks = Task::whereHas('workspace', function($w) {
-            $w->where('is_archived', false); // ⚠️ CRITICAL: Filter workspace yang diarsipkan
-        })
-        ->whereHas('submissions')
-        ->distinct('id')
-        ->count();
-        
-        $overdueTasks = Task::whereHas('workspace', function($w) {
-            $w->where('is_archived', false); // ⚠️ CRITICAL: Filter workspace yang diarsipkan
-        })
-        ->whereDoesntHave('submissions')
-        ->whereNotNull('due_date')
-        ->where('due_date', '<', $now)
-        ->count();
-        
-        $pendingTasks = Task::whereHas('workspace', function($w) {
-            $w->where('is_archived', false); // ⚠️ CRITICAL: Filter workspace yang diarsipkan
-        })
-        ->whereDoesntHave('submissions')
-        ->where(function($q) use ($now) {
-            $q->whereNull('due_date')
-              ->orWhere('due_date', '>=', $now);
-        })
-        ->count();
+
+        foreach ($workspaces as $workspace) {
+            foreach ($workspace->tasks as $task) {
+                $assignedUsers = $task->assignedUsers;
+                
+                foreach ($assignedUsers as $user) {
+                    // Cek apakah user ini sudah submit
+                    $userSubmission = $task->submissions->where('user_id', $user->id)->first();
+                    
+                    if ($userSubmission) {
+                        // Ada submission = selesai
+                        $completedTasks++;
+                    } else {
+                        // Tidak ada submission, cek deadline
+                        if ($task->due_date && Carbon::parse($task->due_date)->isPast()) {
+                            // Lewat deadline = terlambat
+                            $overdueTasks++;
+                        } else {
+                            // Belum deadline atau tidak ada deadline = belum selesai
+                            $pendingTasks++;
+                        }
+                    }
+                }
+            }
+        }
         
         return view('superadmin.dashboard', compact(
             'totalAdmins',

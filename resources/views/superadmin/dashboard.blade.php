@@ -15,7 +15,9 @@
                 <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                 </svg>
-                <span class="text-sm font-medium text-purple-900">{{ now()->format('l, F d, Y') }}</span>
+                <span class="text-sm font-medium text-purple-900">
+                    {{ \Carbon\Carbon::now()->locale('id')->translatedFormat('l, d F Y') }}
+                </span>
             </div>
         </div>
     </div>
@@ -204,15 +206,15 @@
             <div class="p-6">
                 <canvas id="taskStatusChart" class="w-full" style="max-height: 300px;"></canvas>
                 
-                {{-- Legend with Statistics --}}
+                {{-- Update bagian legend statistics dengan warna abu-abu untuk belum selesai --}}
                 <div class="grid grid-cols-3 gap-4 mt-6">
                     <div class="text-center p-3 bg-green-50 rounded-lg">
                         <div class="text-2xl font-bold text-green-600" id="completedCount">{{ $completedTasks ?? 0 }}</div>
                         <div class="text-xs text-gray-600 mt-1">Selesai</div>
                     </div>
-                    <div class="text-center p-3 bg-blue-50 rounded-lg">
-                        <div class="text-2xl font-bold text-blue-600" id="pendingCount">{{ $pendingTasks ?? 0 }}</div>
-                        <div class="text-xs text-blue-600 mt-1">Belum Selesai</div>
+                    <div class="text-center p-3 bg-gray-50 rounded-lg">
+                        <div class="text-2xl font-bold text-gray-600" id="pendingCount">{{ $pendingTasks ?? 0 }}</div>
+                        <div class="text-xs text-gray-600 mt-1">Belum Selesai</div>
                     </div>
                     <div class="text-center p-3 bg-red-50 rounded-lg">
                         <div class="text-2xl font-bold text-red-600" id="overdueCount">{{ $overdueTasks ?? 0 }}</div>
@@ -371,17 +373,17 @@ document.addEventListener('DOMContentLoaded', function() {
         new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: ['Selesai', 'Belum Selesai', 'Terlambat'],
+                labels: ['Terlambat', 'Belum Selesai', 'Selesai'],
                 datasets: [{
                     data: [
-                        {{ $completedTasks ?? 0 }},
+                        {{ $overdueTasks ?? 0 }},
                         {{ $pendingTasks ?? 0 }},
-                        {{ $overdueTasks ?? 0 }}
+                        {{ $completedTasks ?? 0 }}
                     ],
                     backgroundColor: [
-                        '#10b981', // Green for completed
-                        '#3b82f6', // Blue for pending
-                        '#ef4444'  // Red for overdue
+                        '#ef4444',  // Red for overdue
+                        '#9ca3af', // Gray for pending/unfinished
+                        '#10b981' // Green for completed
                     ],
                     borderColor: '#ffffff',
                     borderWidth: 2

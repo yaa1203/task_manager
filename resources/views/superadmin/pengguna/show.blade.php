@@ -4,16 +4,27 @@
 
 @section('content')
 <div class="max-w-6xl mx-auto">
-    {{-- Back Button --}}
-    <div class="mb-6">
-        <a href="{{ route('pengguna.admin') }}" 
-           class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-all text-sm font-medium text-gray-700">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-            </svg>
-            Kembali
-        </a>
-    </div>
+    {{-- Breadcrumb --}}
+        <nav class="flex mb-3 sm:mb-4" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                <li class="inline-flex items-center">
+                    <a href="{{ route('pengguna.admin') }}" class="inline-flex items-center text-xs sm:text-sm font-medium text-gray-700 hover:text-purple-600 transition">
+                        <svg class="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
+                        </svg>
+                        Pengguna Admin
+                    </a>
+                </li>
+                <li>
+                    <div class="flex items-center">
+                        <svg class="w-4 h-4 sm:w-6 sm:h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span class="ml-1 text-xs sm:text-sm font-medium text-gray-500 md:ml-2">Detail</span>
+                    </div>
+                </li>
+            </ol>
+        </nav>
 
     {{-- Admin Profile Card --}}
     <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mb-8">
@@ -99,7 +110,7 @@
                     <tr class="hover:bg-gray-50 transition-colors duration-150">
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center flex-shrink-0 shadow-md">
+                                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center flex-shrink-0 shadow-md">
                                     <span class="text-white font-bold text-sm">
                                         {{ strtoupper(substr($member->name, 0, 2)) }}
                                     </span>

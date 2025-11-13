@@ -15,7 +15,9 @@
                 <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                 </svg>
-                <span class="text-sm font-medium text-gray-700">{{ now()->format('l, F d, Y') }}</span>
+                <span class="text-sm font-medium text-gray-700">
+                    {{ \Carbon\Carbon::now()->locale('id')->translatedFormat('l, d F Y') }}
+                </span>
             </div>
         </div>
     </div>

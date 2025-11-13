@@ -369,6 +369,16 @@ function getPriorityColor(task) {
     }
 }
 
+function getPriorityLabel(priority) {
+    switch(priority) {
+        case 'urgent': return 'Segera';
+        case 'high': return 'Tinggi';
+        case 'medium': return 'Sedang';
+        case 'low': return 'Rendah';
+        default: return 'Tidak Diketahui';
+    }
+}
+
 function selectDate(date) {
     selectedDate = date;
     renderCalendar();
@@ -477,7 +487,7 @@ function createTaskCard(task) {
                 </div>
                 <div class="flex flex-col gap-1.5 items-end flex-shrink-0">
                     <span class="px-2 sm:px-2.5 py-0.5 sm:py-1 text-xs font-bold rounded-full border ${priorityClass}">
-                        ${task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+                        ${getPriorityLabel(task.priority)}
                     </span>
                     ${hasSubmitted ? `
                         <span class="px-2 sm:px-2.5 py-0.5 sm:py-1 text-xs font-bold rounded-full bg-green-100 text-green-800 border border-green-200">

@@ -224,8 +224,8 @@
                             'desc' => 'Kategori pengguna'
                         ],
                         [
-                            'route' => '#', 
-                            'url' => 'superadmin/analytics', 
+                            'route' => 'analitik.*', 
+                            'url' => 'analitik', 
                             'label' => 'Analitik', 
                             'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>',
                             'desc' => 'Laporan & data'
@@ -382,7 +382,7 @@
                 
                 <div class="flex items-center gap-2">
                     @if(file_exists(public_path('icons/logo72x72.png')))
-                        <img src="{{ asset('icons/logo72x72.png') }}" alt="Logo" class="w-8 h-8 rounded-lg shadow-md" />
+                        <img src="{{ asset('icons/logo72x72.png') }}" alt="Logo" class="w-8 h-8 rounded-full shadow-md" />
                     @else
                         <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg shadow-md flex items-center justify-center">
                             <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">

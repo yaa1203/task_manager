@@ -1,6 +1,5 @@
 <?php
 
-// app/Http/Controllers/NotificationController.php
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -12,9 +11,8 @@ class NotificationController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        $filter = $request->get('filter', 'all'); // all, unread, read
+        $filter = $request->get('filter', 'all');
         
-        // Query notifikasi berdasarkan filter
         $query = $user->notifications()->orderBy('created_at', 'desc');
         
         if ($filter === 'unread') {
@@ -28,26 +26,34 @@ class NotificationController extends Controller
         return view('notifikasi.index', compact('notifications', 'filter'));
     }
     
-    public function markAsRead(DatabaseNotification $notification)
+    public function markAsRead($id)
     {
-        // Pastikan notifikasi milik user yang sedang login
-        if ($notification->notifiable_id != Auth::id() || $notification->notifiable_type != get_class(Auth::user())) {
-            abort(403);
+        try {
+            $notification = DatabaseNotification::findOrFail($id);
+            
+            // Pastikan notifikasi milik user yang sedang login
+            if ($notification->notifiable_id != Auth::id()) {
+                return back()->with('error', 'Akses ditolak.');
+            }
+            
+            // Tandai sebagai dibaca
+            $notification->markAsRead();
+            
+            return back()->with('success', 'Notifikasi berhasil ditandai sebagai dibaca.');
+            
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal menandai notifikasi sebagai dibaca.');
         }
-        
-        $notification->markAsRead();
-        
-        if (request()->wantsJson()) {
-            return response()->json(['success' => true]);
-        }
-        
-        return back()->with('success', 'Notifikasi telah ditandai sebagai dibaca.');
     }
     
     public function markAllAsRead()
     {
-        Auth::user()->unreadNotifications()->update(['read_at' => now()]);
-        
-        return back()->with('success', 'Semua notifikasi telah ditandai sebagai dibaca.');
+        try {
+            Auth::user()->unreadNotifications()->update(['read_at' => now()]);
+            
+            return back()->with('success', 'Semua notifikasi telah ditandai sebagai dibaca.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal menandai semua notifikasi sebagai dibaca.');
+        }
     }
 }
