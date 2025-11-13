@@ -114,14 +114,14 @@
 
                 <!-- Register Link -->
                 @if (Route::has('register'))
-                <div class="mt-6 text-center">
-                    <p class="text-sm text-gray-600">
-                       Jika Belum Memiliki Akun User?
+                <div class="mt-4 text-center">
+                    <p class="text-sm py-2 text-gray-600">
+                       Daftar Sebagai User
                         <a href="{{ route('register') }}" class="font-semibold text-blue-600 hover:text-blue-700 transition">
                            Register
                         </a>
                          <p class="text-sm text-gray-600">
-                       Jika Belum Memiliki Akun Admin?
+                       Daftar Sebagai Admin
                         <a href="{{ route('register.admin') }}" class="font-semibold text-blue-600 hover:text-blue-700 transition">
                            Register
                         </a>

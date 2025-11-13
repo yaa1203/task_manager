@@ -326,29 +326,46 @@
     </div>
     
     <!-- Navigation -->
-    <nav class="bg-white shadow-sm sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav class="fixed top-0 left-0 right-0 bg-white border-b border-gray-100 z-50 h-16 shadow-sm">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <!-- Logo -->
-                <div class="flex items-center space-x-2">
-                    <div class="bg-gradient-to-br from-blue-600 to-purple-600 text-white rounded-lg w-10 h-10 flex items-center justify-center font-bold text-xl shadow-md">
-                        T
-                    </div>
-                    <span class="font-bold text-xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Taskly</span>
+                <div class="flex items-center flex-shrink-0">
+                    <a href="/" class="flex items-center space-x-2 sm:space-x-3 group">
+                        <div class="relative">
+                            <div class="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full blur-md opacity-40 group-hover:opacity-60 transition-opacity"></div>
+                            @if(file_exists(public_path('icons/logo72x72.png')))
+                                <img src="{{ asset('icons/logo72x72.png') }}" alt="Logo" class="relative h-9 w-9 rounded-full shadow-md" />
+                            @else
+                                <div class="relative h-9 w-9 rounded-full shadow-md bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                                    </svg>
+                                </div>
+                            @endif
+                        </div>
+                        <span class="text-base sm:text-lg font-bold text-gray-900 whitespace-nowrap">TaskFlow</span>
+                    </a>
                 </div>
                 
-                <!-- Desktop & Mobile Buttons -->
-                <div class="flex items-center space-x-2 sm:space-x-4">
-                    <a href="{{ route('login')}}" class="text-gray-700 hover:text-blue-600 font-medium px-3 sm:px-4 py-2 rounded-lg transition-colors duration-200 text-sm sm:text-base">
+                <!-- Auth Buttons -->
+                <div class="flex items-center space-x-2 sm:space-x-3">
+                    <a href="{{ route('login')}}" class="text-sm font-medium text-gray-700 hover:text-indigo-600 px-3 sm:px-4 py-2 rounded-full transition-colors duration-200 whitespace-nowrap">
                         Masuk
                     </a>
-                    <a href="{{ route('register')}}" class="relative overflow-hidden bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-3 sm:px-6 py-2 rounded-lg font-medium shadow-md transition-all duration-300 transform hover:scale-105 text-sm sm:text-base">
-                        Daftar Gratis
+                    <a href="{{ route('register')}}" class="flex items-center gap-1 sm:gap-2 px-4 sm:px-5 py-2 rounded-full text-sm font-medium bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 whitespace-nowrap">
+                        <svg class="w-4 h-4 hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                        </svg>
+                        <span>Daftar</span>
                     </a>
                 </div>
             </div>
         </div>
     </nav>
+
+    <!-- Add padding to content so it doesn't hide under fixed navbar -->
+    <div class="pt-12"></div>
 
     <!-- Hero Section -->
     <section class="relative overflow-hidden py-12 md:py-20 lg:py-24">
@@ -364,7 +381,7 @@
                     </h1>
                     
                     <p class="text-base sm:text-lg md:text-xl text-gray-600 max-w-2xl mx-auto lg:mx-0">
-                        Atur prioritas, delegasikan, dan raih fokus — semua dalam satu aplikasi ringan yang dirancang untuk produktivitas Anda.
+                        Atur prioritas, delegasikan, dan raih fokus semua dalam satu aplikasi ringan yang dirancang untuk produktivitas Anda.
                     </p>
                     
                     <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
@@ -392,7 +409,7 @@
     </section>
 
     <!-- Features Section -->
-    <section id="features" class="py-16 md:py-20 lg:py-24 bg-white">
+    <section id="features" class="py-20 md:py-20 lg:py-24 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12 md:mb-16">
                 <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">

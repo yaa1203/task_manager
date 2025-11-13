@@ -1,7 +1,7 @@
 {
-  "name": "Laravel Task Management App",
-  "short_name": "TaskApp",
-  "description": "A powerful task and project management application",
+  "name": "TaskFlow",
+  "short_name": "TaskFlow",
+  "description": "Aplikasi manajemen tugas dan proyek yang kuat",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -64,36 +64,10 @@
   ],
   "shortcuts": [
     {
-      "name": "Create New Task",
-      "short_name": "New Task",
-      "description": "Create a new task quickly",
-      "url": "/tasks/create",
-      "icons": [
-        {
-          "src": "/icons/logo96x96.png",
-          "sizes": "96x96",
-          "type": "image/png"
-        }
-      ]
-    },
-    {
-      "name": "View Projects",
-      "short_name": "Projects",
-      "description": "View all projects",
-      "url": "/projects",
-      "icons": [
-        {
-          "src": "/icons/logo96x96.png",
-          "sizes": "96x96",
-          "type": "image/png"
-        }
-      ]
-    },
-    {
-      "name": "Admin Dashboard",
-      "short_name": "Admin",
-      "description": "Go to admin dashboard",
-      "url": "/admin/dashboard",
+      "name": "Lihat Workspace",
+      "short_name": "Workspace",
+      "description": "Lihat Semua Workspace",
+      "url": "/my-workspaces",
       "icons": [
         {
           "src": "/icons/logo96x96.png",
@@ -108,13 +82,13 @@
       "src": "/screenshots/desktop-home.png",
       "sizes": "1920x1080",
       "type": "image/png",
-      "label": "Home screen on desktop"
+      "label": "Layar beranda di desktop"
     },
     {
       "src": "/screenshots/mobile-home.png",
       "sizes": "750x1334",
       "type": "image/png",
-      "label": "Home screen on mobile"
+      "label": "Layar beranda di ponsel"
     }
   ]
 }

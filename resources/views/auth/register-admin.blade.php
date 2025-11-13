@@ -192,7 +192,7 @@
                     <p class="text-sm text-gray-600">
                         Sudah memiliki akun? 
                         <a href="{{ route('login') }}" class="font-semibold text-blue-600 hover:text-blue-700 transition">
-                            Masuk di sini
+                            Login
                         </a>
                     </p>
                 </div>

@@ -17,7 +17,7 @@
                             </div>
                         @endif
                     </div>
-                    <span class="hidden sm:block text-lg font-bold text-gray-900">TaskFlow</span>
+                    <span class="text-base sm:text-lg font-bold text-gray-900 whitespace-nowrap">TaskFlow</span>
                 </a>
             </div>
 
