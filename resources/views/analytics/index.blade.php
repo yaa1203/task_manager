@@ -616,7 +616,7 @@
                                     labels: ['Selesai', 'Belum Selesai', 'Terlambat'],
                                     datasets: [{
                                         data: taskData,
-                                        backgroundColor: ['#ef4444', '#10b981', '#6b7280',],
+                                        backgroundColor: ['#10b981', '#6b7280', '#ef4444'],
                                         borderWidth: isMobile ? 1 : 2,
                                         borderColor: '#ffffff'
                                     }]
