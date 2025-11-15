@@ -232,17 +232,24 @@
                                         <p class="text-xs text-gray-600 line-clamp-1">{{ $task->description }}</p>
                                         @endif
                                     </div>
-                                    <span class="text-xs font-medium px-2 py-1 rounded-full whitespace-nowrap border flex-shrink-0
+                                    <span class="text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap flex-shrink-0
                                         @php
                                             $priorityConfig = [
-                                                'urgent' => 'bg-red-100 text-red-800 border-red-200',
-                                                'high' => 'bg-orange-100 text-orange-800 border-orange-200',
-                                                'medium' => 'bg-yellow-100 text-yellow-800 border-yellow-200',
-                                                'low' => 'bg-blue-100 text-blue-800 border-blue-200'
+                                                'urgent' => 'bg-red-100 text-red-800',
+                                                'high' => 'bg-orange-100 text-orange-800',
+                                                'medium' => 'bg-yellow-100 text-yellow-800',
+                                                'low' => 'bg-blue-100 text-blue-800'
                                             ];
-                                            echo $priorityConfig[$task->priority] ?? $priorityConfig['low'];
-                                        @endphp">
-                                        {{ ucfirst($task->priority) }}
+                                            $pConfig = $priorityConfig[$task->priority] ?? $priorityConfig['low'];
+                                        @endphp
+                                        {{ $pConfig }}">
+                                        @switch($task->priority)
+                                            @case('low') Rendah @break
+                                            @case('medium') Sedang @break
+                                            @case('high') Tinggi @break
+                                            @case('urgent') Segera @break
+                                            @default {{ ucfirst($task->priority) }}
+                                        @endswitch
                                     </span>
                                 </div>
 
