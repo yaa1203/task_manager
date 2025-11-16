@@ -26,14 +26,20 @@ class UserController extends Controller
         $search = $request->get('search');
 
         $query = User::where('role', 'user')
-            ->where('category_id', $adminCategoryId)
-            ->withCount('assignedTasks');
+            ->where('category_id', $adminCategoryId);
+
+        // ✅ FIXED: Hitung tugas yang diberikan oleh admin ini saja
+        $query->withCount(['assignedTasks as assigned_tasks_count' => function($q) use ($adminId) {
+            $q->whereHas('workspace', function($w) use ($adminId) {
+                $w->where('admin_id', $adminId)->where('is_archived', false);
+            });
+        }]);
 
         // Filter pencarian
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
@@ -66,13 +72,14 @@ class UserController extends Controller
 
         $users->appends(['sort_by' => $sortBy, 'search' => $search]);
 
-        // Ambil semua data submissions untuk users ini
+        // Ambil semua data submissions untuk users ini (HANYA dari admin yang login)
         $userIds = $users->pluck('id');
 
+        // ✅ FIXED: Ambil submission data hanya dari workspace milik admin ini
         $submissionsData = DB::table('user_task_submissions')
             ->join('tasks', 'user_task_submissions.task_id', '=', 'tasks.id')
             ->join('workspaces', 'tasks.workspace_id', '=', 'workspaces.id')
-            ->where('workspaces.admin_id', $adminId)
+            ->where('workspaces.admin_id', $adminId)  // ✅ Hanya admin ini
             ->where('workspaces.is_archived', false)
             ->whereIn('user_task_submissions.user_id', $userIds)
             ->select(
@@ -83,27 +90,89 @@ class UserController extends Controller
             ->get()
             ->groupBy('user_id');
 
+        // ✅ FIXED: Hitung completion rate hanya dari tugas admin ini
         $users->getCollection()->transform(function ($user) use ($submissionsData, $adminId) {
             $userSubmissions = $submissionsData->get($user->id, collect());
 
             $onTimeCount = $userSubmissions->filter(fn($s) => $s->submission_date <= $s->due_date)->count();
             $lateCount = $userSubmissions->filter(fn($s) => $s->submission_date > $s->due_date)->count();
 
+            // ✅ Semua perhitungan menggunakan adminId (bukan category)
             $user->diligence_score = $this->calculateImprovedScore($user, $adminId);
             $user->late_submissions_count = $lateCount;
             $user->on_time_submissions_count = $onTimeCount;
-            $user->completion_rate = $this->calculateCompletionRate($user, $adminId);
+            $user->completion_rate = $this->calculateCompletionRate($user, $adminId); // ✅ Sudah benar
 
             return $user;
         });
 
+        // Debugging: Log data untuk cek
+        foreach ($users as $user) {
+            \Log::info("User {$user->name}: assigned={$user->assigned_tasks_count}, completion={$user->completion_rate}%");
+        }
+
         return view('admin.users.index', compact('users', 'sortBy', 'search'));
     }
 
-    /**
-     * ✅ IMPROVED: Scoring dengan pertimbangan persentase dan total tugas
-     * Formula: (completion_rate * 0.4) + (on_time_rate * 0.4) + (total_tasks * 0.2)
-     */
+    public function show(User $user)
+    {
+        $admin = Auth::user();
+        $adminId = $admin->id;
+        $adminCategoryId = $admin->category_id;
+
+        // Validasi kategori
+        if ($user->category_id !== $adminCategoryId) {
+            return redirect()->route('users.index')->with('error', 'User ini tidak termasuk dalam kategori Anda.');
+        }
+
+        // ✅ FIXED: Hanya ambil tugas yang diberikan oleh admin yang sedang login
+        $tasks = $user->assignedTasks()
+            ->whereHas('workspace', function($w) use ($adminId) {
+                $w->where('admin_id', $adminId); // Hanya workspace milik admin ini
+            })
+            ->with([
+                'workspace.admin',
+                'submissions' => fn($q) => $q->where('user_id', $user->id),
+                'assignedUsers',
+                'creator'
+            ])
+            ->latest()
+            ->get();
+
+        // Pisahkan tugas aktif dan arsip
+        $activeTasks = $tasks->filter(fn($t) => !$t->workspace->is_archived);
+        $archivedTasks = $tasks->filter(fn($t) => $t->workspace->is_archived);
+
+        // ✅ Hitung statistik berdasarkan tugas aktif dari admin ini saja
+        $totalTasks = $activeTasks->count();
+        $completedTasks = $activeTasks->filter(fn($t) => $t->submissions->isNotEmpty())->count();
+        $overdueTasks = $activeTasks->filter(function($t) {
+            $hasSubmitted = $t->submissions->isNotEmpty();
+            return !$hasSubmitted && $t->due_date && now()->gt($t->due_date);
+        })->count();
+        $unfinishedTasks = $activeTasks->filter(function($t) {
+            $hasSubmitted = $t->submissions->isNotEmpty();
+            return !$hasSubmitted && (!$t->due_date || now()->lte($t->due_date));
+        })->count();
+
+        // ✅ Hitung performa berdasarkan tugas dari admin ini saja
+        $diligenceScore = $this->calculateImprovedScore($user, $adminId);
+        $completionRate = $this->calculateCompletionRate($user, $adminId);
+
+        return view('admin.users.show', compact(
+            'user', 
+            'tasks',
+            'activeTasks',
+            'archivedTasks',
+            'totalTasks',
+            'completedTasks', 
+            'overdueTasks',
+            'unfinishedTasks', 
+            'diligenceScore', 
+            'completionRate'
+        ));
+    }
+
     private function calculateImprovedScore($user, $adminId)
     {
         $totalAssigned = $user->assignedTasks()
@@ -112,31 +181,23 @@ class UserController extends Controller
 
         if ($totalAssigned === 0) return 0;
 
-        // Hitung completion rate (0-100)
         $completed = $user->submissions()
             ->whereHas('task.workspace', fn($w) => $w->where('admin_id', $adminId)->where('is_archived', false))
             ->distinct('task_id')
             ->count();
         $completionRate = ($completed / $totalAssigned) * 100;
 
-        // Hitung on-time rate (0-100)
         $onTime = $this->countOnTimeSubmissions($user, $adminId);
         $late = $this->countLateSubmissions($user, $adminId);
         $totalSubmitted = $onTime + $late;
         $onTimeRate = $totalSubmitted > 0 ? ($onTime / $totalSubmitted) * 100 : 0;
 
-        // Normalize total tasks (max 100 untuk memberikan range yang sama)
         $normalizedTasks = min($totalAssigned, 100);
-
-        // Formula weighted score
         $score = ($completionRate * 0.4) + ($onTimeRate * 0.4) + ($normalizedTasks * 0.2);
 
         return round($score, 2);
     }
 
-    /**
-     * ✅ IMPROVED: Sorting berdasarkan skor yang lebih akurat
-     */
     private function getUsersWithImprovedScore($query, $adminId, $direction = 'desc')
     {
         $users = $query->get();
@@ -153,9 +214,6 @@ class UserController extends Controller
         return $this->paginateCollection($sorted, 15);
     }
 
-    /**
-     * ✅ IMPROVED: Sorting berdasarkan completion rate dan jumlah
-     */
     private function getUsersWithCompletionMetrics($query, $adminId, $direction = 'desc')
     {
         $users = $query->get();
@@ -172,7 +230,6 @@ class UserController extends Controller
 
             $completionRate = $totalAssigned > 0 ? ($completed / $totalAssigned) * 100 : 0;
 
-            // Score = (completion_rate * 0.7) + (completed_count * 0.3)
             $user->temp_completion_score = ($completionRate * 0.7) + ($completed * 0.3);
             $user->temp_completion_rate = $completionRate;
             $user->temp_completed_count = $completed;
@@ -187,9 +244,6 @@ class UserController extends Controller
         return $this->paginateCollection($sorted, 15);
     }
 
-    /**
-     * ✅ IMPROVED: Sorting berdasarkan late rate dan jumlah
-     */
     private function getUsersWithLateMetrics($query, $adminId, $direction = 'desc')
     {
         $users = $query->get();
@@ -201,7 +255,6 @@ class UserController extends Controller
 
             $lateRate = $totalSubmitted > 0 ? ($late / $totalSubmitted) * 100 : 0;
 
-            // Score = (late_rate * 0.7) + (late_count * 0.3)
             $user->temp_late_score = ($lateRate * 0.7) + ($late * 0.3);
             $user->temp_late_rate = $lateRate;
             $user->temp_late_count = $late;
@@ -216,9 +269,6 @@ class UserController extends Controller
         return $this->paginateCollection($sorted, 15);
     }
 
-    /**
-     * Pagination manual (untuk hasil koleksi sorting custom)
-     */
     private function paginateCollection($collection, $perPage = 15)
     {
         $page = request()->get('page', 1);
@@ -274,8 +324,6 @@ class UserController extends Controller
         return round(($completed / $totalAssigned) * 100, 1);
     }
 
-    // ... rest of the methods remain the same ...
-    
     public function destroy(User $user)
     {
         $admin = Auth::user();
@@ -292,60 +340,6 @@ class UserController extends Controller
 
         $user->delete();
         return back()->with('success', 'User berhasil dihapus.');
-    }
-
-    public function show(User $user)
-    {
-        $admin = Auth::user();
-        $adminId = $admin->id;
-        $adminCategoryId = $admin->category_id;
-
-        if ($user->category_id !== $adminCategoryId) {
-            return redirect()->route('users.index')->with('error', 'User ini tidak termasuk dalam kategori Anda.');
-        }
-
-        $tasks = $user->assignedTasks()
-            ->whereHas('workspace', function($w) use ($adminCategoryId) {
-                $w->whereHas('admin', fn($a) => $a->where('category_id', $adminCategoryId));
-            })
-            ->with([
-                'workspace.admin',
-                'submissions' => fn($q) => $q->where('user_id', $user->id),
-                'assignedUsers',
-                'creator'
-            ])
-            ->latest()
-            ->get();
-
-        $activeTasks = $tasks->filter(fn($t) => !$t->workspace->is_archived);
-        $archivedTasks = $tasks->filter(fn($t) => $t->workspace->is_archived);
-
-        $totalTasks = $activeTasks->count();
-        $completedTasks = $activeTasks->filter(fn($t) => $t->submissions->isNotEmpty())->count();
-        $overdueTasks = $activeTasks->filter(function($t) {
-            $hasSubmitted = $t->submissions->isNotEmpty();
-            return !$hasSubmitted && $t->due_date && now()->gt($t->due_date);
-        })->count();
-        $unfinishedTasks = $activeTasks->filter(function($t) {
-            $hasSubmitted = $t->submissions->isNotEmpty();
-            return !$hasSubmitted && (!$t->due_date || now()->lte($t->due_date));
-        })->count();
-
-        $diligenceScore = $this->calculateImprovedScore($user, $adminId);
-        $completionRate = $this->calculateCompletionRateAllAdmins($user, $adminCategoryId);
-
-        return view('admin.users.show', compact(
-            'user', 
-            'tasks',
-            'activeTasks',
-            'archivedTasks',
-            'totalTasks',
-            'completedTasks', 
-            'overdueTasks',
-            'unfinishedTasks', 
-            'diligenceScore', 
-            'completionRate'
-        ));
     }
 
     private function countOnTimeSubmissionsAllAdmins($user, $categoryId)

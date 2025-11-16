@@ -350,7 +350,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 20a6 6 0 0112 0"/>
                         </svg>
                     </div>
-                    <span>Lihat Profile</span>
+                    <span>Lihat Profil</span>
                 </a>
                 
                 <form method="POST" action="{{ route('logout') }}">

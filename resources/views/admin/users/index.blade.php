@@ -260,9 +260,6 @@
                                     </svg>
                                     {{ $user->assigned_tasks_count }} Tugas
                                 </span>
-                                <span class="text-xs text-gray-600 font-medium">
-                                    {{ number_format($user->completion_rate, 1) }}% selesai
-                                </span>
                             </div>
                         </td>
                         <td class="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
@@ -447,18 +444,6 @@
                             </svg>
                             Terlambat: {{ $user->late_submissions_count }}
                         </span>
-                    </div>
-
-                    {{-- Progress Bar --}}
-                    <div class="space-y-2">
-                        <div class="flex justify-between text-xs">
-                            <span class="text-gray-700 font-semibold">Tingkat Penyelesaian</span>
-                            <span class="font-bold text-gray-900">{{ number_format($user->completion_rate, 1) }}%</span>
-                        </div>
-                        <div class="w-full bg-gray-200 rounded-full h-2.5 shadow-inner">
-                            <div class="bg-gradient-to-r from-blue-500 to-blue-600 h-2.5 rounded-full transition-all duration-500 shadow-sm" 
-                                 style="width: {{ $user->completion_rate }}%"></div>
-                        </div>
                     </div>
 
                     {{-- Additional Info --}}
