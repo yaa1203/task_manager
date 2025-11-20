@@ -586,14 +586,12 @@ class WorkspaceController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
             'icon' => 'required|in:folder,briefcase,chart,target,cog,clipboard',
             'color' => 'required|string',
         ]);
 
         $workspace = Workspace::create([
             'name' => $validated['name'],
-            'description' => $validated['description'],
             'icon' => $validated['icon'],
             'color' => $validated['color'],
             'admin_id' => $user->id,
@@ -1134,11 +1132,9 @@ class WorkspaceController extends Controller
         return view('calendar.index', compact('tasks'));
     }
 
-    /// Di WorkspaceController.php, ubah method superadminIndex
-
     /**
      * Superadmin workspace index - Show all workspaces from all admins
-     * ✅ FIXED: Default filter changed to 'all' instead of 'false'
+     * ✅ FIXED: Exclude personal workspaces from view
      */
     public function superadminIndex(Request $request)
     {
@@ -1146,7 +1142,9 @@ class WorkspaceController extends Controller
         $sortBy = $request->input('sort_by', 'created_at');
         $archived = $request->input('archived', 'all'); // ✅ Changed default from 'false' to 'all'
         
-        $query = Workspace::withCount(['tasks'])
+        // ✅ PERBAIKAN: Exclude personal workspaces from query
+        $query = Workspace::where('is_personal', false)
+            ->withCount(['tasks'])
             ->with(['admin.category'])
             ->latest();
         
@@ -1181,6 +1179,7 @@ class WorkspaceController extends Controller
         
         $workspaces = $query->paginate(15);
         
+        // ✅ PERBAIKAN: Exclude personal workspaces from category stats
         $categories = \App\Models\Category::withCount([
             'users as admins_count' => function($query) {
                 $query->where('role', 'admin');
@@ -1188,13 +1187,17 @@ class WorkspaceController extends Controller
         ])->get();
         
         foreach ($categories as $category) {
-            $category->workspaces_count = Workspace::whereHas('admin', function($q) use ($category) {
-                $q->where('category_id', $category->id);
-            })->count();
+            $category->workspaces_count = Workspace::where('is_personal', false)
+                ->whereHas('admin', function($q) use ($category) {
+                    $q->where('category_id', $category->id);
+                })->count();
             
-            $category->tasks_count = Task::whereHas('workspace.admin', function($q) use ($category) {
-                $q->where('category_id', $category->id);
-            })->count();
+            $category->tasks_count = Task::whereHas('workspace', function($q) use ($category) {
+                $q->where('is_personal', false)
+                    ->whereHas('admin', function($q) use ($category) {
+                        $q->where('category_id', $category->id);
+                    });
+                })->count();
         }
         
         return view('superadmin.space.index', compact('workspaces', 'categories', 'search', 'sortBy', 'archived'));
@@ -1202,9 +1205,15 @@ class WorkspaceController extends Controller
 
     /**
      * Superadmin workspace detail - Show workspace details from any admin
+     * ✅ FIXED: Prevent access to personal workspaces
      */
     public function superadminShow(Workspace $workspace)
     {
+        // ✅ PERBAIKAN: Check if this is a personal workspace
+        if ($workspace->is_personal) {
+            abort(403, 'Personal workspace tidak dapat diakses oleh superadmin.');
+        }
+        
         $workspace->load(['admin', 'tasks.assignedUsers', 'tasks.submissions']);
         
         $users = User::where('role', 'user')
@@ -1216,10 +1225,15 @@ class WorkspaceController extends Controller
 
     /**
      * Superadmin toggle archive workspace
-     * ✅ FIXED: Clear analytics cache when superadmin toggles archive
+     * ✅ FIXED: Prevent archiving personal workspaces
      */
     public function superadminToggleArchive(Workspace $workspace)
     {
+        // ✅ PERBAIKAN: Check if this is a personal workspace
+        if ($workspace->is_personal) {
+            abort(403, 'Personal workspace tidak dapat diarsipkan oleh superadmin.');
+        }
+        
         $workspace->update([
             'is_archived' => !$workspace->is_archived
         ]);
@@ -1237,10 +1251,15 @@ class WorkspaceController extends Controller
 
     /**
      * Superadmin delete workspace
-     * ✅ FIXED: Clear analytics cache when superadmin deletes workspace
+     * ✅ FIXED: Prevent deleting personal workspaces
      */
     public function superadminDestroy(Workspace $workspace)
     {
+        // ✅ PERBAIKAN: Check if this is a personal workspace
+        if ($workspace->is_personal) {
+            abort(403, 'Personal workspace tidak dapat dihapus oleh superadmin.');
+        }
+        
         // ✅ Clear all related analytics caches before deletion
         AnalyticsController::clearWorkspaceRelatedCaches($workspace);
 

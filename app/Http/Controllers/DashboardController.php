@@ -256,6 +256,7 @@ class DashboardController extends Controller
     /**
      * SuperAdmin Dashboard
      * FIXED: Consistent with analytics - count by assignments, not tasks
+     * FIXED: Exclude personal workspaces from statistics
      */
     public function superAdminDashboard()
     {
@@ -265,8 +266,10 @@ class DashboardController extends Controller
         // ✅ Hanya admin biasa (role = 'admin')
         $totalAdmins = User::where('role', 'admin')->count();
         
-        // ✅ Hitung total workspace (hanya yang TIDAK diarsipkan)
-        $totalWorkspaces = Workspace::where('is_archived', false)->count();
+        // ✅ Hitung total workspace (hanya yang TIDAK diarsipkan dan BUKAN personal)
+        $totalWorkspaces = Workspace::where('is_archived', false)
+            ->where('is_personal', false) // Tambahkan ini untuk mengecualikan personal workspace
+            ->count();
         
         // Hitung total kategori
         $totalCategories = Category::count();
@@ -278,8 +281,10 @@ class DashboardController extends Controller
             ->get();
         
         // ✅ FIXED: HITUNG STATUS TUGAS BERDASARKAN ASSIGNMENTS (SAMA SEPERTI ANALYTICS)
-        // Ambil semua workspace aktif
+        // ✅ PERBAIKAN: Exclude personal workspaces
+        // Ambil semua workspace aktif yang BUKAN personal
         $workspaces = Workspace::where('is_archived', false)
+            ->where('is_personal', false) // Tambahkan ini
             ->with(['tasks.assignedUsers', 'tasks.submissions'])
             ->get();
 
@@ -313,6 +318,11 @@ class DashboardController extends Controller
             }
         }
         
+        // ✅ TAMBAHKAN: Hitung total personal workspace untuk informasi (tidak ditampilkan di statistik utama)
+        $totalPersonalWorkspaces = Workspace::where('is_personal', true)
+            ->where('is_archived', false)
+            ->count();
+        
         return view('superadmin.dashboard', compact(
             'totalAdmins',
             'totalUsers',
@@ -321,7 +331,8 @@ class DashboardController extends Controller
             'recentUsers',
             'completedTasks',
             'pendingTasks',
-            'overdueTasks'
+            'overdueTasks',
+            'totalPersonalWorkspaces' // Opsional: kirim ke view untuk informasi tambahan
         ));
     }
 }

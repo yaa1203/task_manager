@@ -14,8 +14,8 @@ use Carbon\Carbon;
 
 class AnalyticsController extends Controller
 {
-    // Cache duration in seconds (2 minutes) - hanya untuk user analytics
-    const CACHE_DURATION = 120;
+    // ✅ PERBAIKAN: Hapus cache duration untuk data real-time
+    // const CACHE_DURATION = 120;
 
     /**
      * Display analytics dashboard for user
@@ -26,7 +26,8 @@ class AnalyticsController extends Controller
     }
 
     /**
-     * Get analytics data for user with caching
+     * Get analytics data for user WITHOUT caching
+     * ✅ PERBAIKAN: Hapus cache untuk data real-time
      */
     public function data()
     {
@@ -39,14 +40,17 @@ class AnalyticsController extends Controller
 
             Log::info('Fetching analytics for user: ' . $userId);
 
-            // Use cache to prevent excessive database queries
-            $cacheKey = "analytics_user_{$userId}";
-            
-            $data = Cache::remember($cacheKey, self::CACHE_DURATION, function () use ($userId) {
-                return $this->getUserAnalyticsData($userId);
-            });
+            // ✅ PERBAIKAN: Langsung ambil data tanpa cache
+            $data = $this->getUserAnalyticsData($userId);
 
-            return $this->successResponse($data);
+            // ✅ PERBAIKAN: Tambahkan no-cache headers
+            return response()->json($data)
+                ->header('Content-Type', 'application/json; charset=utf-8')
+                ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT')
+                ->header('X-Content-Type-Options', 'nosniff')
+                ->header('X-Frame-Options', 'DENY');
 
         } catch (\Exception $e) {
             Log::error('Analytics data error: ' . $e->getMessage(), [
@@ -59,15 +63,19 @@ class AnalyticsController extends Controller
 
     /**
      * Get user analytics data
+     * ✅ UPDATED: Include personal workspace tasks + assigned workspace tasks
      * FIXED: Filter out archived workspaces
      */
     private function getUserAnalyticsData($userId)
     {
-        // ✅ HANYA ambil workspace yang TIDAK diarsipkan (is_archived = false)
-        $workspaces = Workspace::whereHas('tasks.assignedUsers', function ($q) use ($userId) {
+        // ✅ AMBIL WORKSPACE YANG TIDAK DIARSIPKAN (is_archived = false)
+        
+        // 1️⃣ Workspace yang di-assign dari admin (user menerima tugas)
+        $assignedWorkspaces = Workspace::whereHas('tasks.assignedUsers', function ($q) use ($userId) {
             $q->where('user_id', $userId);
         })
-        ->where('is_archived', false) // ⚠️ CRITICAL: Filter workspace yang diarsipkan
+        ->where('is_archived', false)
+        ->where('is_personal', false) // Exclude personal workspaces
         ->with(['tasks' => function($q) use ($userId) {
             $q->whereHas('assignedUsers', function($query) use ($userId) {
                 $query->where('user_id', $userId);
@@ -75,6 +83,22 @@ class AnalyticsController extends Controller
                 $query->where('user_id', $userId);
             }]);
         }])->get();
+
+        // 2️⃣ Personal workspace milik user
+        $personalWorkspace = Workspace::where('admin_id', $userId)
+            ->where('is_personal', true)
+            ->where('is_archived', false)
+            ->with(['tasks' => function($q) {
+                // Get ALL tasks from personal workspace (no filtering)
+                $q->with(['submissions']);
+            }])->first();
+
+        // Combine all workspaces
+        $workspaces = collect();
+        if ($personalWorkspace) {
+            $workspaces = $workspaces->push($personalWorkspace);
+        }
+        $workspaces = $workspaces->merge($assignedWorkspaces);
 
         // Collect all tasks
         $allMyTasks = collect();
@@ -87,7 +111,8 @@ class AnalyticsController extends Controller
                     'name' => $workspace->name ?? 'Unnamed Workspace',
                     'tasks' => $taskCount,
                     'icon' => $workspace->icon ?? '📁',
-                    'color' => $workspace->color ?? '#6b7280'
+                    'color' => $workspace->color ?? '#6b7280',
+                    'is_personal' => $workspace->is_personal ?? false
                 ];
             }
             $allMyTasks = $allMyTasks->merge($workspace->tasks);
@@ -171,12 +196,15 @@ class AnalyticsController extends Controller
 
     /**
      * Success response helper
+     * ✅ PERBAIKAN: Tambahkan no-cache headers
      */
     private function successResponse($data)
     {
         return response()->json($data)
             ->header('Content-Type', 'application/json; charset=utf-8')
-            ->header('Cache-Control', 'private, max-age=' . self::CACHE_DURATION)
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT')
             ->header('X-Content-Type-Options', 'nosniff')
             ->header('X-Frame-Options', 'DENY');
     }
@@ -384,44 +412,33 @@ class AnalyticsController extends Controller
 
     /**
      * ✅ HELPER: Clear analytics cache for specific user
+     * ✅ PERBAIKAN: Kosongkan fungsi karena tidak ada cache lagi
      */
     public static function clearUserCache($userId)
     {
-        Cache::forget("analytics_user_{$userId}");
-        Log::info("Cleared analytics cache for user: {$userId}");
+        // ✅ PERBAIKAN: Tidak ada cache lagi untuk dibersihkan
+        Log::info("Analytics cache clearing requested for user: {$userId} (no cache to clear)");
     }
 
     /**
      * ✅ HELPER: Clear analytics cache for specific admin
+     * ✅ PERBAIKAN: Kosongkan fungsi karena tidak ada cache lagi
      */
     public static function clearAdminCache($adminId)
     {
-        Cache::forget("analytics_admin_{$adminId}");
-        Log::info("Cleared analytics cache for admin: {$adminId}");
+        // ✅ PERBAIKAN: Tidak ada cache lagi untuk dibersihkan
+        Log::info("Analytics cache clearing requested for admin: {$adminId} (no cache to clear)");
     }
 
     /**
      * ✅ HELPER: Clear all related caches when workspace is archived/restored
+     * ✅ PERBAIKAN: Kosongkan fungsi karena tidak ada cache lagi
      */
     public static function clearWorkspaceRelatedCaches(Workspace $workspace)
     {
-        self::clearAdminCache($workspace->admin_id);
-
-        $userIds = $workspace->tasks()
-            ->with('assignedUsers')
-            ->get()
-            ->pluck('assignedUsers')
-            ->flatten()
-            ->pluck('id')
-            ->unique();
-
-        foreach ($userIds as $userId) {
-            self::clearUserCache($userId);
-        }
-
-        Log::info("Cleared all analytics caches for workspace: {$workspace->id}");
+        // ✅ PERBAIKAN: Tidak ada cache lagi untuk dibersihkan
+        Log::info("Analytics cache clearing requested for workspace: {$workspace->id} (no cache to clear)");
     }
-    
 
     public function SuperadminIndex()
     {
@@ -439,8 +456,9 @@ class AnalyticsController extends Controller
 
             Log::info('Fetching analytics (admins + users only) for Superadmin: ' . $superAdminId);
 
-            // Ambil semua workspace aktif
+            // ✅ PERBAIKAN: Exclude personal workspaces from analytics
             $workspaces = Workspace::where('is_archived', false)
+                ->where('is_personal', false) // Tambahkan ini untuk mengecualikan personal workspace
                 ->get(['id', 'admin_id', 'name', 'icon', 'color']);
 
             if ($workspaces->isEmpty()) {
@@ -456,7 +474,10 @@ class AnalyticsController extends Controller
                         'overdue_workload' => 0
                     ],
                     'timestamp' => time(),
-                ]);
+                ])
+                ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT');
             }
 
             // Ambil semua task dari tiap workspace
@@ -496,11 +517,15 @@ class AnalyticsController extends Controller
             $totalAdmins = $allAccounts->where('role', 'admin')->count();
 
             // User aktif (yang kirim submission 7 hari terakhir)
+            // ✅ PERBAIKAN: Exclude submissions from personal workspaces
             $recentUserIds = DB::table('user_task_submissions')
-                ->whereNotNull('created_at')
-                ->where('created_at', '>=', now()->subDays(7))
+                ->join('tasks', 'user_task_submissions.task_id', '=', 'tasks.id')
+                ->join('workspaces', 'tasks.workspace_id', '=', 'workspaces.id')
+                ->whereNotNull('user_task_submissions.created_at')
+                ->where('user_task_submissions.created_at', '>=', now()->subDays(7))
+                ->where('workspaces.is_personal', false) // Tambahkan ini
                 ->distinct()
-                ->pluck('user_id')
+                ->pluck('user_task_submissions.user_id')
                 ->toArray();
 
             $activeAccounts = $allAccounts->whereIn('id', $recentUserIds)->count();
@@ -555,14 +580,20 @@ class AnalyticsController extends Controller
                 ],
                 'summary' => $summary,
                 'timestamp' => time(),
-            ]);
+            ])
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT');
 
         } catch (\Exception $e) {
             Log::error('Superadmin analytics error: ' . $e->getMessage());
             return response()->json([
                 'error' => 'Internal Server Error',
                 'message' => $e->getMessage(),
-            ], 500);
+            ], 500)
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT');
         }
     }
 }
