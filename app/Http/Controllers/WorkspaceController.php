@@ -834,9 +834,6 @@ class WorkspaceController extends Controller
         return view('work.show', compact('workspace', 'tasks'));
     }
 
-    /**
-     * User view task detail - FIXED: Check if workspace is archived
-     */
     public function userShowTask(Workspace $workspace, Task $task)
     {
         if ($workspace->is_archived) {
@@ -862,7 +859,17 @@ class WorkspaceController extends Controller
 
         $hasSubmitted = $submissions->isNotEmpty();
 
-        return view('work.tasks.show', compact('workspace', 'task', 'submissions', 'hasSubmitted'));
+        // Tambahkan baris ini
+        $hasSubmitted = $submissions->isNotEmpty();
+        $isPersonalWorkspace = $workspace->is_personal && $workspace->admin_id === Auth::id();
+
+        return view('work.tasks.show', compact(
+            'workspace',
+            'task',
+            'submissions',
+            'hasSubmitted',
+            'isPersonalWorkspace'   // <-- kirim ke view
+        ));
     }
 
     /**
