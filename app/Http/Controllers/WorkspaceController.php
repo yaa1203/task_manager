@@ -513,22 +513,290 @@ class WorkspaceController extends Controller
     }
 
     /**
-     * User workspace index - FIXED: Only show non-archived workspaces
+     * User workspace index - Show both assigned and personal workspaces
      */
     public function userIndex()
     {
-        $workspaces = Workspace::whereHas('tasks.assignedUsers', function ($q) {
-                $q->where('user_id', Auth::id());
+        $user = Auth::user();
+        
+        // Workspace yang ditugaskan dari admin
+        $assignedWorkspaces = Workspace::whereHas('tasks.assignedUsers', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
             })
             ->where('is_archived', false)
+            ->where('is_personal', false)
             ->withCount(['tasks'])
             ->get();
 
-        return view('work.index', compact('workspaces'));
+        // Personal workspace milik user
+        $personalWorkspace = Workspace::where('admin_id', $user->id)
+            ->where('is_personal', true)
+            ->where('is_archived', false)
+            ->withCount(['tasks'])
+            ->first();
+
+        // Gabungkan workspaces
+        $workspaces = $assignedWorkspaces;
+        if ($personalWorkspace) {
+            $workspaces = $workspaces->prepend($personalWorkspace);
+        }
+
+        // Cek apakah user sudah punya personal workspace
+        $hasPersonalWorkspace = !is_null($personalWorkspace);
+
+        return view('work.index', compact('workspaces', 'hasPersonalWorkspace'));
     }
 
     /**
-     * User workspace detail - FIXED: Check if workspace is archived
+     * Show form to create personal workspace
+     */
+    public function createPersonal()
+    {
+        $user = Auth::user();
+        
+        // Cek apakah user sudah punya personal workspace
+        $hasPersonalWorkspace = Workspace::where('admin_id', $user->id)
+            ->where('is_personal', true)
+            ->exists();
+
+        if ($hasPersonalWorkspace) {
+            return redirect()->route('my-workspaces.index')
+                ->with('error', 'Anda sudah memiliki ruang kerja pribadi.');
+        }
+
+        return view('work.create-personal');
+    }
+
+    /**
+     * Store personal workspace
+     */
+    public function storePersonal(Request $request)
+    {
+        $user = Auth::user();
+        
+        // Validasi apakah user sudah punya personal workspace
+        $hasPersonalWorkspace = Workspace::where('admin_id', $user->id)
+            ->where('is_personal', true)
+            ->exists();
+
+        if ($hasPersonalWorkspace) {
+            return redirect()->route('my-workspaces.index')
+                ->with('error', 'Anda sudah memiliki ruang kerja pribadi.');
+        }
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'icon' => 'required|in:folder,briefcase,chart,target,cog,clipboard',
+            'color' => 'required|string',
+        ]);
+
+        $workspace = Workspace::create([
+            'name' => $validated['name'],
+            'description' => $validated['description'],
+            'icon' => $validated['icon'],
+            'color' => $validated['color'],
+            'admin_id' => $user->id,
+            'user_id' => $user->id, // ← TAMBAHKAN INI
+            'is_personal' => true,
+            'is_archived' => false,
+        ]);
+
+        return redirect()->route('my-workspaces.index', $workspace)
+            ->with('success', 'Ruang kerja pribadi berhasil dibuat!');
+    }
+
+    /**
+     * Create task in personal workspace
+     */
+    public function createPersonalTask(Workspace $workspace)
+    {
+        if ($workspace->admin_id !== Auth::id() || !$workspace->is_personal) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        return view('work.tasks.create', compact('workspace'));
+    }
+
+    /**
+     * Store task in personal workspace
+     */
+    public function storePersonalTask(Request $request, Workspace $workspace)
+    {
+        if ($workspace->admin_id !== Auth::id() || !$workspace->is_personal) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'due_date' => 'nullable|date',
+            'file' => 'nullable|file|max:10240',
+        ]);
+
+        $taskData = [
+            'admin_id' => Auth::id(),
+            'workspace_id' => $workspace->id,
+            'created_by' => Auth::id(),
+            'title' => $validated['title'],
+            'description' => $validated['description'] ?? null,
+            'due_date' => $validated['due_date'] ?? null,
+            'status' => 'todo',
+            'priority' => 'medium',
+        ];
+
+        // Upload file jika ada
+        if ($request->hasFile('file')) {
+            $file = $request->file('file');
+            $taskData['file_path'] = $file->store('task_files', 'public');
+            $taskData['original_filename'] = $file->getClientOriginalName();
+        }
+
+        $task = Task::create($taskData);
+
+        // Auto-assign ke user sendiri
+        $task->assignedUsers()->attach(Auth::id());
+
+        return redirect()->route('my-workspaces.show', $workspace)
+            ->with('success', 'Tugas berhasil ditambahkan!');
+    }
+
+    /**
+     * Edit personal task
+     */
+    public function editPersonalTask(Workspace $workspace, Task $task)
+    {
+        if ($workspace->admin_id !== Auth::id() || !$workspace->is_personal) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        if ($task->workspace_id !== $workspace->id) {
+            abort(404);
+        }
+
+        return view('work.tasks.edit', compact('workspace', 'task'));
+    }
+
+    /**
+     * Update personal task
+     */
+    public function updatePersonalTask(Request $request, Workspace $workspace, Task $task)
+    {
+        if ($workspace->admin_id !== Auth::id() || !$workspace->is_personal) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        if ($task->workspace_id !== $workspace->id) {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'due_date' => 'nullable|date',
+            'file' => 'nullable|file|max:10240',
+            'remove_file' => 'nullable|boolean',
+        ]);
+
+        $updateData = [
+            'title' => $validated['title'],
+            'description' => $validated['description'] ?? null,
+            'due_date' => $validated['due_date'] ?? null,
+        ];
+
+        // Hapus file jika diminta
+        if ($request->has('remove_file') && $request->remove_file) {
+            if ($task->file_path) {
+                \Storage::disk('public')->delete($task->file_path);
+            }
+            $updateData['file_path'] = null;
+            $updateData['original_filename'] = null;
+        }
+        // Upload file baru
+        elseif ($request->hasFile('file')) {
+            if ($task->file_path) {
+                \Storage::disk('public')->delete($task->file_path);
+            }
+            $file = $request->file('file');
+            $updateData['file_path'] = $file->store('task_files', 'public');
+            $updateData['original_filename'] = $file->getClientOriginalName();
+        }
+
+        $task->update($updateData);
+
+        return redirect()->route('my-workspaces.show', $workspace)
+            ->with('success', 'Tugas berhasil diperbarui!');
+    }
+
+    /**
+     * Delete personal task
+     */
+    public function deletePersonalTask(Workspace $workspace, Task $task)
+    {
+        if ($workspace->admin_id !== Auth::id() || !$workspace->is_personal) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        if ($task->workspace_id !== $workspace->id) {
+            abort(404);
+        }
+
+        if ($task->file_path) {
+            \Storage::disk('public')->delete($task->file_path);
+        }
+
+        $task->delete();
+
+        return redirect()->route('my-workspaces.show', $workspace)
+            ->with('success', 'Tugas berhasil dihapus!');
+    }
+
+    /**
+     * Toggle complete status for personal task
+     * ✅ NEW: Clear analytics cache when toggling task completion
+     */
+    public function toggleCompletePersonalTask(Workspace $workspace, Task $task)
+    {
+        // Validate access
+        if ($workspace->admin_id !== Auth::id() || !$workspace->is_personal) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        if ($task->workspace_id !== $workspace->id) {
+            abort(404);
+        }
+
+        // Check if user has submission (determines current completion status)
+        $hasSubmission = $task->submissions()
+            ->where('user_id', Auth::id())
+            ->exists();
+
+        if ($hasSubmission) {
+            // If has submission, delete it (mark as incomplete)
+            $task->submissions()
+                ->where('user_id', Auth::id())
+                ->delete();
+            
+            $message = 'Tugas ditandai belum selesai!';
+        } else {
+            // If no submission, create one (mark as complete)
+            UserTaskSubmission::create([
+                'task_id' => $task->id,
+                'user_id' => Auth::id(),
+                'notes' => 'Ditandai selesai dari personal workspace',
+            ]);
+            
+            $message = 'Tugas ditandai selesai!';
+        }
+
+        // ✅ Clear analytics cache for user
+        AnalyticsController::clearUserCache(Auth::id());
+
+        return back()->with('success', $message);
+    }
+
+    /**
+     * User workspace detail - FIXED: Handle personal workspace
      */
     public function userShow(Workspace $workspace)
     {
@@ -536,18 +804,32 @@ class WorkspaceController extends Controller
             abort(403, 'Workspace ini telah diarsipkan dan tidak dapat diakses.');
         }
 
+        // ✅ TAMBAHKAN: Check jika personal workspace milik user
+        $isPersonalWorkspace = $workspace->is_personal && $workspace->admin_id === Auth::id();
+
+        // Check akses untuk assigned workspace
         $isAccessible = $workspace->tasks()->whereHas('assignedUsers', function ($q) {
                 $q->where('user_id', Auth::id());
             })->exists();
 
-        abort_unless($isAccessible, 403);
+        // ✅ PERBAIKAN: Allow akses jika personal workspace ATAU assigned workspace
+        abort_unless($isPersonalWorkspace || $isAccessible, 403);
 
-        $tasks = $workspace->tasks()
-            ->whereHas('assignedUsers', function ($q) {
-                $q->where('user_id', Auth::id());
-            })
-            ->with(['submissions' => fn($q) => $q->where('user_id', Auth::id())])
-            ->get();
+        // Load tasks sesuai jenis workspace
+        if ($isPersonalWorkspace) {
+            // Untuk personal workspace, ambil semua tasks
+            $tasks = $workspace->tasks()
+                ->with(['submissions' => fn($q) => $q->where('user_id', Auth::id())])
+                ->get();
+        } else {
+            // Untuk assigned workspace, hanya tasks yang di-assign
+            $tasks = $workspace->tasks()
+                ->whereHas('assignedUsers', function ($q) {
+                    $q->where('user_id', Auth::id());
+                })
+                ->with(['submissions' => fn($q) => $q->where('user_id', Auth::id())])
+                ->get();
+        }
 
         return view('work.show', compact('workspace', 'tasks'));
     }

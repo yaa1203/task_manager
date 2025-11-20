@@ -5,11 +5,43 @@
                 <h2 class="font-semibold text-xl text-gray-800">Workspace</h2>
                 <p class="text-sm text-gray-600 mt-1">Kelola dan lacak semua tugas Anda di berbagai ruang kerja</p>
             </div>
+            
+            @if(!$hasPersonalWorkspace)
+            <a href="{{ route('my-workspaces.create-personal') }}" 
+               class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-all">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                <span>Buat Ruang Kerja Pribadi</span>
+            </a>
+            @endif
         </div>
     </x-slot>
 
     <div class="py-4 sm:py-6">
         <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 space-y-4 sm:space-y-6">
+
+            @if(session('success'))
+            <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-lg">
+                <div class="flex items-center gap-3">
+                    <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    <p class="text-sm font-medium text-green-800">{{ session('success') }}</p>
+                </div>
+            </div>
+            @endif
+
+            @if(session('error'))
+            <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+                <div class="flex items-center gap-3">
+                    <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                    </svg>
+                    <p class="text-sm font-medium text-red-800">{{ session('error') }}</p>
+                </div>
+            </div>
+            @endif
 
             @if($workspaces->count() > 0)
                 @php
@@ -109,31 +141,32 @@
                         @endphp
                         
                         <a href="{{ route('my-workspaces.show', $workspace) }}" 
-                           class="block bg-white rounded-lg shadow-sm hover:shadow-lg transition-all group border border-gray-200">
+                           class="block bg-white rounded-lg shadow-sm hover:shadow-lg transition-all group border border-gray-200 {{ $workspace->is_personal ? 'ring-2 ring-indigo-200' : '' }}">
                             
                             {{-- Header dengan Ikon dan Info Admin --}}
                             <div class="p-4 sm:p-5 border-b border-gray-100" 
                                  style="background: linear-gradient(135deg, {{ $workspace->color }}15 0%, {{ $workspace->color }}05 100%);">
                                 <div class="flex items-start gap-3 mb-3">
                                     <div class="w-14 h-14 mt-3 rounded-lg flex items-center justify-center flex-shrink-0 bg-white border border-gray-200 text-gray-700 group-hover:border-indigo-300 transition-all duration-200">
-                                        @php
-                                        $iconSvgs = [
-                                            'folder' => '<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>',
-                                            'briefcase' => '<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>',
-                                            'chart' => '<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>',
-                                            'target' => '<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
-                                            'cog' => '<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>',
-                                            'clipboard' => '<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>',
-                                        ];
-                                        @endphp
                                         {!! $iconSvgs[$workspace->icon] ?? $iconSvgs['folder'] !!}
                                     </div>
                                     <div class="flex-1 min-w-0">
-                                        <h3 class="font-bold text-gray-900 text-base sm:text-lg mb-2 line-clamp-2">
-                                            {{ $workspace->name }}
-                                        </h3>
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <h3 class="font-bold text-gray-900 text-base sm:text-lg line-clamp-2">
+                                                {{ $workspace->name }}
+                                            </h3>
+                                            @if($workspace->is_personal)
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 whitespace-nowrap">
+                                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                                                </svg>
+                                                Pribadi
+                                            </span>
+                                            @endif
+                                        </div>
                                         
                                         {{-- Info PIC/Admin --}}
+                                        @if(!$workspace->is_personal)
                                         <div class="flex items-center gap-2 text-xs">
                                             <div class="flex items-center gap-1.5 px-2.5 py-1 bg-white/80 backdrop-blur-sm rounded-lg border border-gray-200/50 shadow-sm">
                                                 <div class="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
@@ -159,6 +192,7 @@
                                             </div>
                                             @endif
                                         </div>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -246,13 +280,24 @@
                             </svg>
                         </div>
                         <h3 class="text-lg sm:text-xl font-bold text-gray-900 mb-2">Belum Ada Ruang Kerja</h3>
-                        <p class="text-sm sm:text-base text-gray-500 mb-4">Anda belum ditugaskan ke ruang kerja mana pun. Hubungi administrator Anda untuk memulai.</p>
+                        <p class="text-sm sm:text-base text-gray-500 mb-6">Anda belum ditugaskan ke ruang kerja mana pun. Hubungi administrator Anda atau buat ruang kerja pribadi untuk memulai.</p>
+                        
+                        @if(!$hasPersonalWorkspace)
+                        <a href="{{ route('my-workspaces.create-personal') }}" 
+                           class="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-all">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            <span>Buat Ruang Kerja Pribadi</span>
+                        </a>
+                        @else
                         <div class="flex items-center justify-center gap-2 text-sm text-gray-400">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
                             <span>Periksa nanti untuk pembaruan</span>
                         </div>
+                        @endif
                     </div>
                 </div>
             @endif

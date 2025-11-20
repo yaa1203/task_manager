@@ -1,13 +1,25 @@
 <x-app-layout>
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
-    <!-- Tombol Kembali -->
-    <div class="mb-4 sm:mb-6">
+    <!-- Tombol Kembali & Create Task -->
+    <div class="mb-4 sm:mb-6 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
         <a href="{{ route('my-workspaces.index') }}" class="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors">
             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
             </svg>
             Kembali ke Ruang Kerja
         </a>
+
+        {{-- Tombol Create Task hanya untuk personal workspace yang dimiliki user --}}
+        @if($workspace->is_personal && $workspace->admin_id === auth()->id())
+        <a href="{{ route('my-workspaces.tasks.create', $workspace) }}" 
+            class="inline-flex items-center justify-center gap-2 px-4 py-2 text-white text-sm font-semibold rounded-lg shadow-sm transition-all hover:shadow-md"
+            style="background-color: {{ $workspace->color }};">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            <span>Tambah Tugas</span>
+        </a>
+        @endif
     </div>
     
     <!-- Header Ruang Kerja -->
@@ -16,12 +28,24 @@
             <!-- Header Gradien -->
             <div class="p-4 sm:p-6 lg:p-8 border-b border-gray-100" style="background: linear-gradient(135deg, {{ $workspace->color }}15 0%, {{ $workspace->color }}05 100%);">
                 <div class="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
-                    
                     <div class="flex-1 w-full">
                         <!-- Judul & Badge -->
                         <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-3">
                             <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">{{ $workspace->name }}</h1>
+                            @if(!$workspace->is_personal)
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 w-fit">
+                                    Workspace dari Guru
+                                </span>
+                            @else
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-800 w-fit">
+                                    Workspace Pribadi
+                                </span>
+                            @endif
                         </div>
+                        
+                        @if($workspace->description)
+                            <p class="text-sm sm:text-base text-gray-600 mb-4">{{ $workspace->description }}</p>
+                        @endif
                         
                         @php
                             $myTasks = $tasks;
@@ -117,8 +141,7 @@
                         <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                         </svg>
-                        <span class="hidden xs:inline">Semua</span>
-                        <span class="xs:hidden">Semua</span>
+                        <span>Semua</span>
                     </span>
                 </button>
                 <button onclick="filterTasks('unfinished')" id="tab-unfinished" 
@@ -152,6 +175,11 @@
             </nav>
         </div>
     </div>
+
+    @php
+        // Cek apakah user adalah pemilik workspace pribadi
+        $isOwner = $workspace->is_personal && $workspace->admin_id === auth()->id();
+    @endphp
 
     <!-- Kontainer Tugas -->
     <div>
@@ -257,13 +285,55 @@
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                                        <a href="{{ route('my-workspaces.task.show', [$workspace, $task]) }}" 
-                                           class="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors shadow-sm">
-                                            Lihat Detail
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                                            </svg>
-                                        </a>
+                                        <div class="flex items-center justify-end gap-2">
+                                            @if($isOwner)
+                                                {{-- Personal Workspace: Toggle Complete + Edit + Delete --}}
+                                                <form action="{{ route('my-workspaces.tasks.toggle-complete', [$workspace, $task]) }}" 
+                                                      method="POST" 
+                                                      class="inline">
+                                                    @csrf
+                                                    <button type="submit" 
+                                                            class="p-2 rounded-lg transition-all {{ $isDone ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}"
+                                                            title="{{ $isDone ? 'Tandai belum selesai' : 'Tandai selesai' }}">
+                                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                                        </svg>
+                                                    </button>
+                                                </form>
+                                                
+                                                <a href="{{ route('my-workspaces.tasks.edit', [$workspace, $task]) }}"
+                                                   class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                   title="Edit Tugas">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                                    </svg>
+                                                </a>
+                                            
+                                                <form action="{{ route('my-workspaces.tasks.delete', [$workspace, $task]) }}" 
+                                                      method="POST" 
+                                                      onsubmit="return confirm('Yakin ingin menghapus tugas ini?')"
+                                                      class="inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" 
+                                                            class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                            title="Hapus Tugas">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                        </svg>
+                                                    </button>
+                                                </form>
+                                            @else
+                                                {{-- Workspace dari Guru: Hanya tombol Lihat Detail --}}
+                                                <a href="{{ route('my-workspaces.task.show', [$workspace, $task]) }}" 
+                                                   class="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors shadow-sm">
+                                                    Lihat Detail
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                                    </svg>
+                                                </a>
+                                            @endif
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach
@@ -356,14 +426,57 @@
                                 @endif
                             </div>
 
-                            <!-- Tombol Aksi -->
-                            <a href="{{ route('my-workspaces.task.show', [$workspace, $task]) }}" 
-                               class="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors shadow-sm text-sm">
-                                Lihat Detail
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                                </svg>
-                            </a>
+                            {{-- Action Buttons --}}
+                            @if($isOwner)
+                                {{-- Personal Workspace: Toggle Complete + Edit + Delete --}}
+                                <div class="flex items-center gap-2">
+                                    <!-- Toggle Complete Button -->
+                                    <form action="{{ route('my-workspaces.tasks.toggle-complete', [$workspace, $task]) }}" 
+                                          method="POST" 
+                                          class="flex-shrink-0">
+                                        @csrf
+                                        <button type="submit" 
+                                                class="p-2 rounded-lg transition-all {{ $isDone ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}"
+                                                title="{{ $isDone ? 'Tandai belum selesai' : 'Tandai selesai' }}">
+                                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                            </svg>
+                                        </button>
+                                    </form>
+                                    
+                                    <a href="{{ route('my-workspaces.tasks.edit', [$workspace, $task]) }}"
+                                       class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                       title="Edit Tugas">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                        </svg>
+                                    </a>
+                                    
+                                    <form action="{{ route('my-workspaces.tasks.delete', [$workspace, $task]) }}" 
+                                          method="POST" 
+                                          onsubmit="return confirm('Yakin ingin menghapus tugas ini?')"
+                                          class="flex-shrink-0">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" 
+                                                class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                title="Hapus Tugas">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                            </svg>
+                                        </button>
+                                    </form>
+                                </div>
+                            @else
+                                {{-- Workspace dari Guru: Hanya tombol Lihat Detail --}}
+                                <a href="{{ route('my-workspaces.task.show', [$workspace, $task]) }}" 
+                                   class="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors shadow-sm text-sm">
+                                    Lihat Detail
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                    </svg>
+                                </a>
+                            @endif
                         </div>
                     </div>
                 @endforeach
@@ -383,7 +496,17 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                 </svg>
                 <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-2">Belum Ada Tugas</h3>
-                <p class="text-xs sm:text-sm text-gray-500">Belum ada tugas di ruang kerja ini</p>
+                <p class="text-xs sm:text-sm text-gray-500 mb-4">Belum ada tugas di ruang kerja ini</p>
+                @if($isOwner)
+                    <a href="{{ route('my-workspaces.tasks.create', $workspace) }}" 
+                        class="inline-flex items-center gap-2 px-6 py-3 text-white font-semibold rounded-lg shadow-sm transition-all hover:shadow-md"
+                        style="background-color: {{ $workspace->color }};">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        <span>Tambah Tugas Pertama</span>
+                    </a>
+                @endif
             </div>
         @endif
     </div>

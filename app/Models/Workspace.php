@@ -17,10 +17,12 @@ class Workspace extends Model
         'color',
         'icon',
         'type',
-        'is_archived'
+        'is_personal',
+        'is_archived',
     ];
 
     protected $casts = [
+        'is_personal' => 'boolean',
         'is_archived' => 'boolean',
     ];
 

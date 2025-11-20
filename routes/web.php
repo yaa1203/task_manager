@@ -59,9 +59,22 @@ Route::middleware(['auth', 'role:user'])->group(function () {
     // Workspace User
     Route::prefix('my-workspaces')->name('my-workspaces.')->group(function () {
         Route::get('/', [WorkspaceController::class, 'userIndex'])->name('index');
+        
+        // Personal workspace routes
+        Route::get('/create-personal', [WorkspaceController::class, 'createPersonal'])->name('create-personal');
+        Route::post('/store-personal', [WorkspaceController::class, 'storePersonal'])->name('store-personal');
+        
         Route::get('/{workspace}', [WorkspaceController::class, 'userShow'])->name('show');
         Route::get('/{workspace}/task/{task}', [WorkspaceController::class, 'userShowTask'])->name('task.show');
         Route::post('/{workspace}/task/{task}/submit', [WorkspaceController::class, 'submitTask'])->name('task.submit');
+
+        // Personal workspace task management
+        Route::get('/{workspace}/tasks/create', [WorkspaceController::class, 'createPersonalTask'])->name('tasks.create');
+        Route::post('/{workspace}/tasks', [WorkspaceController::class, 'storePersonalTask'])->name('tasks.store');
+        Route::get('/{workspace}/tasks/{task}/edit', [WorkspaceController::class, 'editPersonalTask'])->name('tasks.edit');
+        Route::put('/{workspace}/tasks/{task}', [WorkspaceController::class, 'updatePersonalTask'])->name('tasks.update');
+        Route::delete('/{workspace}/tasks/{task}', [WorkspaceController::class, 'deletePersonalTask'])->name('tasks.delete');
+        Route::post('/{workspace}/tasks/{task}/toggle-complete', [WorkspaceController::class, 'toggleCompletePersonalTask'])->name('tasks.toggle-complete');
 
         // File Akses
         Route::get('/{workspace}/tasks/{task}/view-file', [WorkspaceController::class, 'viewTaskFile'])->name('task.view-file');
