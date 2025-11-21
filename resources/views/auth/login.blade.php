@@ -116,12 +116,12 @@
                 @if (Route::has('register'))
                 <div class="mt-4 text-center">
                     <p class="text-sm py-2 text-gray-600">
-                       Daftar Sebagai User
+                       Daftar Sebagai Anggota
                         <a href="{{ route('register') }}" class="font-semibold text-blue-600 hover:text-blue-700 transition">
                            Register
                         </a>
                          <p class="text-sm text-gray-600">
-                       Daftar Sebagai Admin
+                       Daftar Sebagai Pembina
                         <a href="{{ route('register.admin') }}" class="font-semibold text-blue-600 hover:text-blue-700 transition">
                            Register
                         </a>

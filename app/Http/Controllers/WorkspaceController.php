@@ -600,7 +600,7 @@ class WorkspaceController extends Controller
             'is_archived' => false,
         ]);
 
-        return redirect()->route('my-workspaces.index', $workspace)
+        return redirect()->route('my-workspaces.show', $workspace)
             ->with('success', 'Ruang kerja pribadi berhasil dibuat!');
     }
 
