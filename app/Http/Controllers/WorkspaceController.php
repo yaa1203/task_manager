@@ -691,7 +691,9 @@ class WorkspaceController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'due_date' => 'nullable|date',
+            'link' => 'nullable|url',              // ✅ TAMBAHKAN INI
+            'priority' => 'required|in:low,medium,high,urgent', // ✅ TAMBAHKAN INI
+            'due_date' => 'nullable|date_format:Y-m-d H:i:s',  // ✅ UPDATE FORMAT
             'file' => 'nullable|file|max:10240',
             'remove_file' => 'nullable|boolean',
         ]);
@@ -699,6 +701,8 @@ class WorkspaceController extends Controller
         $updateData = [
             'title' => $validated['title'],
             'description' => $validated['description'] ?? null,
+            'link' => $validated['link'] ?? null,           // ✅ TAMBAHKAN INI
+            'priority' => $validated['priority'],           // ✅ TAMBAHKAN INI
             'due_date' => $validated['due_date'] ?? null,
         ];
 
@@ -983,39 +987,41 @@ class WorkspaceController extends Controller
         $path = Storage::disk('public')->path($task->file_path);
         $mimeType = Storage::disk('public')->mimeType($task->file_path);
         $extension = strtolower(pathinfo($task->file_path, PATHINFO_EXTENSION));
+        $filename = $task->original_filename ?? basename($task->file_path);
         
         $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp'];
         if (in_array($extension, $imageExtensions)) {
-            return response()->file($path, [
+            return response()->make(file_get_contents($path), 200, [
                 'Content-Type' => $mimeType,
-                'Content-Disposition' => 'inline; filename="' . basename($task->file_path) . '"'
+                'Content-Disposition' => 'inline; filename="' . $filename . '"'
             ]);
         }
         
         if ($extension === 'pdf') {
-            return response()->file($path, [
-                'Content-Type' => $mimeType,
-                'Content-Disposition' => 'inline; filename="' . basename($task->file_path) . '"'
+            return response()->make(file_get_contents($path), 200, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="' . $filename . '"'
             ]);
         }
         
         $textExtensions = ['txt', 'md', 'csv'];
         if (in_array($extension, $textExtensions)) {
-            return response()->file($path, [
+            return response()->make(file_get_contents($path), 200, [
                 'Content-Type' => $mimeType,
-                'Content-Disposition' => 'inline; filename="' . basename($task->file_path) . '"'
+                'Content-Disposition' => 'inline; filename="' . $filename . '"'
             ]);
         }
         
-        return response()->file($path, [
+        // For other file types, return inline preview
+        return response()->make(file_get_contents($path), 200, [
             'Content-Type' => $mimeType,
-            'Content-Disposition' => 'inline; filename="' . basename($task->file_path) . '"',
+            'Content-Disposition' => 'inline; filename="' . $filename . '"',
             'X-Content-Type-Options' => 'nosniff'
         ]);
     }
 
     /**
-     * Download task file - FIXED: Check if workspace is archived
+     * Download task file - Optimized for large files
      */
     public function downloadTaskFile(Workspace $workspace, Task $task)
     {
@@ -1043,7 +1049,38 @@ class WorkspaceController extends Controller
             abort(404, 'File not found');
         }
 
-        return Storage::disk('public')->download($task->file_path);
+        $filename = $task->original_filename ?? basename($task->file_path);
+        $filePath = Storage::disk('public')->path($task->file_path);
+        $mimeType = Storage::disk('public')->mimeType($task->file_path);
+        $fileSize = filesize($filePath);
+
+        // Create response with proper headers
+        $response = new \Illuminate\Http\Response(
+            null,
+            200,
+            [
+                'Content-Type' => $mimeType,
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                'Content-Length' => $fileSize,
+                'Cache-Control' => 'no-cache, no-store, must-revalidate',
+                'Pragma' => 'no-cache',
+                'Expires' => '0'
+            ]
+        );
+
+        // Register a callback to stream the file content
+        $response->sendHeaders();
+        
+        // Stream the file in chunks
+        $handle = fopen($filePath, 'rb');
+        while (!feof($handle)) {
+            echo fread($handle, 2048);
+            ob_flush();
+            flush();
+        }
+        fclose($handle);
+
+        return $response;
     }
 
     /**
@@ -1065,10 +1102,37 @@ class WorkspaceController extends Controller
 
         $path = Storage::disk('public')->path($submission->file_path);
         $mimeType = Storage::disk('public')->mimeType($submission->file_path);
+        $extension = strtolower(pathinfo($submission->file_path, PATHINFO_EXTENSION));
+        $filename = $submission->original_filename ?? basename($submission->file_path);
         
-        return response()->file($path, [
+        $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp'];
+        if (in_array($extension, $imageExtensions)) {
+            return response()->make(file_get_contents($path), 200, [
+                'Content-Type' => $mimeType,
+                'Content-Disposition' => 'inline; filename="' . $filename . '"'
+            ]);
+        }
+        
+        if ($extension === 'pdf') {
+            return response()->make(file_get_contents($path), 200, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="' . $filename . '"'
+            ]);
+        }
+        
+        $textExtensions = ['txt', 'md', 'csv'];
+        if (in_array($extension, $textExtensions)) {
+            return response()->make(file_get_contents($path), 200, [
+                'Content-Type' => $mimeType,
+                'Content-Disposition' => 'inline; filename="' . $filename . '"'
+            ]);
+        }
+        
+        // For other file types, return inline preview
+        return response()->make(file_get_contents($path), 200, [
             'Content-Type' => $mimeType,
-            'Content-Disposition' => 'inline; filename="' . basename($submission->file_path) . '"'
+            'Content-Disposition' => 'inline; filename="' . $filename . '"',
+            'X-Content-Type-Options' => 'nosniff'
         ]);
     }
 
@@ -1089,7 +1153,8 @@ class WorkspaceController extends Controller
             abort(404, 'File not found');
         }
 
-        return Storage::disk('public')->download($submission->file_path);
+        $filename = $submission->original_filename ?? basename($submission->file_path);
+        return Storage::disk('public')->download($submission->file_path, $filename);
     }
 
     /**

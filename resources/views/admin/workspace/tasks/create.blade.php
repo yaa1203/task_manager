@@ -71,7 +71,7 @@
             <!-- Unggah File -->
             <div class="mb-5">
                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Lampiran (Opsional)
+                    Lampiran
                 </label>
                 <div class="flex items-center justify-center w-full">
                     <label for="file" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
@@ -91,7 +91,7 @@
             <!-- Tautan -->
             <div class="mb-5">
                 <label for="link" class="block text-sm font-medium text-gray-700 mb-2">
-                    Tautan (Opsional)
+                    Tautan
                 </label>
                 <input type="url" 
                        name="link" 

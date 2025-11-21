@@ -574,8 +574,10 @@
                 });
 
                 const workspaceData = Array.isArray(data.workspaces?.breakdown) ? data.workspaces.breakdown : [];
+                const totalWorkspacesCount = parseInt(data.workspaces?.total) || 0;
                 console.log('Workspace data parsed:', {
-                    count: workspaceData.length,
+                    totalWorkspaces: totalWorkspacesCount,
+                    breakdownCount: workspaceData.length,
                     data: workspaceData
                 });
 

@@ -71,7 +71,7 @@
             <!-- Unggah File -->
             <div class="mb-5">
                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Lampiran (Opsional)
+                    Lampiran
                 </label>
 
                 @if ($task->file_path)
@@ -107,7 +107,7 @@
             <!-- Tautan -->
             <div class="mb-5">
                 <label for="link" class="block text-sm font-medium text-gray-700 mb-2">
-                    Tautan (Opsional)
+                    Tautan
                 </label>
                 <input type="url" 
                        name="link" 

@@ -195,21 +195,110 @@ use Illuminate\Support\Facades\Storage;
                     @if($submissions->count() > 0)
                         <div class="space-y-4">
                             @foreach($submissions as $submission)
-                                <!-- (kode submission lengkap tetap sama seperti yang Anda kirim sebelumnya) -->
-                                <!-- Untuk menghemat tempat, saya singkat di sini, tapi Anda tetap pakai kode panjang Anda -->
-                                <div class="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors">
-                                    <div class="flex justify-between items-center mb-3">
-                                        <p class="text-xs text-gray-500">
-                                            Dikirim {{ $submission->created_at->locale('id')->translatedFormat('d F Y H:i') }}
-                                        </p>
+                                <div class="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors bg-gray-50">
+                                    <div class="flex justify-between items-start mb-3">
+                                        <div>
+                                            <p class="text-xs text-gray-500">
+                                                Dikirim {{ $submission->created_at->locale('id')->translatedFormat('d F Y H:i') }}
+                                            </p>
+                                            @if($submission->updated_at != $submission->created_at)
+                                                <p class="text-xs text-gray-400 mt-0.5">
+                                                    Diperbarui {{ $submission->updated_at->locale('id')->translatedFormat('d F Y H:i') }}
+                                                </p>
+                                            @endif
+                                        </div>
                                         @if($submission->status)
                                             <span class="px-2.5 py-1 text-xs font-semibold rounded-full
                                                 {{ $submission->status === 'approved' ? 'bg-green-100 text-green-800' : ($submission->status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800') }}">
-                                                {{ ucfirst($submission->status) }}
+                                                @if($submission->status === 'approved') Disetujui
+                                                @elseif($submission->status === 'rejected') Ditolak
+                                                @else Pending
+                                                @endif
                                             </span>
                                         @endif
                                     </div>
-                                    <!-- File, link, catatan, feedback admin — tetap gunakan kode lengkap Anda -->
+
+                                    <!-- File yang dikirim -->
+                                    @if($submission->file_path)
+                                        @php
+                                            $subFileExtension = strtolower(pathinfo($submission->file_path, PATHINFO_EXTENSION));
+                                            $subIsImage = in_array($subFileExtension, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp']);
+                                            $subDisplayName = $submission->original_filename ?? basename($submission->file_path);
+                                        @endphp
+
+                                        <div class="mb-3">
+                                            <p class="text-xs font-medium text-gray-700 mb-2">File Pengumpulan:</p>
+                                            @if($subIsImage)
+                                                <div class="bg-white rounded-lg overflow-hidden border border-gray-200 shadow-sm">
+                                                    <button type="button"
+                                                            onclick="openFileModal('{{ asset('storage/' . $submission->file_path) }}', 'image', '{{ addslashes($subDisplayName) }}')"
+                                                            class="block w-full cursor-pointer">
+                                                        <img src="{{ asset('storage/' . $submission->file_path) }}" 
+                                                            alt="{{ $subDisplayName }}"
+                                                            class="w-full h-auto max-h-64 object-contain" 
+                                                            loading="lazy">
+                                                    </button>
+                                                </div>
+                                            @else
+                                                <div class="bg-white rounded-lg p-3 border border-gray-200">
+                                                    <div class="flex items-center gap-3">
+                                                        <div class="flex-shrink-0">
+                                                            <svg class="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                                                            </svg>
+                                                        </div>
+                                                        <div class="flex-1 min-w-0">
+                                                            <p class="text-sm font-medium text-gray-900 truncate">{{ $subDisplayName }}</p>
+                                                            <p class="text-xs text-gray-500">{{ strtoupper($subFileExtension) }} File</p>
+                                                        </div>
+                                                        <a href="{{ route('my-workspaces.submission.download', [$workspace, $task, $submission]) }}"
+                                                        class="flex-shrink-0 px-3 py-1.5 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700">
+                                                            Unduh
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @endif
+
+                                    <!-- Link yang dikirim -->
+                                    @if($submission->link)
+                                        <div class="mb-3">
+                                            <p class="text-xs font-medium text-gray-700 mb-2">Tautan:</p>
+                                            <a href="{{ $submission->link }}" target="_blank"
+                                            class="block bg-white rounded-lg p-3 border border-blue-200 hover:border-blue-400 transition-all group">
+                                                <div class="flex items-center gap-2">
+                                                    <svg class="w-5 h-5 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                                                    </svg>
+                                                    <span class="text-sm text-blue-900 group-hover:text-blue-700 truncate">{{ $submission->link }}</span>
+                                                    <svg class="w-4 h-4 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                                    </svg>
+                                                </div>
+                                            </a>
+                                        </div>
+                                    @endif
+
+                                    <!-- Catatan -->
+                                    @if($submission->notes)
+                                        <div class="mb-3">
+                                            <p class="text-xs font-medium text-gray-700 mb-2">Catatan:</p>
+                                            <div class="bg-white rounded-lg p-3 border border-gray-200">
+                                                <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ $submission->notes }}</p>
+                                            </div>
+                                        </div>
+                                    @endif
+
+                                    <!-- Feedback dari Admin -->
+                                    @if($submission->admin_feedback)
+                                        <div class="mt-4 pt-4 border-t border-gray-200">
+                                            <p class="text-xs font-medium text-gray-700 mb-2">Feedback dari Admin:</p>
+                                            <div class="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                                                <p class="text-sm text-gray-800 whitespace-pre-wrap">{{ $submission->admin_feedback }}</p>
+                                            </div>
+                                        </div>
+                                    @endif
                                 </div>
                             @endforeach
                         </div>
@@ -359,7 +448,7 @@ use Illuminate\Support\Facades\Storage;
                                     <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
                                     </svg>
-                                    Tautan (Opsional)
+                                    Tautan
                                 </span>
                             </label>
                             <div class="relative">
