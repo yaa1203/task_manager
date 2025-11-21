@@ -169,6 +169,7 @@
                                                 
                                                 <!-- Tombol Lihat dan Unduh -->
                                                 <div class="flex gap-2">
+                                                    <!-- Untuk task file -->
                                                     @if($isPreviewable)
                                                         <button onclick="openFileModal('{{ route('workspace.tasks.view-file', [$workspace, $task]) }}', '{{ $fileExtension }}', '{{ $displayName }}')"
                                                                 class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all text-sm font-medium shadow-sm hover:shadow">
@@ -179,9 +180,9 @@
                                                             Lihat
                                                         </button>
                                                     @endif
-                                                    
+
                                                     <a href="{{ route('workspace.tasks.download', [$workspace, $task]) }}" 
-                                                       class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition-all text-sm font-medium shadow-sm hover:shadow">
+                                                    class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition-all text-sm font-medium shadow-sm hover:shadow">
                                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                                                         </svg>
@@ -527,6 +528,7 @@
                                                     
                                                     <!-- Tombol Lihat dan Unduh -->
                                                     <div class="flex gap-2">
+                                                        <!-- Untuk submission file -->
                                                         @if($isPreviewable)
                                                             <button onclick="openFileModal('{{ route('workspace.submissions.view', [$workspace, $task, $submission]) }}', '{{ $fileExtension }}', '{{ $displayName }}')"
                                                                     class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all text-sm font-medium shadow-sm hover:shadow">
@@ -537,7 +539,7 @@
                                                                 Lihat
                                                             </button>
                                                         @endif
-                                                        
+
                                                         <a href="{{ route('workspace.submissions.download', [$workspace, $task, $submission]) }}" 
                                                         class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition-all text-sm font-medium shadow-sm hover:shadow">
                                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -692,7 +694,7 @@
 <script>
 let currentDownloadUrl = '';
 
-// File modal functions - DIPERBAIKI UNTUK GAMBAR & PDF UKURAN ASLI
+// File modal functions - DIPERBAIKI UNTUK NGROK
 function openFileModal(fileUrl, fileType, fileName) {
     const modal = document.getElementById('fileModal');
     const modalImage = document.getElementById('modalImage');
@@ -715,12 +717,35 @@ function openFileModal(fileUrl, fileType, fileName) {
     
     modalFileName.textContent = fileName;
     
-    // Set download URL
+    // Set download URL dengan mempertimbangkan ngrok
     let downloadUrl = fileUrl;
-    if (fileUrl.includes('/storage/')) {
-        downloadUrl = fileUrl;
-    } else if (fileUrl.includes('/view-file/')) {
-        downloadUrl = fileUrl.replace('/view-file/', '/download/');
+    
+    // Jika menggunakan ngrok, pastikan URL menggunakan domain yang sama
+    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+        // Untuk file storage, gunakan URL asli
+        if (fileUrl.includes('/storage/')) {
+            // Jika URL storage mengandung localhost, ganti dengan domain ngrok
+            if (fileUrl.includes('localhost') || fileUrl.includes('127.0.0.1')) {
+                const urlParts = fileUrl.split('/');
+                urlParts[2] = window.location.hostname;
+                downloadUrl = urlParts.join('/');
+            }
+        } else if (fileUrl.includes('/view-file/')) {
+            // Untuk route view, konversi ke download
+            downloadUrl = fileUrl.replace('/view-file/', '/download/');
+            
+            // Jika URL mengandung localhost, ganti dengan domain ngrok
+            if (downloadUrl.includes('localhost') || downloadUrl.includes('127.0.0.1')) {
+                const urlParts = downloadUrl.split('/');
+                urlParts[2] = window.location.hostname;
+                downloadUrl = urlParts.join('/');
+            }
+        }
+    } else {
+        // Untuk localhost, gunakan URL asli
+        if (fileUrl.includes('/view-file/')) {
+            downloadUrl = fileUrl.replace('/view-file/', '/download/');
+        }
     }
     
     modalDownload.href = downloadUrl;

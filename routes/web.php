@@ -160,8 +160,8 @@ Route::middleware(['auth', 'role:admin', 'no.cache'])->group(function () {
             Route::delete('/{task}', [WorkspaceController::class, 'destroyTask'])->name('destroy');
             Route::get('/{task}', [WorkspaceController::class, 'showTask'])->name('show');
 
-            // File Akses
-            Route::get('/{task}/view', [WorkspaceController::class, 'viewTaskFile'])->name('view-file');
+            // File Akses - Update nama route untuk konsistensi
+            Route::get('/{task}/view-file', [WorkspaceController::class, 'viewTaskFile'])->name('view-file');
             Route::get('/{task}/download', [WorkspaceController::class, 'downloadTaskFile'])->name('download');
 
             // Submission
@@ -169,6 +169,7 @@ Route::middleware(['auth', 'role:admin', 'no.cache'])->group(function () {
             Route::get('/{task}/submissions/{submission}/download', [WorkspaceController::class, 'downloadSubmissionFile'])->name('submissions.download');
         });
     });
+
 });
 
 // =============================================================

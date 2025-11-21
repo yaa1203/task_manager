@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -21,5 +22,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
         Carbon::setLocale('id'); // Set locale global ke Indonesia
+        // Force HTTPS for ngrok
+        if (app()->environment('local')) {
+            URL::forceScheme('https');
+        }
     }
 }

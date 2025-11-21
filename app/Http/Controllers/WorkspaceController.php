@@ -989,35 +989,34 @@ class WorkspaceController extends Controller
         $extension = strtolower(pathinfo($task->file_path, PATHINFO_EXTENSION));
         $filename = $task->original_filename ?? basename($task->file_path);
         
+        // Set headers untuk ngrok
+        $headers = [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="' . $filename . '"',
+            'Access-Control-Allow-Origin' => '*',
+            'Access-Control-Allow-Methods' => 'GET, POST, PUT, DELETE, OPTIONS',
+            'Access-Control-Allow-Headers' => 'X-Requested-With, Content-Type, X-Auth-Token, Origin, Authorization',
+            'Cache-Control' => 'no-cache, no-store, must-revalidate',
+            'Pragma' => 'no-cache',
+            'Expires' => '0'
+        ];
+        
         $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp'];
         if (in_array($extension, $imageExtensions)) {
-            return response()->make(file_get_contents($path), 200, [
-                'Content-Type' => $mimeType,
-                'Content-Disposition' => 'inline; filename="' . $filename . '"'
-            ]);
+            return response()->make(file_get_contents($path), 200, $headers);
         }
         
         if ($extension === 'pdf') {
-            return response()->make(file_get_contents($path), 200, [
-                'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'inline; filename="' . $filename . '"'
-            ]);
+            return response()->make(file_get_contents($path), 200, $headers);
         }
         
         $textExtensions = ['txt', 'md', 'csv'];
         if (in_array($extension, $textExtensions)) {
-            return response()->make(file_get_contents($path), 200, [
-                'Content-Type' => $mimeType,
-                'Content-Disposition' => 'inline; filename="' . $filename . '"'
-            ]);
+            return response()->make(file_get_contents($path), 200, $headers);
         }
         
         // For other file types, return inline preview
-        return response()->make(file_get_contents($path), 200, [
-            'Content-Type' => $mimeType,
-            'Content-Disposition' => 'inline; filename="' . $filename . '"',
-            'X-Content-Type-Options' => 'nosniff'
-        ]);
+        return response()->make(file_get_contents($path), 200, $headers);
     }
 
     /**
@@ -1064,7 +1063,10 @@ class WorkspaceController extends Controller
                 'Content-Length' => $fileSize,
                 'Cache-Control' => 'no-cache, no-store, must-revalidate',
                 'Pragma' => 'no-cache',
-                'Expires' => '0'
+                'Expires' => '0',
+                'Access-Control-Allow-Origin' => '*',
+                'Access-Control-Allow-Methods' => 'GET, POST, PUT, DELETE, OPTIONS',
+                'Access-Control-Allow-Headers' => 'X-Requested-With, Content-Type, X-Auth-Token, Origin, Authorization'
             ]
         );
 
@@ -1105,35 +1107,34 @@ class WorkspaceController extends Controller
         $extension = strtolower(pathinfo($submission->file_path, PATHINFO_EXTENSION));
         $filename = $submission->original_filename ?? basename($submission->file_path);
         
+        // Set headers untuk ngrok
+        $headers = [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="' . $filename . '"',
+            'Access-Control-Allow-Origin' => '*',
+            'Access-Control-Allow-Methods' => 'GET, POST, PUT, DELETE, OPTIONS',
+            'Access-Control-Allow-Headers' => 'X-Requested-With, Content-Type, X-Auth-Token, Origin, Authorization',
+            'Cache-Control' => 'no-cache, no-store, must-revalidate',
+            'Pragma' => 'no-cache',
+            'Expires' => '0'
+        ];
+        
         $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp'];
         if (in_array($extension, $imageExtensions)) {
-            return response()->make(file_get_contents($path), 200, [
-                'Content-Type' => $mimeType,
-                'Content-Disposition' => 'inline; filename="' . $filename . '"'
-            ]);
+            return response()->make(file_get_contents($path), 200, $headers);
         }
         
         if ($extension === 'pdf') {
-            return response()->make(file_get_contents($path), 200, [
-                'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'inline; filename="' . $filename . '"'
-            ]);
+            return response()->make(file_get_contents($path), 200, $headers);
         }
         
         $textExtensions = ['txt', 'md', 'csv'];
         if (in_array($extension, $textExtensions)) {
-            return response()->make(file_get_contents($path), 200, [
-                'Content-Type' => $mimeType,
-                'Content-Disposition' => 'inline; filename="' . $filename . '"'
-            ]);
+            return response()->make(file_get_contents($path), 200, $headers);
         }
         
         // For other file types, return inline preview
-        return response()->make(file_get_contents($path), 200, [
-            'Content-Type' => $mimeType,
-            'Content-Disposition' => 'inline; filename="' . $filename . '"',
-            'X-Content-Type-Options' => 'nosniff'
-        ]);
+        return response()->make(file_get_contents($path), 200, $headers);
     }
 
     /**
@@ -1154,7 +1155,40 @@ class WorkspaceController extends Controller
         }
 
         $filename = $submission->original_filename ?? basename($submission->file_path);
-        return Storage::disk('public')->download($submission->file_path, $filename);
+        $filePath = Storage::disk('public')->path($submission->file_path);
+        $mimeType = Storage::disk('public')->mimeType($submission->file_path);
+        $fileSize = filesize($filePath);
+
+        // Create response with proper headers
+        $response = new \Illuminate\Http\Response(
+            null,
+            200,
+            [
+                'Content-Type' => $mimeType,
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                'Content-Length' => $fileSize,
+                'Cache-Control' => 'no-cache, no-store, must-revalidate',
+                'Pragma' => 'no-cache',
+                'Expires' => '0',
+                'Access-Control-Allow-Origin' => '*',
+                'Access-Control-Allow-Methods' => 'GET, POST, PUT, DELETE, OPTIONS',
+                'Access-Control-Allow-Headers' => 'X-Requested-With, Content-Type, X-Auth-Token, Origin, Authorization'
+            ]
+        );
+
+        // Register a callback to stream the file content
+        $response->sendHeaders();
+        
+        // Stream the file in chunks
+        $handle = fopen($filePath, 'rb');
+        while (!feof($handle)) {
+            echo fread($handle, 2048);
+            ob_flush();
+            flush();
+        }
+        fclose($handle);
+
+        return $response;
     }
 
     /**
