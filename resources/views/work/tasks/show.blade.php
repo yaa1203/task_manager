@@ -626,7 +626,7 @@ use Illuminate\Support\Facades\Storage;
         </div>
         
         <!-- Content Modal -->
-        <div class="bg-white flex items-center justify-center rounded-b-lg" style="max-height: 85vh; display: flex; align-items: center;">
+        <div class="bg-white flex items-center justify-center rounded-b-lg" style="max-height: 85vh; display: flex; align-items: center; overflow: hidden;">
             <!-- Loading State -->
             <div id="fileLoading" class="text-center py-12 px-6">
                 <svg class="animate-spin h-12 w-12 text-blue-600 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -637,11 +637,11 @@ use Illuminate\Support\Facades\Storage;
             </div>
             
             <!-- Image Container - UKURAN ASLI -->
-            <div id="imageContainer" class="hidden max-h-[85vh] overflow-auto">
-                <img id="modalImage" src="" alt="Gambar ukuran penuh" class="h-auto w-auto">
+            <div id="imageContainer" class="hidden w-full h-full overflow-auto flex items-center justify-center">
+                <img id="modalImage" src="" alt="Gambar ukuran penuh" class="h-auto w-auto max-w-full">
             </div>
             
-            <!-- PDF/Document Viewer -->
+            <!-- PDF/Document Viewer - FULL VIEW -->
             <iframe id="modalIframe" class="hidden w-full" style="height: 85vh; border: none;"></iframe>
             
             <!-- Unsupported File State -->
@@ -780,7 +780,7 @@ function formatFileSize(bytes) {
     }, false);
 })();
 
-// File modal functions - DIPERBAIKI UNTUK GAMBAR UKURAN ASLI
+// File modal functions - DIPERBAIKI UNTUK GAMBAR & PDF UKURAN ASLI
 function openFileModal(fileUrl, fileType, fileName) {
     const modal = document.getElementById('fileModal');
     const modalImage = document.getElementById('modalImage');
@@ -838,8 +838,10 @@ function openFileModal(fileUrl, fileType, fileName) {
             img.src = fileUrl;
         } 
         else if (fileType === 'pdf') {
-            modalIframe.src = fileUrl + '#toolbar=0&navpanes=0&scrollbar=0&view=FitH';
+            // PDF dengan full toolbar dan scrollbar
+            modalIframe.src = fileUrl + '#toolbar=1&navpanes=0&scrollbar=1&view=FitBH&page=1';
             modalIframe.classList.remove('hidden');
+            fileLoading.classList.add('hidden');
         } 
         else if (fileType === 'txt' || fileType === 'md' || fileType === 'csv' || fileType === 'html' || fileType === 'htm') {
             fetch(fileUrl)
@@ -1103,7 +1105,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 #modalIframe {
     animation: fadeIn 0.2s ease-in-out;
-    min-height: 600px;
 }
 
 @keyframes fadeIn {
