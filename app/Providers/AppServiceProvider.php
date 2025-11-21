@@ -22,8 +22,8 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
         Carbon::setLocale('id'); // Set locale global ke Indonesia
-        // Force HTTPS for ngrok
-        if (app()->environment('local')) {
+
+        if (preg_match('/ngrok-free\.(app|dev)$/', request()->getHost())) {
             URL::forceScheme('https');
         }
     }
