@@ -628,24 +628,24 @@
     </div>
 </div>
 
-<!-- Modal Universal File Viewer -->
-<div id="fileModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black bg-opacity-75 p-4" onclick="closeFileModal(event)">
-    <div class="relative w-full max-w-7xl max-h-full flex flex-col">
+<!-- Modal Universal File Viewer - DIPERBAIKI -->
+<div id="fileModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-75 p-4 overflow-auto" onclick="closeFileModal(event)">
+    <div class="relative mx-auto" style="width: fit-content; max-width: 95vw;">
         <!-- Header Modal -->
-        <div class="flex items-center justify-between mb-4">
-            <h3 id="modalFileName" class="text-white font-semibold text-lg truncate mr-4"></h3>
+        <div class="sticky top-0 bg-black bg-opacity-90 flex items-center justify-between p-4 z-10 rounded-t-lg">
+            <h3 id="modalFileName" class="text-white font-semibold text-lg truncate mr-4 flex-1"></h3>
             <button onclick="closeFileModal()" 
                     class="text-white hover:text-gray-300 transition-colors focus:outline-none flex-shrink-0">
-                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
             </button>
         </div>
         
-        <!-- Kontainer File -->
-        <div class="bg-white rounded-lg overflow-hidden shadow-2xl flex-1 flex items-center justify-center" style="max-height: 85vh;">
-            <!-- Loading Indicator -->
-            <div id="fileLoading" class="text-center py-12">
+        <!-- Content Modal -->
+        <div class="bg-white flex items-center justify-center rounded-b-lg" style="max-height: 85vh; display: flex; align-items: center;">
+            <!-- Loading State -->
+            <div id="fileLoading" class="text-center py-12 px-6">
                 <svg class="animate-spin h-12 w-12 text-blue-600 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -653,13 +653,15 @@
                 <p class="text-gray-600">Memuat file...</p>
             </div>
             
-            <!-- Image Container -->
-            <img id="modalImage" src="" alt="Gambar ukuran penuh" class="hidden max-w-full max-h-full w-auto h-auto object-contain">
+            <!-- Image Container - UKURAN ASLI -->
+            <div id="imageContainer" class="hidden max-h-[85vh] overflow-auto">
+                <img id="modalImage" src="" alt="Gambar ukuran penuh" class="h-auto w-auto">
+            </div>
             
-            <!-- PDF/Document Container -->
-            <iframe id="modalIframe" class="hidden w-full h-full" frameborder="0"></iframe>
+            <!-- PDF/Document Viewer -->
+            <iframe id="modalIframe" class="hidden w-full" style="height: 85vh; border: none;"></iframe>
             
-            <!-- Unsupported File Message -->
+            <!-- Unsupported File State -->
             <div id="unsupportedFile" class="hidden text-center py-12 px-6">
                 <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -676,10 +678,10 @@
             </div>
         </div>
         
-        <!-- Tombol Unduh -->
-        <div class="text-center mt-4" id="modalDownloadBtn">
+        <!-- Footer Modal -->
+        <div class="bg-black bg-opacity-90 text-center p-4 rounded-b-lg" id="modalDownloadBtn">
             <a href="#" id="modalDownload"
-               class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+               class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
                download>
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
@@ -693,9 +695,11 @@
 <script>
 let currentDownloadUrl = '';
 
+// File modal functions - DIPERBAIKI UNTUK GAMBAR UKURAN ASLI
 function openFileModal(fileUrl, fileType, fileName) {
     const modal = document.getElementById('fileModal');
     const modalImage = document.getElementById('modalImage');
+    const imageContainer = document.getElementById('imageContainer');
     const modalIframe = document.getElementById('modalIframe');
     const fileLoading = document.getElementById('fileLoading');
     const unsupportedFile = document.getElementById('unsupportedFile');
@@ -704,91 +708,124 @@ function openFileModal(fileUrl, fileType, fileName) {
     const downloadLink = document.getElementById('downloadLink');
     const modalDownloadBtn = document.getElementById('modalDownloadBtn');
     
-    // Reset semua elemen
+    // Reset all states
     modalImage.classList.add('hidden');
+    imageContainer.classList.add('hidden');
     modalIframe.classList.add('hidden');
     unsupportedFile.classList.add('hidden');
     fileLoading.classList.remove('hidden');
     modalDownloadBtn.classList.remove('hidden');
     
-    // Set nama file (sekarang menggunakan nama asli)
     modalFileName.textContent = fileName;
     
     // Set download URL
-    const downloadUrl = fileUrl.replace('/view-file/', '/download/');
-    currentDownloadUrl = downloadUrl;
+    let downloadUrl = fileUrl;
+    if (fileUrl.includes('/storage/')) {
+        downloadUrl = fileUrl;
+    } else if (fileUrl.includes('/view-file/')) {
+        downloadUrl = fileUrl.replace('/view-file/', '/download/');
+    }
+    
     modalDownload.href = downloadUrl;
     downloadLink.href = downloadUrl;
     
-    // Tampilkan modal
+    // Show modal
     modal.classList.remove('hidden');
     modal.classList.add('flex');
     document.body.style.overflow = 'hidden';
     
-    // Handle berdasarkan tipe file
     setTimeout(() => {
         fileLoading.classList.add('hidden');
         
         if (fileType === 'image') {
-            // Untuk gambar
-            modalImage.src = fileUrl;
-            modalImage.classList.remove('hidden');
-            modalImage.onload = () => {
+            // Load image dengan ukuran asli
+            const img = new Image();
+            img.onload = function() {
+                modalImage.src = fileUrl;
+                imageContainer.classList.remove('hidden');
                 fileLoading.classList.add('hidden');
             };
-            modalImage.onerror = () => {
-                modalImage.classList.add('hidden');
+            img.onerror = function() {
                 unsupportedFile.classList.remove('hidden');
                 modalDownloadBtn.classList.add('hidden');
+                fileLoading.classList.add('hidden');
             };
-        } else if (fileType === 'pdf') {
-            // Untuk PDF - langsung embed
+            img.src = fileUrl;
+        } 
+        else if (fileType === 'pdf') {
             modalIframe.src = fileUrl + '#toolbar=0&navpanes=0&scrollbar=0&view=FitH';
             modalIframe.classList.remove('hidden');
-            
-            // Handle jika PDF gagal dimuat
-            modalIframe.onerror = () => {
-                modalIframe.classList.add('hidden');
-                unsupportedFile.classList.remove('hidden');
-                modalDownloadBtn.classList.add('hidden');
-            };
-        } else if (fileType === 'txt' || fileType === 'md' || fileType === 'csv' || fileType === 'html' || fileType === 'htm') {
-            // Untuk text files dan HTML
-            modalIframe.src = fileUrl;
-            modalIframe.classList.remove('hidden');
-            
-            // Handle jika file gagal dimuat
-            modalIframe.onerror = () => {
-                modalIframe.classList.add('hidden');
-                unsupportedFile.classList.remove('hidden');
-                modalDownloadBtn.classList.add('hidden');
-            };
-        } else {
-            // File tidak didukung untuk preview (Office files: doc, docx, xls, xlsx, ppt, pptx)
+        } 
+        else if (fileType === 'txt' || fileType === 'md' || fileType === 'csv' || fileType === 'html' || fileType === 'htm') {
+            fetch(fileUrl)
+                .then(response => response.text())
+                .then(text => {
+                    const blob = new Blob([`
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <meta charset="UTF-8">
+                            <style>
+                                body {
+                                    font-family: 'Courier New', monospace;
+                                    padding: 20px;
+                                    margin: 0;
+                                    background: white;
+                                    color: #1f2937;
+                                    line-height: 1.6;
+                                }
+                                pre {
+                                    white-space: pre-wrap;
+                                    word-wrap: break-word;
+                                    margin: 0;
+                                }
+                            </style>
+                        </head>
+                        <body>
+                            <pre>${text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
+                        </body>
+                        </html>
+                    `], { type: 'text/html' });
+                    modalIframe.src = URL.createObjectURL(blob);
+                    modalIframe.classList.remove('hidden');
+                    fileLoading.classList.add('hidden');
+                })
+                .catch(error => {
+                    console.error('Error loading text file:', error);
+                    unsupportedFile.classList.remove('hidden');
+                    modalDownloadBtn.classList.add('hidden');
+                    fileLoading.classList.add('hidden');
+                });
+        } 
+        else {
             unsupportedFile.classList.remove('hidden');
             modalDownloadBtn.classList.add('hidden');
+            fileLoading.classList.add('hidden');
         }
     }, 300);
 }
 
 function closeFileModal(event) {
-    // Tutup hanya jika diklik di backdrop atau tombol tutup
-    if (!event || event.target.id === 'fileModal' || event.currentTarget.tagName === 'BUTTON') {
-        const modal = document.getElementById('fileModal');
-        const modalIframe = document.getElementById('modalIframe');
-        const modalImage = document.getElementById('modalImage');
-        
-        // Reset iframe dan image
-        modalIframe.src = '';
-        modalImage.src = '';
-        
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-        document.body.style.overflow = 'auto';
+    // Pastikan hanya close saat klik di luar modal atau tombol close
+    if (event && event.target.id !== 'fileModal' && event.currentTarget.tagName !== 'BUTTON') {
+        return;
     }
+    
+    const modal = document.getElementById('fileModal');
+    const modalIframe = document.getElementById('modalIframe');
+    const modalImage = document.getElementById('modalImage');
+    const imageContainer = document.getElementById('imageContainer');
+    
+    modalIframe.src = '';
+    modalImage.src = '';
+    imageContainer.classList.add('hidden');
+    
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    document.body.style.overflow = 'auto';
 }
 
-// Tutup modal dengan tombol Escape
+// Close modal dengan ESC key
 document.addEventListener('keydown', function(event) {
     if (event.key === 'Escape') {
         closeFileModal();
@@ -801,8 +838,15 @@ document.addEventListener('keydown', function(event) {
     backdrop-filter: blur(4px);
 }
 
-#modalImage, #modalIframe {
+#modalImage {
     animation: fadeIn 0.2s ease-in-out;
+    display: block;
+    margin: 0 auto;
+}
+
+#modalIframe {
+    animation: fadeIn 0.2s ease-in-out;
+    min-height: 600px;
 }
 
 @keyframes fadeIn {
@@ -816,12 +860,6 @@ document.addEventListener('keydown', function(event) {
     }
 }
 
-/* Styling untuk iframe */
-#modalIframe {
-    min-height: 600px;
-}
-
-/* Loading animation */
 @keyframes spin {
     to {
         transform: rotate(360deg);
@@ -830,6 +868,90 @@ document.addEventListener('keydown', function(event) {
 
 .animate-spin {
     animation: spin 1s linear infinite;
+}
+
+/* Scrollbar styling untuk image container */
+#imageContainer::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+#imageContainer::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+#imageContainer::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 5px;
+}
+
+#imageContainer::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+#imageContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+}
+
+/* Custom scrollbar untuk textarea */
+textarea::-webkit-scrollbar {
+    width: 8px;
+}
+
+textarea::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+textarea::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+textarea::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* File preview animations */
+#filePreviewArea {
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Drag and drop hover effect */
+#uploadArea.border-blue-500 {
+    transform: scale(1.02);
+    transition: all 0.2s ease;
+}
+
+/* Smooth transitions for button state changes */
+#submitButton {
+    transition: all 0.3s ease;
+}
+
+#submitButton:not(:disabled):hover {
+    transform: scale(1.02);
+}
+
+#submitButton:not(:disabled):active {
+    transform: scale(0.98);
+}
+
+#emptyFormWarning {
+    animation: slideDown 0.3s ease-out;
 }
 </style>
 @endsection

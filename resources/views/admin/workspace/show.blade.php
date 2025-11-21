@@ -58,7 +58,7 @@
                 <!-- Tombol Aksi -->
                 <div class="flex gap-2 sm:ml-auto">
                     <a href="{{ route('workspaces.edit', $workspace) }}" 
-                       class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 active:bg-gray-300 transition text-sm font-medium touch-manipulation min-h-[44px]">
+                       class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white text-gray-700 rounded-lg hover:shadow-md transition-shadow active:bg-gray-300 transition text-sm font-medium touch-manipulation min-h-[44px]">
                         <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                         </svg>
@@ -78,7 +78,7 @@
                             </button>
                         @else
                             <button type="submit" 
-                                    class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 active:bg-gray-300 transition text-sm font-medium touch-manipulation min-h-[44px]">
+                                    class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white text-gray-700 rounded-lg hover:shadow-md transition-shadow active:bg-gray-300 transition text-sm font-medium touch-manipulation min-h-[44px]">
                                 <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
                                 </svg>
