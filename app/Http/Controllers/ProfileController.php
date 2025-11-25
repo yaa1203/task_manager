@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\View\View;
@@ -20,28 +21,53 @@ class ProfileController extends Controller
      * ====================================
      */
 
-    /**
-     * Tampilkan halaman profil user.
-     */
     public function edit(Request $request): View
     {
         return view('profile.edit', ['user' => Auth::user()]);
     }
 
-    /**
-     * Update profil user (nama & email).
-     */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
         $user = Auth::user();
-        $user->update($request->only('name', 'email'));
+        
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
+        ]);
+
+        // Handle avatar upload
+        if ($request->hasFile('avatar')) {
+            // Delete old avatar if exists
+            if ($user->avatar) {
+                $user->deleteAvatar();
+            }
+
+            // Store new avatar
+            $path = $request->file('avatar')->store('avatars', 'public');
+            $validated['avatar'] = $path;
+        }
+
+        $user->update($validated);
 
         return redirect()->route('profile.edit')->with('status', 'Profil berhasil diperbarui!');
     }
 
-    /**
-     * Ubah password user.
-     */
+    public function removeAvatarUser(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+        
+        if ($user->avatar) {
+            $user->deleteAvatar();
+            $user->avatar = null;
+            $user->save();
+            
+            return redirect()->route('profile.edit')->with('status', 'Foto profil berhasil dihapus!');
+        }
+
+        return redirect()->route('profile.edit')->with('error', 'Tidak ada foto profil untuk dihapus.');
+    }
+
     public function updatePasswordUser(Request $request): RedirectResponse
     {
         $validated = $request->validate([
@@ -56,9 +82,6 @@ class ProfileController extends Controller
         return redirect()->route('profile.edit')->with('status', 'Kata sandi berhasil diperbarui.');
     }
 
-    /**
-     * Hapus akun user.
-     */
     public function destroy(Request $request): RedirectResponse
     {
         $request->validate([
@@ -82,17 +105,11 @@ class ProfileController extends Controller
      * ====================================
      */
 
-    /**
-     * Tampilkan halaman profil admin.
-     */
     public function profileAdmin(Request $request): View
     {
         return view('admin.profil.index', ['admin' => Auth::user()]);
     }
 
-    /**
-     * Update profil admin (nama & email).
-     */
     public function updateAdmin(Request $request): RedirectResponse
     {
         $user = $request->user();
@@ -100,7 +117,20 @@ class ProfileController extends Controller
         $validated = $request->validate([
             'name'  => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'], // max 2MB
         ]);
+
+        // Handle avatar upload
+        if ($request->hasFile('avatar')) {
+            // Delete old avatar if exists
+            if ($user->avatar) {
+                $user->deleteAvatar();
+            }
+
+            // Store new avatar
+            $path = $request->file('avatar')->store('avatars', 'public');
+            $validated['avatar'] = $path;
+        }
 
         if ($user->email !== $validated['email'] && $user instanceof MustVerifyEmail) {
             $user->email_verified_at = null;
@@ -111,9 +141,21 @@ class ProfileController extends Controller
         return redirect()->route('admin.profile')->with('status', 'Profil admin berhasil diperbarui!');
     }
 
-    /**
-     * Ubah password admin.
-     */
+    public function removeAvatarAdmin(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+        
+        if ($user->avatar) {
+            $user->deleteAvatar();
+            $user->avatar = null;
+            $user->save();
+            
+            return redirect()->route('admin.profile')->with('status', 'Foto profil berhasil dihapus!');
+        }
+
+        return redirect()->route('admin.profile')->with('error', 'Tidak ada foto profil untuk dihapus.');
+    }
+
     public function updatePasswordAdmin(Request $request): RedirectResponse
     {
         $validated = $request->validate([
@@ -133,9 +175,6 @@ class ProfileController extends Controller
         return redirect()->route('admin.profile')->with('status', 'Kata sandi admin berhasil diperbarui!');
     }
 
-    /**
-     * Hapus akun admin.
-     */
     public function destroyAdmin(Request $request): RedirectResponse
     {
         $request->validate([
@@ -147,6 +186,11 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
+        // Delete avatar before deleting user
+        if ($user->avatar) {
+            $user->deleteAvatar();
+        }
+
         Auth::logout();
         $user->delete();
 
@@ -156,9 +200,6 @@ class ProfileController extends Controller
         return redirect('/')->with('status', 'Akun admin berhasil dihapus.');
     }
 
-    /**
-     * Kirim ulang link verifikasi email admin.
-     */
     public function sendVerificationAdmin(Request $request): RedirectResponse
     {
         if ($request->user()->hasVerifiedEmail()) {
@@ -176,17 +217,11 @@ class ProfileController extends Controller
      * ====================================
      */
 
-    /**
-     * Tampilkan halaman profil super admin.
-     */
     public function profileSuperAdmin(Request $request): View
     {
         return view('superadmin.profiles.index', ['admin' => Auth::user()]);
     }
 
-    /**
-     * Update profil super admin (nama & email).
-     */
     public function updateSuperAdmin(Request $request): RedirectResponse
     {
         $user = $request->user();
@@ -194,7 +229,17 @@ class ProfileController extends Controller
         $validated = $request->validate([
             'name'  => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
         ]);
+
+        // Handle avatar upload
+        if ($request->hasFile('avatar')) {
+            if ($user->avatar) {
+                $user->deleteAvatar();
+            }
+            $path = $request->file('avatar')->store('avatars', 'public');
+            $validated['avatar'] = $path;
+        }
 
         if ($user->email !== $validated['email'] && $user instanceof MustVerifyEmail) {
             $user->email_verified_at = null;
@@ -205,9 +250,21 @@ class ProfileController extends Controller
         return redirect()->route('superadmin.profile')->with('status', 'Profil super admin berhasil diperbarui!');
     }
 
-    /**
-     * Ubah password super admin.
-     */
+    public function removeAvatarSuperAdmin(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+        
+        if ($user->avatar) {
+            $user->deleteAvatar();
+            $user->avatar = null;
+            $user->save();
+            
+            return redirect()->route('superadmin.profile')->with('status', 'Foto profil berhasil dihapus!');
+        }
+
+        return redirect()->route('superadmin.profile')->with('error', 'Tidak ada foto profil untuk dihapus.');
+    }
+
     public function updatePasswordSuperAdmin(Request $request): RedirectResponse
     {
         $validated = $request->validate([
@@ -227,9 +284,6 @@ class ProfileController extends Controller
         return redirect()->route('superadmin.profile')->with('status', 'Kata sandi super admin berhasil diperbarui!');
     }
 
-    /**
-     * Hapus akun super admin.
-     */
     public function destroySuperAdmin(Request $request): RedirectResponse
     {
         $request->validate([
@@ -241,6 +295,10 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
+        if ($user->avatar) {
+            $user->deleteAvatar();
+        }
+
         Auth::logout();
         $user->delete();
 
@@ -250,9 +308,6 @@ class ProfileController extends Controller
         return redirect('/')->with('status', 'Akun super admin berhasil dihapus.');
     }
 
-    /**
-     * Kirim ulang link verifikasi email super admin.
-     */
     public function sendVerificationSuperAdmin(Request $request): RedirectResponse
     {
         if ($request->user()->hasVerifiedEmail()) {

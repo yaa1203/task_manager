@@ -328,37 +328,56 @@
             </div>
         </nav>
 
-        {{-- User Profile & Logout --}}
-        <div class="p-4 border-t border-gray-200 bg-gradient-to-br from-gray-50 to-white">
-            <div class="mb-3 px-3 py-2 bg-white rounded-xl shadow-sm border border-gray-100">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg">
-                        {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <div class="text-sm font-bold text-gray-900 truncate">{{ Auth::user()->name }}</div>
-                        <div class="text-xs text-gray-500 truncate">{{ Auth::user()->email }}</div>
+        {{-- User Profile & Logout - Super Admin --}}
+        <div class="p-4 border-t border-gray-200 bg-gradient-to-br from-purple-50 via-pink-50 to-white">
+            <div class="mb-4">
+                <div class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-purple-100 overflow-hidden transition-all hover:shadow-xl">
+                    <div class="p-4">
+                        <div class="flex items-center gap-4">
+                            <div class="shrink-0">
+                                @if(Auth::user()->avatar)
+                                    <img src="{{ asset('storage/' . Auth::user()->avatar) }}" 
+                                        alt="{{ Auth::user()->name }}"
+                                        class="w-14 h-14 rounded-full object-cover ring-4 ring-white shadow-md">
+                                @else
+                                    <div class="w-14 h-14 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white font-bold text-lg shadow-lg ring-4 ring-white">
+                                        {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
+                                    </div>
+                                @endif
+                            </div>
+
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-bold text-gray-900 truncate">{{ Auth::user()->name }}</p>
+                                <p class="text-xs text-purple-600 font-semibold flex items-center gap-1 mt-0.5">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                                    </svg>
+                                    Super Administrator
+                                </p>
+                                <p class="text-xs text-gray-500 truncate">{{ Auth::user()->email }}</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            
-            <div class="space-y-1">
-                <a href="{{ url('superadmin/profile') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-purple-700 hover:bg-purple-50 rounded-lg">
-                    <div class="w-8 h-8 bg-gray-100 group-hover:bg-purple-50 rounded-lg flex items-center justify-center transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 20a6 6 0 0112 0"/>
+
+            <div class="space-y-2">
+                <a href="{{ route('superadmin.profile') }}" 
+                class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-purple-700 hover:bg-purple-100 rounded-xl transition-all group">
+                    <div class="w-9 h-9 bg-purple-100 group-hover:bg-purple-200 rounded-lg flex items-center justify-center transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                         </svg>
                     </div>
-                    <span>Lihat Profil</span>
+                    <span>Profil Saya</span>
                 </a>
-                
+
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit"
-                            class="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-bold text-red-600 hover:bg-red-50 rounded-lg transition-all group">
-                        <div class="w-8 h-8 bg-red-50 group-hover:bg-red-100 rounded-lg flex items-center justify-center transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-red-600 hover:bg-red-50 rounded-xl transition-all group">
+                        <div class="w-9 h-9 bg-red-100 group-hover:bg-red-200 rounded-lg flex items-center justify-center transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                             </svg>
                         </div>

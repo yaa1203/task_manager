@@ -8,6 +8,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use App\Notifications\AdminNotification;
+use Illuminate\Support\Facades\Storage;
 
 class User extends Authenticatable
 {
@@ -25,6 +26,7 @@ class User extends Authenticatable
         'is_blocked',
         'blocked_at',
         'blocked_by',
+        'avatar', // TAMBAHAN
     ];
 
     /**
@@ -44,6 +46,43 @@ class User extends Authenticatable
         'is_blocked' => 'boolean',
         'blocked_at' => 'datetime',
     ];
+
+    // ---------------------------------------------------
+    // ---------------- AVATAR METHODS ------------------
+    // ---------------------------------------------------
+
+    /**
+     * Get avatar URL or generate initials
+     */
+    public function getAvatarUrlAttribute()
+    {
+        if ($this->avatar && Storage::disk('public')->exists($this->avatar)) {
+            return Storage::url($this->avatar);
+        }
+        return null;
+    }
+
+    /**
+     * Get user initials (first 2 letters of name)
+     */
+    public function getInitialsAttribute()
+    {
+        $words = explode(' ', trim($this->name));
+        if (count($words) >= 2) {
+            return strtoupper(substr($words[0], 0, 1) . substr($words[1], 0, 1));
+        }
+        return strtoupper(substr($this->name, 0, 2));
+    }
+
+    /**
+     * Delete avatar file from storage
+     */
+    public function deleteAvatar()
+    {
+        if ($this->avatar && Storage::disk('public')->exists($this->avatar)) {
+            Storage::disk('public')->delete($this->avatar);
+        }
+    }
 
     // ---------------------------------------------------
     // ---------------- RELATIONSHIPS -------------------

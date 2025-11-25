@@ -533,9 +533,17 @@
         <div class="p-4 border-t border-gray-200 bg-gradient-to-br from-gray-50 to-white">
             <div class="mb-3 px-3 py-2 bg-white rounded-xl shadow-sm border border-gray-100">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg">
-                        {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
-                    </div>
+                    {{-- Avatar Section --}}
+                    @if(Auth::user()->avatar)
+                        <img src="{{ asset('storage/' . Auth::user()->avatar) }}" 
+                            alt="Avatar {{ Auth::user()->name }}"
+                            class="w-10 h-10 rounded-full object-cover border-2 border-blue-200 shadow-lg">
+                    @else
+                        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg">
+                            {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
+                        </div>
+                    @endif
+                    
                     <div class="flex-1 min-w-0">
                         <div class="text-sm font-bold text-gray-900 truncate">{{ Auth::user()->name }}</div>
                         <div class="text-xs text-gray-500 truncate">{{ Auth::user()->email }}</div>
@@ -544,11 +552,10 @@
             </div>
             
             <div class="space-y-1">
-                 <a href="{{ url('admin/profile') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 rounded-lg">
-                    <div class="w-8 h-8 bg-gray-100 group-hover:bg-blue-50 rounded-lg flex items-center justify-center transition-colors">
+                <a href="{{ url('admin/profile') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 rounded-lg transition-all group">
+                    <div class="w-8 h-8 bg-blue-50 group-hover:bg-blue-100 rounded-lg flex items-center justify-center transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 20a6 6 0 0112 0"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                         </svg>
                     </div>
                     <span>Lihat Profil</span>

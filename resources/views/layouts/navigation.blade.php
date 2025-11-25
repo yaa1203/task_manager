@@ -70,9 +70,16 @@
                 <!-- User Dropdown -->
                 <div class="relative" x-data="{ userOpen: false }" @click.away="userOpen = false">
                     <button @click="userOpen = !userOpen" class="flex items-center gap-2 p-1 rounded-full hover:bg-gray-100 transition">
-                        <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-md">
-                            {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
-                        </div>
+                        {{-- Avatar with dropdown trigger --}}
+                        @if(Auth::user()->avatar)
+                            <img src="{{ asset('storage/' . Auth::user()->avatar) }}" 
+                                alt="Avatar {{ Auth::user()->name }}"
+                                class="w-8 h-8 rounded-full object-cover border-2 border-blue-200 shadow-md">
+                        @else
+                            <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-md">
+                                {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
+                            </div>
+                        @endif
                         <span class="hidden md:block text-sm font-medium text-gray-700">{{ Auth::user()->name }}</span>
                         <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>

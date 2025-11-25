@@ -27,15 +27,48 @@
             </div>
         @endif
 
+        {{-- Error Alert --}}
+        @if(session('error'))
+            <div class="mb-6 bg-red-50 border border-red-200 text-red-800 rounded-xl p-4 shadow-sm flex items-center gap-3 animate-fade-in">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <p class="text-sm font-medium">{{ session('error') }}</p>
+                <button onclick="this.parentElement.remove()" class="ml-auto text-red-600 hover:text-red-800">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+        @endif
+
         <div class="flex flex-col lg:flex-row gap-8">
             {{-- Sticky Sidebar --}}
             <div class="w-full lg:w-80 lg:sticky lg:top-6 lg:self-start" style="max-height: calc(100vh - 6rem);">
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
                     <div class="bg-gradient-to-br from-blue-500 to-blue-600 p-6 text-white">
                         <div class="flex flex-col items-center">
-                            <div class="w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center mb-3 border-4 border-white/30">
-                                <span class="text-2xl font-bold">{{ strtoupper(substr($admin->name, 0, 2)) }}</span>
+                            {{-- Avatar Section --}}
+                            <div class="relative group mb-3">
+                                @if($admin->avatar)
+                                    <img src="{{ asset('storage/' . $admin->avatar) }}" 
+                                         alt="Avatar {{ $admin->name }}"
+                                         class="w-20 h-20 rounded-full object-cover border-4 border-white/30 shadow-lg">
+                                @else
+                                    <div class="w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border-4 border-white/30">
+                                        <span class="text-2xl font-bold">{{ strtoupper(substr($admin->name, 0, 2)) }}</span>
+                                    </div>
+                                @endif
+                                
+                                {{-- Edit Avatar Button --}}
+                                <button onclick="openAvatarModal()" 
+                                        class="absolute bottom-0 right-0 w-7 h-7 bg-white text-blue-600 rounded-full shadow-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-blue-50">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                                    </svg>
+                                </button>
                             </div>
+                            
                             <h3 class="text-xl font-bold">{{ $admin->name }}</h3>
                             <p class="text-sm opacity-90 break-all">{{ $admin->email }}</p>
                         </div>
@@ -219,6 +252,74 @@
         </div>
     </div>
 
+    {{-- Avatar Modal --}}
+    <div id="avatarModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4" onclick="if(event.target===this) closeAvatarModal()">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6" onclick="event.stopPropagation()">
+            <div class="flex items-center justify-between mb-5">
+                <h3 class="text-lg font-bold text-gray-900">Edit Foto Profil</h3>
+                <button onclick="closeAvatarModal()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            {{-- Current Avatar Preview --}}
+            <div class="flex flex-col items-center mb-6">
+                <div id="avatarPreviewContainer" class="relative">
+                    @if($admin->avatar)
+                        <img id="currentAvatar" src="{{ asset('storage/' . $admin->avatar) }}" 
+                             alt="Avatar" class="w-32 h-32 rounded-full object-cover border-4 border-gray-200">
+                    @else
+                        <div id="currentAvatar" class="w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center border-4 border-gray-200">
+                            <span class="text-4xl font-bold text-white">{{ strtoupper(substr($admin->name, 0, 2)) }}</span>
+                        </div>
+                    @endif
+                </div>
+                <p class="text-sm text-gray-500 mt-3">JPG, PNG, atau GIF (Max. 2MB)</p>
+            </div>
+
+            {{-- Upload Form --}}
+            <form method="post" action="{{ route('admin.profile.update') }}" enctype="multipart/form-data" id="avatarForm">
+                @csrf @method('patch')
+                <input type="hidden" name="name" value="{{ $admin->name }}">
+                <input type="hidden" name="email" value="{{ $admin->email }}">
+                
+                <div class="mb-5">
+                    <label class="block w-full">
+                        <input type="file" name="avatar" id="avatarInput" accept="image/*" class="hidden" onchange="previewAvatar(this)">
+                        <div class="w-full px-6 py-3 border-2 border-dashed border-gray-300 rounded-xl hover:border-blue-500 transition-colors cursor-pointer text-center">
+                            <svg class="w-8 h-8 mx-auto text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                            </svg>
+                            <p class="text-sm font-medium text-gray-700">Klik untuk upload foto</p>
+                            <p class="text-xs text-gray-500 mt-1">atau drag & drop</p>
+                        </div>
+                    </label>
+                    @error('avatar') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
+                </div>
+
+                <div class="flex gap-3">
+                    @if($admin->avatar)
+                        <button type="button" onclick="removeAvatar()" class="flex-1 px-5 py-2.5 border border-red-300 text-red-700 text-sm font-semibold rounded-xl hover:bg-red-50 transition-colors">
+                            Hapus Foto
+                        </button>
+                    @endif
+                    <button type="submit" class="flex-1 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm">
+                        Simpan Foto
+                    </button>
+                </div>
+            </form>
+
+            {{-- Remove Avatar Form --}}
+            @if($admin->avatar)
+                <form id="removeAvatarForm" method="post" action="{{ route('admin.avatar.remove') }}" class="hidden">
+                    @csrf @method('delete')
+                </form>
+            @endif
+        </div>
+    </div>
+
     {{-- Delete Confirmation Modal --}}
     <div id="deleteModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4" onclick="if(event.target===this) closeDeleteModal()">
         <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6" onclick="event.stopPropagation()">
@@ -258,14 +359,56 @@
     </div>
 
     <script>
+        // Avatar Modal Functions
+        function openAvatarModal() {
+            document.getElementById('avatarModal').classList.remove('hidden');
+            document.getElementById('avatarModal').classList.add('flex');
+        }
+        
+        function closeAvatarModal() {
+            document.getElementById('avatarModal').classList.add('hidden');
+            document.getElementById('avatarModal').classList.remove('flex');
+            // Reset preview
+            document.getElementById('avatarInput').value = '';
+        }
+        
+        function previewAvatar(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                const fileSize = input.files[0].size / 1024 / 1024; // in MB
+                
+                if (fileSize > 2) {
+                    alert('Ukuran file terlalu besar! Maksimal 2MB.');
+                    input.value = '';
+                    return;
+                }
+                
+                reader.onload = function(e) {
+                    const preview = document.getElementById('currentAvatar');
+                    preview.outerHTML = `<img id="currentAvatar" src="${e.target.result}" alt="Preview" class="w-32 h-32 rounded-full object-cover border-4 border-gray-200">`;
+                }
+                
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        
+        function removeAvatar() {
+            if (confirm('Yakin ingin menghapus foto profil?')) {
+                document.getElementById('removeAvatarForm').submit();
+            }
+        }
+
+        // Delete Modal Functions
         function openDeleteModal() {
             document.getElementById('deleteModal').classList.remove('hidden');
             document.getElementById('deleteModal').classList.add('flex');
         }
+        
         function closeDeleteModal() {
             document.getElementById('deleteModal').classList.add('hidden');
             document.getElementById('deleteModal').classList.remove('flex');
         }
+        
         function confirmDelete() {
             return confirm('PERINGATAN!\n\nAkun akan dihapus PERMANEN.\nTindakan ini TIDAK DAPAT dibatalkan!');
         }
@@ -280,8 +423,45 @@
             }
         }, 5000);
 
-        // ESC to close
-        document.addEventListener('keydown', e => e.key === 'Escape' && closeDeleteModal());
+        // ESC to close modals
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') {
+                closeDeleteModal();
+                closeAvatarModal();
+            }
+        });
+
+        // Drag and drop support
+        const dropZone = document.querySelector('label[for="avatarInput"] div');
+        if (dropZone) {
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, () => {
+                    dropZone.classList.add('border-blue-500', 'bg-blue-50');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, () => {
+                    dropZone.classList.remove('border-blue-500', 'bg-blue-50');
+                }, false);
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                document.getElementById('avatarInput').files = files;
+                previewAvatar(document.getElementById('avatarInput'));
+            }, false);
+        }
     </script>
 
     <style>

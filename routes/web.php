@@ -87,6 +87,7 @@ Route::middleware(['auth', 'role:user'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [ProfileController::class, 'updatePasswordUser'])->name('profile.password.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::delete('/profile/avatar', [ProfileController::class, 'removeAvatarUser'])->name('profile.avatar.remove');
 
     // Calendar (User)
     Route::get('/calendar', [WorkspaceController::class, 'userCalendar'])->name('calendar.index');
@@ -119,6 +120,8 @@ Route::middleware(['auth', 'role:admin', 'no.cache'])->group(function () {
     Route::put('/admin/profile/password', [ProfileController::class, 'updatePasswordAdmin'])->name('admin.password.update');
     Route::delete('/admin/profile', [ProfileController::class, 'destroyAdmin'])->name('admin.profile.destroy');
     Route::post('/admin/profile/send-verification', [ProfileController::class, 'sendVerificationAdmin'])->name('admin.profile.verify');
+    // Route untuk avatar admin
+    Route::delete('/admin/profile/avatar', [ProfileController::class, 'removeAvatarAdmin'])->name('admin.avatar.remove');
 
  
     // Dashboard Admin
@@ -218,6 +221,7 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
     Route::put('/superadmin/password', [ProfileController::class, 'updatePasswordSuperAdmin'])->name('superadmin.password.update');
     Route::delete('/superadmin/profile', [ProfileController::class, 'destroySuperAdmin'])->name('superadmin.profile.destroy');
     Route::post('/superadmin/email/verification-notification', [ProfileController::class, 'sendVerificationSuperAdmin'])->name('superadmin.verification.send');
+    Route::delete('/superadmin/avatar', [ProfileController::class, 'removeAvatarSuperAdmin'])->name('superadmin.avatar.remove');
 });
 
 // =============================================================
