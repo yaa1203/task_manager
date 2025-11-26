@@ -11,7 +11,9 @@ use App\Http\Controllers\{
     UserController,
     NotificationController,
     WorkspaceController,
-    SuperAdminRegisterController
+    SuperAdminRegisterController,
+    ForgotPasswordController,
+    SuperAdminResetController
 };
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\SuperAdminCategoryController;
@@ -222,7 +224,21 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
     Route::delete('/superadmin/profile', [ProfileController::class, 'destroySuperAdmin'])->name('superadmin.profile.destroy');
     Route::post('/superadmin/email/verification-notification', [ProfileController::class, 'sendVerificationSuperAdmin'])->name('superadmin.verification.send');
     Route::delete('/superadmin/avatar', [ProfileController::class, 'removeAvatarSuperAdmin'])->name('superadmin.avatar.remove');
+
+    Route::get('/reset-requests', [SuperAdminResetController::class, 'index'])
+        ->name('superadmin.reset.index');
+
+    Route::post('/reset-requests/{id}/reset', [SuperAdminResetController::class, 'reset'])
+        ->name('superadmin.reset.perform');
 });
+
+
+Route::get('/forgot-password/request', [ForgotPasswordController::class, 'showForm'])
+    ->name('password.request.custom');
+
+Route::post('/forgot-password/request', [ForgotPasswordController::class, 'submitRequest'])
+    ->name('password.submit.custom');
+
 
 // =============================================================
 // 🔸 Auth Scaffolding
