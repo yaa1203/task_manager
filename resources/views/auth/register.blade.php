@@ -5,6 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+     <link rel="icon"  type="image/png" sizes="32x32" href="/icons/logo72x72.png">
     <title>Register - {{ config('app.name', 'TaskFlow') }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -19,6 +20,13 @@
         <!-- Left Side - Register Form (Mobile: Full Screen, Desktop: Half Screen) -->
         <div class="w-full lg:w-1/2 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8 bg-white">
             <div class="w-full max-w-md">
+                  <a href="{{ url('/') }}" class="px-4 py-2 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full inline-flex items-center gap-2 mb-2 hover:text-white hover:bg-blue-500">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                    <span>Kembali</span>
+                </a>
+
                 <!-- Logo & Header -->
                 <div class="text-center mb-8">
                     <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl shadow-lg mb-4">
