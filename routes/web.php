@@ -225,10 +225,10 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
     Route::post('/superadmin/email/verification-notification', [ProfileController::class, 'sendVerificationSuperAdmin'])->name('superadmin.verification.send');
     Route::delete('/superadmin/avatar', [ProfileController::class, 'removeAvatarSuperAdmin'])->name('superadmin.avatar.remove');
 
-    Route::get('/reset-requests', [SuperAdminResetController::class, 'index'])
+    Route::get('/reset/requests', [SuperAdminResetController::class, 'index'])
         ->name('superadmin.reset.index');
 
-    Route::post('/reset-requests/{id}/reset', [SuperAdminResetController::class, 'reset'])
+    Route::post('/reset/requests/{id}/reset', [SuperAdminResetController::class, 'reset'])
         ->name('superadmin.reset.perform');
 });
 
