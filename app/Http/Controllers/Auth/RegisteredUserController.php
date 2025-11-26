@@ -30,28 +30,27 @@ class RegisteredUserController extends Controller
      * @throws \Illuminate\Validation\ValidationException
      */
    public function store(Request $request): RedirectResponse
-{
-    $request->validate([
-        'name' => ['required', 'string', 'max:255'],
-        'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-        'password' => ['required', 'confirmed', Rules\Password::defaults()],
-        'category_id' => ['required', 'exists:categories,id'], // validasi kategori
-    ]);
+    {
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'whatsapp' => ['required', 'string', 'regex:/^(\+62|62|0)[0-9]{9,12}$/'], // Validasi format Indonesia
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'category_id' => ['required', 'exists:categories,id'],
+        ]);
 
-    $user = User::create([
-        'name' => $request->name,
-        'email' => $request->email,
-        'password' => Hash::make($request->password),
-        'category_id' => $request->category_id, // simpan kategori
-        'role' => 'user', // otomatis jadi user
-    ]);
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'whatsapp' => $request->whatsapp,
+            'password' => Hash::make($request->password),
+            'category_id' => $request->category_id,
+            'role' => 'user',
+        ]);
 
-  
-    event(new Registered($user));
+        event(new Registered($user));
+        Auth::login($user);
 
-    Auth::login($user);
-
-    return redirect(route('dashboard', absolute: false));
-}
-
+        return redirect(route('dashboard', absolute: false));
+    }
 }

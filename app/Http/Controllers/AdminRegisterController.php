@@ -22,19 +22,20 @@ class AdminRegisterController extends Controller
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'whatsapp' => ['required', 'string', 'regex:/^(\+62|62|0)[0-9]{9,12}$/'], // Validasi WhatsApp
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'category_id' => ['required', 'exists:categories,id'], // validasi kategori
+            'category_id' => ['required', 'exists:categories,id'],
         ]);
 
-        // ✅ Simpan dengan category_id
+        // ✅ Simpan dengan category_id dan whatsapp
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
+            'whatsapp' => $request->whatsapp, // Tambahkan ini
             'password' => Hash::make($request->password),
             'role' => 'admin',
-            'category_id' => $request->category_id, // <-- tambahkan ini
+            'category_id' => $request->category_id,
         ]);
-
 
         Auth::login($user);
 
