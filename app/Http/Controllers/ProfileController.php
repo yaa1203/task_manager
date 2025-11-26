@@ -33,6 +33,7 @@ class ProfileController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'whatsapp' => ['required', 'string', 'regex:/^(\+62|62|0)[0-9]{9,12}$/'], // Validasi WhatsApp
             'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
         ]);
 
@@ -117,7 +118,8 @@ class ProfileController extends Controller
         $validated = $request->validate([
             'name'  => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
-            'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'], // max 2MB
+            'whatsapp' => ['required', 'string', 'regex:/^(\+62|62|0)[0-9]{9,12}$/'], // Validasi WhatsApp
+            'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
         ]);
 
         // Handle avatar upload
