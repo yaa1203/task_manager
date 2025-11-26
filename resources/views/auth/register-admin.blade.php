@@ -17,9 +17,10 @@
 
 <body class="font-sans antialiased">
     <div class="min-h-screen flex">
-        <!-- Left Side - Admin Register Form -->
-        <div class="w-full lg:w-1/2 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8 bg-white">
+        <!-- Left Side - Admin Register Form (Scrollable) -->
+        <div class="w-full lg:w-1/2 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8 bg-white overflow-y-auto">
             <div class="w-full max-w-md">
+
                 <!-- Logo & Header with Admin Badge -->
                 <div class="text-center mb-8">
                     <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl shadow-lg mb-4 relative">
@@ -81,7 +82,7 @@
                             Pilih Kategori
                         </label>
                         <select name="category_id" id="category_id" required
-                            class="w-full px-4 py-3 border border-gray-300 rounded-lg">
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none">
                             <option value="">-- Pilih Kategori --</option>
                             @foreach($categories as $category)
                             <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
@@ -119,7 +120,7 @@
                         @enderror
                     </div>
 
-                    <!-- WhatsApp - TAMBAHKAN INI -->
+                    <!-- WhatsApp -->
                     <div>
                         <label for="whatsapp_input" class="block text-sm font-semibold text-gray-700 mb-2">
                             Nomor WhatsApp
@@ -180,11 +181,11 @@
                                 placeholder="Password kuat (min. 8 karakter)" required>
                             <!-- Eye Icon for Show/Hide Password -->
                             <button type="button" id="toggle-password" class="absolute inset-y-0 right-0 pr-3 flex items-center">
-                                <svg id="eye-open" class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg id="eye-open" class="h-5 w-5 text-gray-400 hover:text-gray-600 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                 </svg>
-                                <svg id="eye-closed" class="h-5 w-5 text-gray-400 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg id="eye-closed" class="h-5 w-5 text-gray-400 hover:text-gray-600 transition hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
                                 </svg>
                             </button>
@@ -215,11 +216,11 @@
                                 placeholder="Konfirmasi password Anda" required>
                             <!-- Eye Icon for Show/Hide Password Confirmation -->
                             <button type="button" id="toggle-password-confirm" class="absolute inset-y-0 right-0 pr-3 flex items-center">
-                                <svg id="eye-open-confirm" class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg id="eye-open-confirm" class="h-5 w-5 text-gray-400 hover:text-gray-600 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                 </svg>
-                                <svg id="eye-closed-confirm" class="h-5 w-5 text-gray-400 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg id="eye-closed-confirm" class="h-5 w-5 text-gray-400 hover:text-gray-600 transition hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
                                 </svg>
                             </button>
@@ -255,14 +256,24 @@
                     </button>
                 </form>
 
+                <!-- Divider -->
+                <div class="relative my-6">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-gray-300"></div>
+                    </div>
+                    <div class="relative flex justify-center text-sm">
+                        <span class="px-4 bg-white text-gray-500">Sudah punya akun?</span>
+                    </div>
+                </div>
+
                 <!-- Back to Login -->
-                <div class="mt-6 text-center">
-                    <p class="text-sm text-gray-600">
-                        Sudah memiliki akun?
-                        <a href="{{ route('login') }}" class="font-semibold text-blue-600 hover:text-blue-700 transition">
-                            Login
-                        </a>
-                    </p>
+                <div class="text-center">
+                    <a href="{{ route('login') }}" class="w-full flex items-center justify-center gap-2 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition text-sm font-medium text-gray-700">
+                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                        </svg>
+                        Masuk ke Akun Anda
+                    </a>
                 </div>
 
                 <!-- Footer -->
@@ -274,8 +285,8 @@
             </div>
         </div>
 
-        <!-- Right Side - Admin Hero Section -->
-        <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 items-center justify-center p-12 relative overflow-hidden">
+        <!-- Right Side - Admin Hero Section (Fixed) -->
+        <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 fixed right-0 top-0 h-screen items-center justify-center p-12 overflow-hidden">
             <!-- Background Pattern -->
             <div class="absolute inset-0 opacity-10">
                 <div class="absolute top-0 -left-4 w-72 h-72 bg-white rounded-full mix-blend-multiply filter blur-xl animate-blob"></div>
@@ -364,34 +375,31 @@
     </div>
 
     <script>
-
         document.addEventListener('DOMContentLoaded', function () {
-    const input = document.getElementById('whatsapp_input');
-    const hidden = document.getElementById('whatsapp_full');
-    const oldWhatsapp = {{ old('whatsapp') ? json_encode(old('whatsapp')) : 'null' }};
+            const input = document.getElementById('whatsapp_input');
+            const hidden = document.getElementById('whatsapp_full');
+            const oldWhatsapp = {{ old('whatsapp') ? json_encode(old('whatsapp')) : 'null' }};
 
-    const updateWhatsapp = () => {
-        let num = input.value.replace(/\D/g, '');
-        if (num.startsWith('0')) num = num.slice(1);
-        hidden.value = num ? '+62' + num : '';
-    };
+            const updateWhatsapp = () => {
+                let num = input.value.replace(/\D/g, '');
+                if (num.startsWith('0')) num = num.slice(1);
+                hidden.value = num ? '+62' + num : '';
+            };
 
-    if (input && hidden) {
-        input.addEventListener('input', updateWhatsapp);
-        document.querySelector('form')?.addEventListener('submit', updateWhatsapp);
+            if (input && hidden) {
+                input.addEventListener('input', updateWhatsapp);
+                document.querySelector('form')?.addEventListener('submit', updateWhatsapp);
 
-        // Restore old value jika validasi gagal
-        if (oldWhatsapp) {
-            let num = oldWhatsapp.toString().replace(/\D/g, '');
-            if (num.startsWith('62')) num = num.substring(2);
-            else if (num.startsWith('0')) num = num.substring(1);
-            input.value = num;
-            updateWhatsapp();
-        }
-    }
-});
+                // Restore old value jika validasi gagal
+                if (oldWhatsapp) {
+                    let num = oldWhatsapp.toString().replace(/\D/g, '');
+                    if (num.startsWith('62')) num = num.substring(2);
+                    else if (num.startsWith('0')) num = num.substring(1);
+                    input.value = num;
+                    updateWhatsapp();
+                }
+            }
 
-        document.addEventListener('DOMContentLoaded', function() {
             // Toggle for password field
             const togglePassword = document.getElementById('toggle-password');
             const passwordInput = document.getElementById('password');
@@ -399,11 +407,11 @@
             const eyeClosed = document.getElementById('eye-closed');
 
             togglePassword.addEventListener('click', function() {
-                // Toggle the type attribute
+                // Toggle type attribute
                 const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
                 passwordInput.setAttribute('type', type);
 
-                // Toggle the eye icons
+                // Toggle eye icons
                 if (type === 'text') {
                     eyeOpen.classList.add('hidden');
                     eyeClosed.classList.remove('hidden');
@@ -420,11 +428,11 @@
             const eyeClosedConfirm = document.getElementById('eye-closed-confirm');
 
             togglePasswordConfirm.addEventListener('click', function() {
-                // Toggle the type attribute
+                // Toggle type attribute
                 const type = passwordConfirmInput.getAttribute('type') === 'password' ? 'text' : 'password';
                 passwordConfirmInput.setAttribute('type', type);
 
-                // Toggle the eye icons
+                // Toggle eye icons
                 if (type === 'text') {
                     eyeOpenConfirm.classList.add('hidden');
                     eyeClosedConfirm.classList.remove('hidden');
@@ -438,23 +446,10 @@
 
     <style>
         @keyframes blob {
-
-            0%,
-            100% {
-                transform: translate(0, 0) scale(1);
-            }
-
-            25% {
-                transform: translate(20px, -50px) scale(1.1);
-            }
-
-            50% {
-                transform: translate(-20px, 20px) scale(0.9);
-            }
-
-            75% {
-                transform: translate(50px, 50px) scale(1.05);
-            }
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(20px, -50px) scale(1.1); }
+            50% { transform: translate(-20px, 20px) scale(0.9); }
+            75% { transform: translate(50px, 50px) scale(1.05); }
         }
 
         .animate-blob {
