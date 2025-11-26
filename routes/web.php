@@ -230,6 +230,12 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
 
     Route::post('/reset/requests/{id}/reset', [SuperAdminResetController::class, 'reset'])
         ->name('superadmin.reset.perform');
+    
+    // Di routes/web.php
+Route::get('/superadmin/reset-count', function() {
+    $count = \App\Models\PasswordResetRequest::where('status', 'pending')->count();
+    return response()->json(['count' => $count]);
+})->name('superadmin.reset.count');
 });
 
 

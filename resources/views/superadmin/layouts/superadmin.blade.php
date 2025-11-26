@@ -240,6 +240,9 @@
                                 return request()->routeIs('reset.requests.*') || 
                                     request()->routeIs('reset.requests') || 
                                     str_contains(request()->path(), 'reset/requests');
+                            },
+                            'badge_count' => function() {
+                                return \App\Models\PasswordResetRequest::where('status', 'pending')->count();
                             }
                         ]
                     ];
@@ -340,6 +343,18 @@
                                         {{ $item['desc'] }}
                                     </div>
                                 </div>
+                                
+                                {{-- Badge untuk Reset Password --}}
+                                @if(isset($item['badge_count']) && $item['label'] === 'Reset Password')
+                                    @php
+                                        $count = $item['badge_count']();
+                                    @endphp
+                                    @if($count > 0)
+                                        <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center ring-2 ring-white">
+                                            {{ $count > 99 ? '99+' : $count }}
+                                        </span>
+                                    @endif
+                                @endif
                             </span>
                         </a>
                         @endif
@@ -854,6 +869,46 @@
                 }
             }
         });
+    }
+});
+
+// Fungsi untuk memperbarui badge reset password
+function updateResetPasswordBadge() {
+    fetch('{{ route("superadmin.reset.count") }}')
+        .then(response => response.json())
+        .then(data => {
+            const resetMenu = document.querySelector('a[href*="reset/requests"]');
+            if (resetMenu) {
+                // Hapus badge yang sudah ada
+                const existingBadge = resetMenu.querySelector('.bg-red-500');
+                if (existingBadge) {
+                    existingBadge.remove();
+                }
+                
+                // Tambahkan badge baru jika ada permintaan
+                if (data.count > 0) {
+                    const badge = document.createElement('span');
+                    badge.className = 'absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center ring-2 ring-white';
+                    badge.textContent = data.count > 99 ? '99+' : data.count;
+                    resetMenu.querySelector('.relative').appendChild(badge);
+                }
+            }
+        })
+        .catch(error => console.error('Error fetching reset requests count:', error));
+}
+
+// Perbarui badge saat halaman dimuat
+document.addEventListener('DOMContentLoaded', function() {
+    updateResetPasswordBadge();
+    
+    // Perbarui badge setiap 30 detik
+    setInterval(updateResetPasswordBadge, 30000);
+});
+
+// Perbarui badge saat kembali ke halaman dari tab lain
+document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) {
+        updateResetPasswordBadge();
     }
 });
 </script>
