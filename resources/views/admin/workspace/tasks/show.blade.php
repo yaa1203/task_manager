@@ -530,7 +530,7 @@
                                                     <div class="flex gap-2">
                                                         <!-- Untuk submission file -->
                                                         @if($isPreviewable)
-                                                            <button onclick="openFileModal('{{ route('workspace.submissions.view', [$workspace, $task, $submission]) }}', '{{ $fileExtension }}', '{{ $displayName }}')"
+                                                            <button onclick="openFileModal('{{ route('workspace.tasks.submissions.view', [$workspace, $task, $submission]) }}', '{{ $fileExtension }}', '{{ $displayName }}')"
                                                                     class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all text-sm font-medium shadow-sm hover:shadow">
                                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -540,7 +540,7 @@
                                                             </button>
                                                         @endif
 
-                                                        <a href="{{ route('workspace.submissions.download', [$workspace, $task, $submission]) }}" 
+                                                        <a href="{{ route('workspace.tasks.submissions.download', [$workspace, $task, $submission]) }}" 
                                                         class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition-all text-sm font-medium shadow-sm hover:shadow">
                                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>

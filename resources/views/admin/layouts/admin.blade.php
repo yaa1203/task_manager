@@ -410,7 +410,7 @@
     <div id="sidebar-overlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden lg:hidden transition-all duration-300 opacity-0"></div>
 
     {{-- Sidebar --}}
-    <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 transform -translate-x-full lg:translate-x-0 w-72 bg-white shadow-2xl lg:shadow-none border-r border-gray-200 transition-transform duration-300 ease-out z-50 flex flex-col">
+  <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 transform -translate-x-full lg:translate-x-0 w-72 bg-white shadow-2xl lg:shadow-none border-r border-gray-200 transition-transform duration-300 ease-out z-50 flex flex-col">
         
         {{-- Logo Header --}}
         <div class="p-5 lg:p-6 border-b border-gray-100 bg-gradient-to-r from-blue-600 to-indigo-600">
@@ -530,55 +530,66 @@
         </nav>
 
         {{-- User Profile & Logout --}}
-        <div class="p-4 border-t border-gray-200 bg-gradient-to-br from-gray-50 to-white">
-            <div class="mb-3 px-3 py-2 bg-white rounded-xl shadow-sm border border-gray-100">
-                <div class="flex items-center gap-3">
-                    {{-- Avatar Section --}}
-                    @if(Auth::user()->avatar)
-                        <img src="{{ asset('storage/' . Auth::user()->avatar) }}" 
-                            alt="Avatar {{ Auth::user()->name }}"
-                            class="w-10 h-10 rounded-full object-cover border-2 border-blue-200 shadow-lg">
-                    @else
-                        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg">
-                            {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
-                        </div>
-                    @endif
-                    
-                    <div class="flex-1 min-w-0">
-                        <div class="text-sm font-bold text-gray-900 truncate">{{ Auth::user()->name }}</div>
-                        <div class="text-xs text-gray-500 truncate">{{ Auth::user()->email }}</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="space-y-1">
-                <a href="{{ url('admin/profile') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 rounded-lg transition-all group">
-                    <div class="w-8 h-8 bg-blue-50 group-hover:bg-blue-100 rounded-lg flex items-center justify-center transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                        </svg>
-                    </div>
-                    <span>Lihat Profil</span>
-                </a>
-                
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit"
-                            class="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-bold text-red-600 hover:bg-red-50 rounded-lg transition-all group">
-                        <div class="w-8 h-8 bg-red-50 group-hover:bg-red-100 rounded-lg flex items-center justify-center transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                            </svg>
-                        </div>
-                        <span>Keluar</span>
-                    </button>
-                </form>
-            </div>
-        </div>
+    
     </aside>
 
     {{-- Main Content --}}
     <div class="flex-1 flex flex-col overflow-hidden">
+        {{-- Desktop Top Bar with Profile --}}
+        <header class="hidden lg:block sticky top-0 z-30 bg-white border-b border-gray-200 shadow-sm">
+            <div class="flex items-center justify-between px-6 py-3">
+                <div class="flex items-center gap-2">
+                 <h1 class="text-gray-800 font-semibold text-2xl">Dashboard Admin</h1>
+                </div>
+
+                {{-- Profile Dropdown Desktop --}}
+                <div class="relative">
+                    <button id="profile-dropdown-btn" class="flex items-center gap-3 px-4 py-2 bg-white hover:bg-gray-50 rounded-xl border border-gray-200 shadow-sm transition-all">
+                        @if(Auth::user()->avatar)
+                            <img src="{{ asset('storage/' . Auth::user()->avatar) }}" 
+                                alt="Avatar {{ Auth::user()->name }}"
+                                class="w-8 h-8 rounded-full object-cover border-2 border-blue-200">
+                        @else
+                            <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-xs">
+                                {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
+                            </div>
+                        @endif
+                        <div class="text-left">
+                            <div class="text-sm font-bold text-gray-900">{{ Auth::user()->name }}</div>
+                            <div class="text-xs text-gray-500">{{ Auth::user()->email }}</div>
+                        </div>
+                        <svg id="profile-dropdown-icon" class="w-5 h-5 text-gray-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    
+                    {{-- Dropdown Menu --}}
+                    <div id="profile-dropdown-menu" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden z-50">
+                        <a href="{{ url('admin/profile') }}" class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-blue-700 hover:bg-blue-50 transition-all group">
+                            <div class="w-8 h-8 bg-blue-50 group-hover:bg-blue-100 rounded-lg flex items-center justify-center transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                </svg>
+                            </div>
+                            <span>Lihat Profil</span>
+                        </a>
+                        
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-red-600 hover:bg-red-50 transition-all group">
+                                <div class="w-8 h-8 bg-red-50 group-hover:bg-red-100 rounded-lg flex items-center justify-center transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                                    </svg>
+                                </div>
+                                <span>Keluar</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </header>
+
         {{-- Mobile Top Bar --}}
         <header class="lg:hidden sticky top-0 z-[35] bg-white border-b border-gray-200 shadow-sm">
             <div class="flex items-center justify-between px-4 py-3">
@@ -625,6 +636,9 @@
             </div>
         </main>
     </div>
+
+    {{-- JavaScript untuk Dropdown --}}
+
 </div>
 
 <!-- PWA Install Prompt -->
@@ -682,6 +696,27 @@
 </div>
 
 <script>
+     document.addEventListener('DOMContentLoaded', function() {
+            const dropdownBtn = document.getElementById('profile-dropdown-btn');
+            const dropdownMenu = document.getElementById('profile-dropdown-menu');
+            const dropdownIcon = document.getElementById('profile-dropdown-icon');
+            
+            if (dropdownBtn && dropdownMenu) {
+                dropdownBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    dropdownMenu.classList.toggle('hidden');
+                    dropdownIcon.classList.toggle('rotate-180');
+                });
+                
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!dropdownBtn.contains(e.target) && !dropdownMenu.contains(e.target)) {
+                        dropdownMenu.classList.add('hidden');
+                        dropdownIcon.classList.remove('rotate-180');
+                    }
+                });
+            }
+        });
     // Sidebar Toggle
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebar-overlay');
