@@ -11,24 +11,39 @@ class SuperAdminResetController extends Controller
 {
     public function index()
     {
-        $requests = PasswordResetRequest::with('user')->orderBy('created_at', 'desc')->get();
+        // 👇 Eager load user dan admin
+        $requests = PasswordResetRequest::with(['user', 'admin'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+            
         return view('superadmin.reset-requests.index', compact('requests'));
     }
 
     public function reset($id)
     {
-        $req = PasswordResetRequest::findOrFail($id);
+        $req = PasswordResetRequest::with('user')->findOrFail($id);
 
         $user = $req->user;
 
+        // Generate password baru
         $newPassword = Str::random(10);
 
+        // Update password user
         $user->update([
             'password' => Hash::make($newPassword)
         ]);
 
-        $req->update(['status' => 'done']);
+        // 👇 Update status dan simpan admin_id
+        $req->update([
+            'status' => 'done',
+            'admin_id' => auth()->id(), // Simpan ID admin yang melakukan reset
+        ]);
 
-        return back()->with('new_password', "Password baru untuk {$user->email}: {$newPassword}");
+        // 👇 Kirim data ke session untuk ditampilkan di view
+        return back()->with([
+            'new_password' => $newPassword,
+            'reset_request_id' => $req->id, // Untuk identifikasi request
+            'user_email' => $user->email,
+        ]);
     }
 }
