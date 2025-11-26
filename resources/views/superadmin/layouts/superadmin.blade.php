@@ -347,15 +347,15 @@
                         @if(Auth::user()->avatar)
                             <img src="{{ asset('storage/' . Auth::user()->avatar) }}" 
                                 alt="Avatar {{ Auth::user()->name }}"
-                                class="w-8 h-8 rounded-full object-cover border-2 border-purple-200">
+                                class="w-10 h-10 rounded-full object-cover border-2 border-purple-200">
                         @else
-                            <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center text-white font-bold text-xs">
+                            <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center text-white font-bold text-xs">
                                 {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
                             </div>
                         @endif
                         <div class="text-left">
                             <div class="text-sm font-bold text-gray-900">{{ Auth::user()->name }}</div>
-                            <div class="text-xs text-purple-600 font-semibold">Super Admin</div>
+                            <div class="text-xs text-purple-600 font-semibold">{{ Auth::user()->email }}</div>
                         </div>
                         <svg id="profile-dropdown-icon" class="w-5 h-5 text-gray-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>

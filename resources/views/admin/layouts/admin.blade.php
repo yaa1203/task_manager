@@ -419,7 +419,7 @@
                     <div class="relative">
                         <div class="absolute inset-0 bg-white rounded-xl blur-md opacity-40 group-hover:opacity-60 transition-opacity"></div>
                         @if(file_exists(public_path('icons/logo72x72.png')))
-                            <img src="{{ asset('icons/logo72x72.png') }}" alt="Logo" class="relative h-10 w-10 rounded-xl shadow-lg" />
+                            <img src="{{ asset('icons/logo72x72.png') }}" alt="Logo" class="relative h-10 w-10 rounded-full shadow-lg" />
                         @else
                             <div class="relative h-10 w-10 rounded-xl shadow-lg bg-white flex items-center justify-center">
                                 <svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
@@ -548,9 +548,9 @@
                         @if(Auth::user()->avatar)
                             <img src="{{ asset('storage/' . Auth::user()->avatar) }}" 
                                 alt="Avatar {{ Auth::user()->name }}"
-                                class="w-8 h-8 rounded-full object-cover border-2 border-blue-200">
+                                class="w-10 h-10 rounded-full object-cover border-2 border-blue-200">
                         @else
-                            <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-xs">
+                            <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-xs">
                                 {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
                             </div>
                         @endif
