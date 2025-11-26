@@ -69,7 +69,7 @@
 
                 <!-- User Dropdown -->
                 <div class="relative" x-data="{ userOpen: false }" @click.away="userOpen = false">
-                    <button @click="userOpen = !userOpen" class="flex items-center gap-2 p-1 rounded-full hover:bg-gray-100 transition">
+                    <button @click="userOpen = !userOpen" class="flex items-center gap-2 p-0.5 rounded-full hover:bg-gray-100 transition">
                         {{-- Avatar with dropdown trigger --}}
                         @if(Auth::user()->avatar)
                             <img src="{{ asset('storage/' . Auth::user()->avatar) }}" 
