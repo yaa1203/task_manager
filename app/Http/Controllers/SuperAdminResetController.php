@@ -46,4 +46,9 @@ class SuperAdminResetController extends Controller
             'user_email' => $user->email,
         ]);
     }
+    // Di SuperAdminController.php atau controller yang relevan
+    public function getResetRequestsCount()
+    {
+        return PasswordResetRequest::where('status', 'pending')->count();
+    }
 }

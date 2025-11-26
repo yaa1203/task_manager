@@ -144,7 +144,7 @@
    <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 transform -translate-x-full lg:translate-x-0 w-72 bg-white shadow-2xl lg:shadow-none border-r border-gray-200 transition-transform duration-300 ease-out z-50 flex flex-col">
         
         {{-- Logo Header --}}
-        <div class="p-5 lg:p-6 border-b border-gray-100 bg-gradient-to-r from-purple-600 to-pink-600">
+        <div class="p-4 lg:p-5 border-b border-gray-100 bg-gradient-to-r from-purple-600 to-pink-600">
             <div class="flex items-center justify-between">
                 <a href="{{ route('superadmin.dashboard') }}" class="flex items-center space-x-3 group">
                     <div class="relative">
@@ -206,7 +206,7 @@
                                     'url' => null, 
                                     'label' => 'User', 
                                     'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>'
-                                ]
+                                ],
                             ]
                         ],
                         [
@@ -230,98 +230,133 @@
                             'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>',
                             'desc' => 'Laporan & data'
                         ],
+                        [
+                            'route' => 'reset.requests.*', 
+                            'url' => 'reset/requests', 
+                            'label' => 'Reset Password', 
+                            'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>',
+                            'desc' => 'Kelola reset password',
+                            'active_check' => function() {
+                                return request()->routeIs('reset.requests.*') || 
+                                    request()->routeIs('reset.requests') || 
+                                    str_contains(request()->path(), 'reset/requests');
+                            },
+                            'badge_count' => function() {
+                                return \App\Models\PasswordResetRequest::where('status', 'pending')->count();
+                            }
+                        ]
                     ];
                     @endphp
 
                     @foreach($menuItems as $item)
-                        @if(isset($item['submenu']))
-                            {{-- Menu dengan submenu --}}
-                            @php
-                                $isSubmenuActive = false;
+                        @php
+                            // Check if menu is active
+                            $isActive = isset($item['active_check']) ? $item['active_check']() : 
+                                    (isset($item['submenu']) ? false : request()->routeIs($item['route']));
+                            
+                            // Check if submenu is active
+                            $isSubmenuActive = false;
+                            if (isset($item['submenu'])) {
                                 foreach($item['submenu'] as $subitem) {
-                                    if(request()->routeIs($subitem['route'])) {
+                                    if (request()->routeIs($subitem['route'])) {
                                         $isSubmenuActive = true;
                                         break;
                                     }
                                 }
-                            @endphp
+                            }
+                        @endphp
+
+                        @if(isset($item['submenu']))
+                            {{-- Menu dengan submenu --}}
                             <div class="relative">
                                 <button type="button"
                                         class="w-full group relative flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 {{ $isSubmenuActive ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'text-gray-700 hover:bg-gray-50 hover:scale-[1.01]' }}"
                                         onclick="toggleSubmenu('submenu-{{ $loop->index }}')">
-                                    
-                                    <span class="relative flex items-center gap-3 flex-1 min-w-0">
-                                        <div class="flex-shrink-0 {{ $isSubmenuActive ? 'bg-purple-100' : 'bg-gray-100 group-hover:bg-gray-200' }} p-2 rounded-lg transition-colors">
-                                            <svg class="w-5 h-5 {{ $isSubmenuActive ? 'text-purple-700' : 'text-gray-600 group-hover:text-gray-800' }}" 
-                                                 fill="none" 
-                                                 stroke="currentColor" 
-                                                 viewBox="0 0 24 24">
-                                                {!! $item['icon'] !!}
-                                            </svg>
-                                        </div>
-                                        <div class="flex-1 min-w-0 text-left">
-                                            <div class="font-semibold truncate">{{ $item['label'] }}</div>
-                                            <div class="text-xs {{ $isSubmenuActive ? 'text-purple-600' : 'text-gray-500' }} truncate hidden lg:block">
-                                                {{ $item['desc'] }}
-                                            </div>
-                                        </div>
-                                    </span>
-                                    
-                                    <svg id="submenu-arrow-{{ $loop->index }}" 
-                                         class="w-4 h-4 flex-shrink-0 transform transition-transform duration-200 {{ $isSubmenuActive ? 'text-purple-700' : '' }}" 
-                                         fill="none" 
-                                         stroke="currentColor" 
-                                         viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                    </svg>
-                                </button>
-                                
-                                <div id="submenu-{{ $loop->index }}" class="hidden mt-2 ml-4 space-y-1 submenu-enter">
-                                    @foreach($item['submenu'] as $subitem)
-                                        <a href="{{ route($subitem['route']) }}"
-                                           class="group relative flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs($subitem['route']) ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/30' : 'text-gray-600 hover:bg-gray-50' }}">
-                                            @if(request()->routeIs($subitem['route']))
-                                            <div class="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg blur-lg opacity-20"></div>
-                                            @endif
-                                            <div class="flex-shrink-0 {{ request()->routeIs($subitem['route']) ? 'bg-white/20' : 'bg-gray-100 group-hover:bg-gray-200' }} p-1.5 rounded-lg transition-colors">
-                                                <svg class="w-4 h-4 {{ request()->routeIs($subitem['route']) ? 'text-white' : 'text-gray-500 group-hover:text-gray-700' }}" 
-                                                     fill="none" 
-                                                     stroke="currentColor" 
-                                                     viewBox="0 0 24 24">
-                                                    {!! $subitem['icon'] !!}
-                                                </svg>
-                                            </div>
-                                            <span class="relative truncate">{{ $subitem['label'] }}</span>
-                                        </a>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @else
-                            {{-- Menu tanpa submenu --}}
-                            <a href="{{ $item['url'] ? url($item['url']) : route($item['route']) }}"
-                               class="group relative flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 {{ request()->routeIs($item['route']) ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/30 scale-[1.02]' : 'text-gray-700 hover:bg-gray-50 hover:scale-[1.01]' }}">
-                                
-                                @if(request()->routeIs($item['route']))
-                                <div class="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl blur-lg opacity-20"></div>
-                                @endif
-                                
+                            
                                 <span class="relative flex items-center gap-3 flex-1 min-w-0">
-                                    <div class="flex-shrink-0 {{ request()->routeIs($item['route']) ? 'bg-white/20' : 'bg-gray-100 group-hover:bg-gray-200' }} p-2 rounded-lg transition-colors">
-                                        <svg class="w-5 h-5 {{ request()->routeIs($item['route']) ? 'text-white' : 'text-gray-600 group-hover:text-gray-800' }}" 
-                                             fill="none" 
-                                             stroke="currentColor" 
-                                             viewBox="0 0 24 24">
+                                    <div class="flex-shrink-0 {{ $isSubmenuActive ? 'bg-purple-100' : 'bg-gray-100 group-hover:bg-gray-200' }} p-2 rounded-lg transition-colors">
+                                        <svg class="w-5 h-5 {{ $isSubmenuActive ? 'text-purple-700' : 'text-gray-600 group-hover:text-gray-800' }}" 
+                                            fill="none" 
+                                            stroke="currentColor" 
+                                            viewBox="0 0 24 24">
                                             {!! $item['icon'] !!}
                                         </svg>
                                     </div>
-                                    <div class="flex-1 min-w-0">
+                                    <div class="flex-1 min-w-0 text-left">
                                         <div class="font-semibold truncate">{{ $item['label'] }}</div>
-                                        <div class="text-xs {{ request()->routeIs($item['route']) ? 'text-white/70' : 'text-gray-500' }} truncate hidden lg:block">
+                                        <div class="text-xs {{ $isSubmenuActive ? 'text-purple-600' : 'text-gray-500' }} truncate hidden lg:block">
                                             {{ $item['desc'] }}
                                         </div>
                                     </div>
                                 </span>
-                            </a>
+                                
+                                <svg id="submenu-arrow-{{ $loop->index }}" 
+                                    class="w-4 h-4 flex-shrink-0 transform transition-transform duration-200 {{ $isSubmenuActive ? 'text-purple-700' : '' }}" 
+                                    fill="none" 
+                                    stroke="currentColor" 
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </button>
+                            
+                            <div id="submenu-{{ $loop->index }}" class="hidden mt-2 ml-4 space-y-1 submenu-enter">
+                                @foreach($item['submenu'] as $subitem)
+                                    <a href="{{ route($subitem['route']) }}"
+                                    class="group relative flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs($subitem['route']) ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/30' : 'text-gray-600 hover:bg-gray-50' }}">
+                                        @if(request()->routeIs($subitem['route']))
+                                        <div class="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg blur-lg opacity-20"></div>
+                                        @endif
+                                        <div class="flex-shrink-0 {{ request()->routeIs($subitem['route']) ? 'bg-white/20' : 'bg-gray-100 group-hover:bg-gray-200' }} p-1.5 rounded-lg transition-colors">
+                                            <svg class="w-4 h-4 {{ request()->routeIs($subitem['route']) ? 'text-white' : 'text-gray-500 group-hover:text-gray-700' }}" 
+                                                fill="none" 
+                                                stroke="currentColor" 
+                                                viewBox="0 0 24 24">
+                                                {!! $subitem['icon'] !!}
+                                            </svg>
+                                        </div>
+                                        <span class="relative truncate">{{ $subitem['label'] }}</span>
+                                    </a>
+                                @endforeach
+                            </div>
+                        </div>
+                        @else
+                            {{-- Menu tanpa submenu --}}
+                            <a href="{{ $item['url'] ? url($item['url']) : route($item['route']) }}"
+                            class="group relative flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 {{ $isActive ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/30 scale-[1.02]' : 'text-gray-700 hover:bg-gray-50 hover:scale-[1.01]' }}">
+                            
+                            @if($isActive)
+                            <div class="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl blur-lg opacity-20"></div>
+                            @endif
+                            
+                            <span class="relative flex items-center gap-3 flex-1 min-w-0">
+                                <div class="flex-shrink-0 {{ $isActive ? 'bg-white/20' : 'bg-gray-100 group-hover:bg-gray-200' }} p-2 rounded-lg transition-colors">
+                                    <svg class="w-5 h-5 {{ $isActive ? 'text-white' : 'text-gray-600 group-hover:text-gray-800' }}" 
+                                        fill="none" 
+                                        stroke="currentColor" 
+                                        viewBox="0 0 24 24">
+                                        {!! $item['icon'] !!}
+                                    </svg>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="font-semibold truncate">{{ $item['label'] }}</div>
+                                    <div class="text-xs {{ $isActive ? 'text-white/70' : 'text-gray-500' }} truncate hidden lg:block">
+                                        {{ $item['desc'] }}
+                                    </div>
+                                </div>
+                                
+                                {{-- Badge untuk Reset Password --}}
+                                @if(isset($item['badge_count']) && $item['label'] === 'Reset Password')
+                                    @php
+                                        $count = $item['badge_count']();
+                                    @endphp
+                                    @if($count > 0)
+                                        <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center ring-2 ring-white">
+                                            {{ $count > 99 ? '99+' : $count }}
+                                        </span>
+                                    @endif
+                                @endif
+                            </span>
+                        </a>
                         @endif
                     @endforeach
                 </div>
@@ -766,6 +801,116 @@
     console.log('✅ TaskFlow Super Admin Panel initialized');
     console.log('📱 Viewport:', window.innerWidth, 'x', window.innerHeight);
     console.log('🎨 Theme: Purple-Pink Gradient');
+
+    document.addEventListener('DOMContentLoaded', function() {
+    // Force highlight reset password menu
+    const currentPath = window.location.pathname;
+    
+    // Check for reset password routes
+    if (currentPath.includes('/reset/requests') || 
+        currentPath.includes('reset.requests')) {
+        
+        // Find all menu links
+        const menuLinks = document.querySelectorAll('#sidebar a');
+        
+        menuLinks.forEach(link => {
+            const href = link.getAttribute('href');
+            
+            // Check if this is the reset password menu
+            if (href && (href.includes('reset/requests') || 
+                          href.includes('reset.requests'))) {
+                
+                // Remove active states from all menus
+                menuLinks.forEach(l => {
+                    l.classList.remove('bg-gradient-to-r', 'from-purple-500', 'to-pink-500', 
+                                   'text-white', 'shadow-lg', 'shadow-purple-500/30', 'scale-[1.02]');
+                    l.classList.add('text-gray-700');
+                    
+                    // Reset icon colors
+                    const icon = l.querySelector('svg');
+                    if (icon) {
+                        icon.classList.remove('text-white');
+                        icon.classList.add('text-gray-600');
+                    }
+                    
+                    // Reset icon container
+                    const iconContainer = l.querySelector('.bg-gray-100');
+                    if (iconContainer) {
+                        iconContainer.classList.remove('bg-white/20');
+                        iconContainer.classList.add('bg-gray-100');
+                    }
+                });
+                
+                // Add active state to reset password menu
+                link.classList.remove('text-gray-700');
+                link.classList.add('bg-gradient-to-r', 'from-purple-500', 'to-pink-500', 
+                                  'text-white', 'shadow-lg', 'shadow-purple-500/30', 'scale-[1.02]');
+                
+                // Update icon colors
+                const icon = link.querySelector('svg');
+                if (icon) {
+                    icon.classList.remove('text-gray-600');
+                    icon.classList.add('text-white');
+                }
+                
+                // Update icon container
+                const iconContainer = link.querySelector('.bg-gray-100');
+                if (iconContainer) {
+                    iconContainer.classList.remove('bg-gray-100');
+                    iconContainer.classList.add('bg-white/20');
+                }
+                
+                // Add gradient overlay
+                const existingOverlay = link.querySelector('.absolute.inset-0');
+                if (!existingOverlay) {
+                    const overlay = document.createElement('div');
+                    overlay.className = 'absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl blur-lg opacity-20';
+                    link.prepend(overlay);
+                }
+            }
+        });
+    }
+});
+
+// Fungsi untuk memperbarui badge reset password
+function updateResetPasswordBadge() {
+    fetch('{{ route("superadmin.reset.count") }}')
+        .then(response => response.json())
+        .then(data => {
+            const resetMenu = document.querySelector('a[href*="reset/requests"]');
+            if (resetMenu) {
+                // Hapus badge yang sudah ada
+                const existingBadge = resetMenu.querySelector('.bg-red-500');
+                if (existingBadge) {
+                    existingBadge.remove();
+                }
+                
+                // Tambahkan badge baru jika ada permintaan
+                if (data.count > 0) {
+                    const badge = document.createElement('span');
+                    badge.className = 'absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center ring-2 ring-white';
+                    badge.textContent = data.count > 99 ? '99+' : data.count;
+                    resetMenu.querySelector('.relative').appendChild(badge);
+                }
+            }
+        })
+        .catch(error => console.error('Error fetching reset requests count:', error));
+}
+
+// Perbarui badge saat halaman dimuat
+document.addEventListener('DOMContentLoaded', function() {
+    updateResetPasswordBadge();
+    
+    // Perbarui badge setiap 30 detik
+    setInterval(updateResetPasswordBadge, 30000);
+});
+
+// Perbarui badge saat kembali ke halaman dari tab lain
+document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) {
+        updateResetPasswordBadge();
+    }
+});
 </script>
 
 </body>
