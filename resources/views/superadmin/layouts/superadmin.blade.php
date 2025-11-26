@@ -141,7 +141,7 @@
     <div id="sidebar-overlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden lg:hidden transition-all duration-300 opacity-0"></div>
 
     {{-- Sidebar --}}
-    <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 transform -translate-x-full lg:translate-x-0 w-72 bg-white shadow-2xl lg:shadow-none border-r border-gray-200 transition-transform duration-300 ease-out z-50 flex flex-col">
+   <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 transform -translate-x-full lg:translate-x-0 w-72 bg-white shadow-2xl lg:shadow-none border-r border-gray-200 transition-transform duration-300 ease-out z-50 flex flex-col">
         
         {{-- Logo Header --}}
         <div class="p-5 lg:p-6 border-b border-gray-100 bg-gradient-to-r from-purple-600 to-pink-600">
@@ -329,67 +329,66 @@
         </nav>
 
         {{-- User Profile & Logout - Super Admin --}}
-        <div class="p-4 border-t border-gray-200 bg-gradient-to-br from-purple-50 via-pink-50 to-white">
-            <div class="mb-4">
-                <div class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-purple-100 overflow-hidden transition-all hover:shadow-xl">
-                    <div class="p-4">
-                        <div class="flex items-center gap-4">
-                            <div class="shrink-0">
-                                @if(Auth::user()->avatar)
-                                    <img src="{{ asset('storage/' . Auth::user()->avatar) }}" 
-                                        alt="{{ Auth::user()->name }}"
-                                        class="w-14 h-14 rounded-full object-cover ring-4 ring-white shadow-md">
-                                @else
-                                    <div class="w-14 h-14 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white font-bold text-lg shadow-lg ring-4 ring-white">
-                                        {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
-                                    </div>
-                                @endif
-                            </div>
-
-                            <div class="flex-1 min-w-0">
-                                <p class="text-sm font-bold text-gray-900 truncate">{{ Auth::user()->name }}</p>
-                                <p class="text-xs text-purple-600 font-semibold flex items-center gap-1 mt-0.5">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                                    </svg>
-                                    Super Administrator
-                                </p>
-                                <p class="text-xs text-gray-500 truncate">{{ Auth::user()->email }}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="space-y-2">
-                <a href="{{ route('superadmin.profile') }}" 
-                class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-purple-700 hover:bg-purple-100 rounded-xl transition-all group">
-                    <div class="w-9 h-9 bg-purple-100 group-hover:bg-purple-200 rounded-lg flex items-center justify-center transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                        </svg>
-                    </div>
-                    <span>Profil Saya</span>
-                </a>
-
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit"
-                            class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-red-600 hover:bg-red-50 rounded-xl transition-all group">
-                        <div class="w-9 h-9 bg-red-100 group-hover:bg-red-200 rounded-lg flex items-center justify-center transition-colors">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                            </svg>
-                        </div>
-                        <span>Keluar</span>
-                    </button>
-                </form>
-            </div>
-        </div>
+    
     </aside>
 
     {{-- Main Content --}}
     <div class="flex-1 flex flex-col overflow-hidden">
+        {{-- Desktop Top Bar with Profile --}}
+        <header class="hidden lg:block sticky top-0 z-30 bg-white border-b border-gray-200 shadow-sm">
+            <div class="flex items-center justify-between px-6 py-3">
+                <div class="flex items-center gap-2">
+                    <h1 class="text-gray-800 font-semibold text-2xl">Dashboard SuperAdmin</h1>
+                </div>
+
+                {{-- Profile Dropdown Desktop --}}
+                <div class="relative">
+                    <button id="profile-dropdown-btn" class="flex items-center gap-3 px-4 py-2 bg-white hover:bg-gray-50 rounded-xl border border-gray-200 shadow-sm transition-all">
+                        @if(Auth::user()->avatar)
+                            <img src="{{ asset('storage/' . Auth::user()->avatar) }}" 
+                                alt="Avatar {{ Auth::user()->name }}"
+                                class="w-8 h-8 rounded-full object-cover border-2 border-purple-200">
+                        @else
+                            <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center text-white font-bold text-xs">
+                                {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
+                            </div>
+                        @endif
+                        <div class="text-left">
+                            <div class="text-sm font-bold text-gray-900">{{ Auth::user()->name }}</div>
+                            <div class="text-xs text-purple-600 font-semibold">Super Admin</div>
+                        </div>
+                        <svg id="profile-dropdown-icon" class="w-5 h-5 text-gray-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    
+                    {{-- Dropdown Menu --}}
+                    <div id="profile-dropdown-menu" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden z-50">
+                        <a href="{{ route('superadmin.profile') }}" class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-purple-700 hover:bg-purple-50 transition-all group">
+                            <div class="w-8 h-8 bg-purple-50 group-hover:bg-purple-100 rounded-lg flex items-center justify-center transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                </svg>
+                            </div>
+                            <span>Profil Saya</span>
+                        </a>
+                        
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-red-600 hover:bg-red-50 transition-all group">
+                                <div class="w-8 h-8 bg-red-50 group-hover:bg-red-100 rounded-lg flex items-center justify-center transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                                    </svg>
+                                </div>
+                                <span>Keluar</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </header>
+
         {{-- Top Navigation Bar (Mobile) --}}
         <header class="lg:hidden sticky top-0 z-[35] bg-white border-b border-gray-200 shadow-sm">
             <div class="flex items-center justify-between px-4 py-3">
@@ -425,9 +424,47 @@
             </div>
         </main>
     </div>
+
+    {{-- JavaScript untuk Dropdown dan Submenu --}}
+ 
 </div>
 
 <script>
+     document.addEventListener('DOMContentLoaded', function() {
+            // Profile Dropdown
+            const dropdownBtn = document.getElementById('profile-dropdown-btn');
+            const dropdownMenu = document.getElementById('profile-dropdown-menu');
+            const dropdownIcon = document.getElementById('profile-dropdown-icon');
+            
+            if (dropdownBtn && dropdownMenu) {
+                dropdownBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    dropdownMenu.classList.toggle('hidden');
+                    dropdownIcon.classList.toggle('rotate-180');
+                });
+                
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!dropdownBtn.contains(e.target) && !dropdownMenu.contains(e.target)) {
+                        dropdownMenu.classList.add('hidden');
+                        dropdownIcon.classList.remove('rotate-180');
+                    }
+                });
+            }
+        });
+
+        // Toggle Submenu Function
+        function toggleSubmenu(id) {
+            const submenu = document.getElementById(id);
+            const arrow = document.getElementById('submenu-arrow-' + id.split('-')[1]);
+            
+            if (submenu) {
+                submenu.classList.toggle('hidden');
+                if (arrow) {
+                    arrow.classList.toggle('rotate-180');
+                }
+            }
+        }
     // Toggle Submenu
     function toggleSubmenu(id) {
         const submenu = document.getElementById(id);
