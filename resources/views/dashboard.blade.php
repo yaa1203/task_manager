@@ -180,27 +180,151 @@
                 @endif
             </div>
 
-            <!-- Welcome Section with Enhanced Design -->
-            <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl shadow-lg p-6 sm:p-8 text-white relative overflow-hidden">
-                <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full"></div>
-                <div class="absolute bottom-0 left-0 -mb-8 -ml-8 w-40 h-40 bg-white opacity-10 rounded-full"></div>
-                <div class="relative">
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                        <div>
-                            <h4 class="text-xl sm:text-2xl font-bold mb-2">Selamat datang kembali, {{ auth()->user()->name }} - {{ $category }} 👋</h4>
-                            <p class="text-blue-100 text-sm sm:text-base">Berikut ringkasan aktivitas Anda</p>
+            <!-- Welcome Section with Enhanced Design - Mobile Optimized -->
+            <div class="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 rounded-2xl shadow-xl p-5 sm:p-8 text-white relative overflow-hidden">
+                <!-- Decorative Elements -->
+                <div class="absolute top-0 right-0 -mt-6 -mr-6 w-24 h-24 sm:w-32 sm:h-32 bg-white/10 rounded-full blur-2xl"></div>
+                <div class="absolute bottom-0 left-0 -mb-10 -ml-10 w-32 h-32 sm:w-40 sm:h-40 bg-white/10 rounded-full blur-2xl"></div>
+                <div class="absolute top-1/2 right-10 w-16 h-16 bg-white/5 rounded-full blur-xl"></div>
+                
+                <div class="relative z-10">
+                    <!-- Mobile Layout: Stack -->
+                    <div class="flex flex-col gap-4">
+                        <!-- Welcome Text -->
+                        <div class="flex items-start gap-3">
+                            <!-- Avatar/Icon -->
+                            <div class="flex-shrink-0 mt-1">
+                                @if(auth()->user()->avatar)
+                                    <img src="{{ asset('storage/' . auth()->user()->avatar) }}" 
+                                        alt="Avatar" 
+                                        class="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover ring-4 ring-white/30 shadow-lg">
+                                @else
+                                    <div class="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center ring-4 ring-white/30 shadow-lg">
+                                        <span class="text-2xl">👋</span>
+                                    </div>
+                                @endif
+                            </div>
+                            
+                            <!-- Text Content -->
+                            <div class="flex-1 min-w-0">
+                                <h4 class="text-lg sm:text-2xl font-bold mb-1.5 leading-tight">
+                                    Selamat datang kembali!
+                                </h4>
+                                <p class="text-sm sm:text-base text-white/90 font-medium mb-1">
+                                    {{ auth()->user()->name }}
+                                </p>
+                                <div class="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-sm rounded-lg px-2.5 py-1 text-xs font-semibold">
+                                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                    </svg>
+                                    <span>{{ $category }}</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="flex-shrink-0">
-                            <div class="bg-white/20 backdrop-blur-sm rounded-lg p-3 flex items-center gap-3">
-                                <div class="text-center">
-                                    <p class="text-2xl sm:text-3xl font-bold">{{ date('H:i') }}</p>
-                                    <p class="text-xs text-blue-100">{{ date('l, d F Y') }}</p>
+                        
+                        <!-- Date & Time Card -->
+                        <div class="bg-white/15 backdrop-blur-md rounded-xl p-4 border border-white/20 shadow-lg">
+                            <div class="flex items-center justify-between">
+                                <!-- Time -->
+                                <div class="flex items-center gap-3">
+                                    <div class="bg-white/20 p-2.5 rounded-lg">
+                                        <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-2xl sm:text-3xl font-bold tracking-tight">{{ date('H:i') }}</p>
+                                        <p class="text-xs sm:text-sm text-white/80 font-medium">
+                                            @php
+                                                $days = [
+                                                    'Sunday' => 'Minggu',
+                                                    'Monday' => 'Senin',
+                                                    'Tuesday' => 'Selasa',
+                                                    'Wednesday' => 'Rabu',
+                                                    'Thursday' => 'Kamis',
+                                                    'Friday' => 'Jumat',
+                                                    'Saturday' => 'Sabtu'
+                                                ];
+                                                echo $days[date('l')];
+                                            @endphp
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <!-- Date -->
+                                <div class="text-right">
+                                    <p class="text-lg sm:text-xl font-bold">{{ date('d') }}</p>
+                                    <p class="text-xs sm:text-sm text-white/80 font-medium">
+                                        @php
+                                            $months = [
+                                                'Jan' => 'Januari',
+                                                'Feb' => 'Februari',
+                                                'Mar' => 'Maret',
+                                                'Apr' => 'April',
+                                                'May' => 'Mei',
+                                                'Jun' => 'Juni',
+                                                'Jul' => 'Juli',
+                                                'Aug' => 'Agustus',
+                                                'Sep' => 'September',
+                                                'Oct' => 'Oktober',
+                                                'Nov' => 'November',
+                                                'Dec' => 'Desember'
+                                            ];
+                                            echo $months[date('M')] . ' ' . date('Y');
+                                        @endphp
+                                    </p>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+
+            {{-- Alternative Version: Compact Mobile --}}
+            {{-- Uncomment if you want more compact design --}}
+            {{-- 
+            <div class="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 rounded-2xl shadow-xl p-4 sm:p-8 text-white relative overflow-hidden">
+                <!-- Decorative Elements -->
+                <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent"></div>
+                
+                <div class="relative z-10">
+                    <!-- Header with Avatar -->
+                    <div class="flex items-center gap-3 mb-4">
+                        @if(auth()->user()->avatar)
+                            <img src="{{ asset('storage/' . auth()->user()->avatar) }}" 
+                                alt="Avatar" 
+                                class="w-14 h-14 rounded-2xl object-cover ring-4 ring-white/30 shadow-lg">
+                        @else
+                            <div class="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center ring-4 ring-white/30 shadow-lg text-3xl">
+                                👋
+                            </div>
+                        @endif
+                        <div class="flex-1">
+                            <h4 class="text-lg font-bold">Halo, {{ auth()->user()->name }}!</h4>
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="inline-flex items-center gap-1 bg-white/20 rounded-full px-2 py-0.5 text-xs font-semibold">
+                                    <span class="w-1.5 h-1.5 bg-green-400 rounded-full"></span>
+                                    {{ $category }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Time & Date Row -->
+                    <div class="bg-white/15 backdrop-blur-md rounded-xl p-3 border border-white/20">
+                        <div class="flex items-center justify-between text-sm">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <span class="font-semibold">{{ date('H:i') }}</span>
+                            </div>
+                            <span class="text-white/80">{{ date('l, d M Y') }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            --}}
 
             <!-- Statistics Cards with Enhanced Design -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
