@@ -221,11 +221,18 @@
                     <tr class="hover:bg-gray-50 transition-colors duration-150 {{ $admin->is_blocked ? 'bg-red-50' : '' }}">
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center gap-3">
-                                <div class="w-11 h-11 rounded-xl {{ $admin->is_blocked ? 'bg-gradient-to-br from-gray-400 to-gray-500' : 'bg-gradient-to-br from-purple-500 to-purple-600' }} flex items-center justify-center flex-shrink-0 shadow-md">
+                                {{-- Admin Avatar --}}
+                                @if($admin->avatar)
+                                <div class="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 shadow-md {{ $admin->is_blocked ? 'opacity-60' : '' }}">
+                                    <img src="{{ Storage::url($admin->avatar) }}" alt="{{ $admin->name }}" class="w-full h-full object-cover">
+                                </div>
+                                @else
+                                <div class="w-12 h-12 rounded-full {{ $admin->is_blocked ? 'bg-gradient-to-br from-gray-400 to-gray-500' : 'bg-gradient-to-br from-purple-500 to-purple-600' }} flex items-center justify-center flex-shrink-0 shadow-md">
                                     <span class="text-white font-bold text-sm">
                                         {{ strtoupper(substr($admin->name, 0, 2)) }}
                                     </span>
                                 </div>
+                                @endif
                                 <div>
                                     <div class="text-sm font-semibold {{ $admin->is_blocked ? 'text-gray-500' : 'text-gray-900' }}">
                                         {{ $admin->name }}
@@ -233,9 +240,22 @@
                                         <span class="ml-2 text-xs text-red-600 font-normal">(Diblokir)</span>
                                         @endif
                                     </div>
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800">
-                                        Admin
-                                    </span>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800">
+                                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                            </svg>
+                                            Admin
+                                        </span>
+                                        @if($admin->email_verified_at)
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                            </svg>
+                                            Terverifikasi
+                                        </span>
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
                         </td>
@@ -249,7 +269,7 @@
                                     <span class="truncate max-w-[200px]">{{ $admin->email }}</span>
                                 </div>
                                 
-                                {{-- WhatsApp (TAMBAHAN BARU) --}}
+                                {{-- WhatsApp --}}
                                 @if($admin->whatsapp)
                                 <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $admin->whatsapp) }}" 
                                 target="_blank"
@@ -313,7 +333,7 @@
                                 </form>
                                 @else
                                 <a href="{{ route('pengguna.admin.show', $admin->id) }}" 
-                                   class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all text-xs font-semibold shadow-sm hover:shadow-md">
+                                class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all text-xs font-semibold shadow-sm hover:shadow-md">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
@@ -372,11 +392,18 @@
             <div class="p-5">
                 {{-- Header --}}
                 <div class="flex items-start gap-3 mb-4">
-                    <div class="w-14 h-14 rounded-xl {{ $admin->is_blocked ? 'bg-gradient-to-br from-gray-400 to-gray-500' : 'bg-gradient-to-br from-purple-500 to-purple-600' }} flex items-center justify-center flex-shrink-0 shadow-lg">
-                        <span class="text-white font-bold text-lg">
+                    {{-- Admin Avatar --}}
+                    @if($admin->avatar)
+                    <div class="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 shadow-md {{ $admin->is_blocked ? 'opacity-60' : '' }}">
+                        <img src="{{ Storage::url($admin->avatar) }}" alt="{{ $admin->name }}" class="w-full h-full object-cover">
+                    </div>
+                    @else
+                    <div class="w-12 h-12 rounded-full {{ $admin->is_blocked ? 'bg-gradient-to-br from-gray-400 to-gray-500' : 'bg-gradient-to-br from-purple-500 to-purple-600' }} flex items-center justify-center flex-shrink-0 shadow-md">
+                        <span class="text-white font-bold text-sm">
                             {{ strtoupper(substr($admin->name, 0, 2)) }}
                         </span>
                     </div>
+                    @endif            
                     <div class="flex-1 min-w-0">
                         <h3 class="text-base font-bold {{ $admin->is_blocked ? 'text-gray-600' : 'text-gray-900' }} mb-1">
                             {{ $admin->name }}

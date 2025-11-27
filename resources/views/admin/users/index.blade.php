@@ -229,11 +229,18 @@
                     <tr class="hover:bg-gray-50 transition-colors duration-150 {{ $user->is_blocked ? 'bg-red-50' : '' }}">
                         <td class="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl {{ $user->is_blocked ? 'bg-gradient-to-br from-gray-400 to-gray-500' : 'bg-gradient-to-br from-blue-500 to-blue-600' }} flex items-center justify-center flex-shrink-0 shadow-md">
+                                {{-- User Avatar --}}
+                                @if($user->avatar)
+                                <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-full sm:rounded-full overflow-hidden flex-shrink-0 shadow-md {{ $user->is_blocked ? 'opacity-60' : '' }}">
+                                    <img src="{{ Storage::url($user->avatar) }}" alt="{{ $user->name }}" class="w-full h-full object-cover">
+                                </div>
+                                @else
+                                <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-full sm:rounded-full {{ $user->is_blocked ? 'bg-gradient-to-br from-gray-400 to-gray-500' : 'bg-gradient-to-br from-blue-500 to-blue-600' }} flex items-center justify-center flex-shrink-0 shadow-md">
                                     <span class="text-white font-bold text-sm">
                                         {{ strtoupper(substr($user->name, 0, 2)) }}
                                     </span>
                                 </div>
+                                @endif
                                 <div>
                                     <div class="text-sm font-semibold {{ $user->is_blocked ? 'text-gray-500' : 'text-gray-900' }}">
                                         {{ $user->name }}
@@ -402,11 +409,18 @@
             <div class="p-4 sm:p-5">
                 {{-- Header --}}
                 <div class="flex items-start gap-3 mb-4">
-                    <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-lg sm:rounded-xl {{ $user->is_blocked ? 'bg-gradient-to-br from-gray-400 to-gray-500' : 'bg-gradient-to-br from-blue-500 to-blue-600' }} flex items-center justify-center flex-shrink-0 shadow-lg">
+                    {{-- User Avatar --}}
+                    @if($user->avatar)
+                    <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full sm:rounded-full overflow-hidden flex-shrink-0 shadow-lg {{ $user->is_blocked ? 'opacity-60' : '' }}">
+                        <img src="{{ Storage::url($user->avatar) }}" alt="{{ $user->name }}" class="w-full h-full object-cover">
+                    </div>
+                    @else
+                    <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full sm:rounded-full {{ $user->is_blocked ? 'bg-gradient-to-br from-gray-400 to-gray-500' : 'bg-gradient-to-br from-blue-500 to-blue-600' }} flex items-center justify-center flex-shrink-0 shadow-lg">
                         <span class="text-white font-bold text-lg">
                             {{ strtoupper(substr($user->name, 0, 2)) }}
                         </span>
                     </div>
+                    @endif
                     <div class="flex-1 min-w-0">
                         <h3 class="text-base font-bold {{ $user->is_blocked ? 'text-gray-600' : 'text-gray-900' }} mb-1">
                             {{ $user->name }}

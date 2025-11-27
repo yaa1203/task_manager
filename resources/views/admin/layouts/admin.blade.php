@@ -395,6 +395,20 @@
             -webkit-user-select: none;
             user-select: none;
         }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fadeIn {
+            animation: fadeIn 0.2s ease-out;
+        }
     </style>
 </head>
 <body class="font-sans antialiased bg-gradient-to-br from-gray-50 to-gray-100">
@@ -413,7 +427,7 @@
   <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 transform -translate-x-full lg:translate-x-0 w-72 bg-white shadow-2xl lg:shadow-none border-r border-gray-200 transition-transform duration-300 ease-out z-50 flex flex-col">
         
         {{-- Logo Header --}}
-        <div class="p-5 lg:p-6 border-b border-gray-100 bg-gradient-to-r from-blue-600 to-indigo-600">
+        <div class="p-4 lg:p-5 border-b border-gray-100 bg-gradient-to-r from-blue-600 to-indigo-600">
             <div class="flex items-center justify-between">
                 <a href="{{ route('admin.dashboard') }}" class="flex items-center space-x-3 group">
                     <div class="relative">
@@ -590,42 +604,105 @@
             </div>
         </header>
 
+        {{-- BAGIAN 1: Ganti Mobile Top Bar (baris 403-433) --}}
         {{-- Mobile Top Bar --}}
-        <header class="lg:hidden sticky top-0 z-[35] bg-white border-b border-gray-200 shadow-sm">
+        <header class="lg:hidden sticky top-0 z-[35] bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm">
             <div class="flex items-center justify-between px-4 py-3">
-                <button id="open-sidebar" type="button" class="p-2 text-gray-600 hover:bg-gray-100 active:bg-gray-200 rounded-lg transition-colors touch-manipulation">
+                {{-- Menu Button --}}
+                <button id="open-sidebar" type="button" 
+                        class="p-2.5 text-gray-700 hover:bg-gray-100 active:bg-gray-200 rounded-xl transition-all duration-200 touch-manipulation hover:scale-105 active:scale-95">
                     <svg class="w-6 h-6 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16"/>
                     </svg>
                 </button>
-
-                <div class="flex items-center gap-2">
+                
+                {{-- Logo & Brand (Centered) --}}
+                <div class="flex items-center gap-2.5 absolute left-1/2 -translate-x-1/2">
                     @if(file_exists(public_path('icons/logo72x72.png')))
-                        <img src="{{ asset('icons/logo72x72.png') }}" alt="Logo" class="w-8 h-8 rounded-full shadow-md" />
+                        <img src="{{ asset('icons/logo72x72.png') }}" 
+                            alt="Logo" 
+                            class="w-9 h-9 rounded-full shadow-md ring-2 ring-blue-100" />
                     @else
-                        <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-lg shadow-md flex items-center justify-center">
+                        <div class="w-9 h-9 bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-500 rounded-full shadow-lg flex items-center justify-center ring-2 ring-blue-100">
                             <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                             </svg>
                         </div>
                     @endif
-                    <span class="text-lg font-bold text-gray-900">TaskFlow</span>
+                    <span class="text-lg font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">TaskFlow</span>
                 </div>
-
-                <a href="{{ route('notifications.index') }}" class="relative p-2 rounded-full hover:bg-gray-100 transition-colors">
-                    <svg class="w-6 h-6 mt-1 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                    </svg>
-                    @php
-                        $mobileUnreadCount = Auth::user()->unreadNotifications->count();
-                    @endphp
-                    @if($mobileUnreadCount > 0)
-                        <span class="absolute top-0 right-0 h-5 w-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center ring-2 ring-white shadow-lg">
-                            {{ $mobileUnreadCount > 99 ? '99+' : $mobileUnreadCount }}
-                        </span>
-                    @endif
-                </a>
+                
+                {{-- Mobile Profile Dropdown --}}
+                <div class="relative">
+                    <button id="mobile-profile-dropdown-btn" 
+                            class="flex items-center gap-2 p-1.5 rounded-full hover:bg-gray-100 active:bg-gray-200 transition-all duration-200 hover:scale-105 active:scale-95">
+                        @if(Auth::user()->avatar)
+                            <img src="{{ asset('storage/' . Auth::user()->avatar) }}" 
+                                alt="Avatar {{ Auth::user()->name }}"
+                                class="w-11 h-11 rounded-full object-cover border-2 border-blue-200 shadow-sm">
+                        @else
+                            <div class="w-11 h-11 bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md">
+                                {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
+                            </div>
+                        @endif
+                    </button>
+                    
+                    {{-- Mobile Dropdown Menu --}}
+                    <div id="mobile-profile-dropdown-menu" 
+                        class="hidden absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50 animate-fadeIn">
+                        
+                        {{-- User Info Header --}}
+                        <div class="px-4 py-4 bg-gradient-to-br from-blue-50 to-indigo-50 border-b border-gray-100">
+                            <div class="flex items-center gap-3">
+                                @if(Auth::user()->avatar)
+                                    <img src="{{ asset('storage/' . Auth::user()->avatar) }}" 
+                                        alt="Avatar"
+                                        class="w-12 h-12 rounded-full object-cover border-2 border-white shadow-md">
+                                @else
+                                    <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md">
+                                        {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
+                                    </div>
+                                @endif
+                                <div class="flex-1 min-w-0">
+                                    <div class="text-sm font-bold text-gray-900 truncate">{{ Auth::user()->name }}</div>
+                                    <div class="text-xs text-blue-600 font-medium truncate">{{ Auth::user()->email }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {{-- Menu Items --}}
+                        <div class="py-2">
+                            <a href="{{ url('admin/profile') }}" 
+                            class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all group">
+                                <div class="w-9 h-9 bg-blue-100 group-hover:bg-blue-200 rounded-xl flex items-center justify-center transition-all duration-200">
+                                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                    </svg>
+                                </div>
+                                <span class="flex-1">Profil Saya</span>
+                                <svg class="w-4 h-4 text-gray-400 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </a>
+                        </div>
+                        
+                        {{-- Logout Button --}}
+                        <div class="border-t border-gray-100 py-2">
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" 
+                                        class="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 transition-all group">
+                                    <div class="w-9 h-9 bg-red-100 group-hover:bg-red-200 rounded-xl flex items-center justify-center transition-all duration-200">
+                                        <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                                        </svg>
+                                    </div>
+                                    <span class="flex-1 text-left">Keluar</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </div>
         </header>
 
@@ -815,6 +892,31 @@
         window.addEventListener('offline', () => elements.offlineBanner?.classList.add('show'));
         navigator.onLine || elements.offlineBanner?.classList.add('show');
     })();
+
+    // Mobile Profile Dropdown
+    const mobileDropdownBtn = document.getElementById('mobile-profile-dropdown-btn');
+    const mobileDropdownMenu = document.getElementById('mobile-profile-dropdown-menu');
+
+    if (mobileDropdownBtn && mobileDropdownMenu) {
+        mobileDropdownBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            mobileDropdownMenu.classList.toggle('hidden');
+        });
+        
+        // Close mobile dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!mobileDropdownBtn.contains(e.target) && !mobileDropdownMenu.contains(e.target)) {
+                mobileDropdownMenu.classList.add('hidden');
+            }
+        });
+        
+        // Close mobile dropdown when window resizes to desktop
+        window.addEventListener('resize', function() {
+            if (window.innerWidth >= 1024) {
+                mobileDropdownMenu.classList.add('hidden');
+            }
+        });
+    }
 </script>
 </body>
 </html>

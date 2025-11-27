@@ -131,6 +131,20 @@
         .submenu-enter {
             animation: slideDown 0.2s ease-out;
         }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fadeIn {
+            animation: fadeIn 0.2s ease-out;
+        }
     </style>
 </head>
 <body class="font-sans antialiased bg-gradient-to-br from-gray-50 to-gray-100">
@@ -425,29 +439,102 @@
         </header>
 
         {{-- Top Navigation Bar (Mobile) --}}
-        <header class="lg:hidden sticky top-0 z-[35] bg-white border-b border-gray-200 shadow-sm">
+        <header class="lg:hidden sticky top-0 z-[35] bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm">
             <div class="flex items-center justify-between px-4 py-3">
-                <button id="open-sidebar" type="button" class="p-2 text-gray-600 hover:bg-gray-100 active:bg-gray-200 rounded-lg transition-colors touch-manipulation">
+                {{-- Menu Button --}}
+                <button id="open-sidebar" type="button" 
+                        class="p-2.5 text-gray-700 hover:bg-gray-100 active:bg-gray-200 rounded-xl transition-all duration-200 touch-manipulation hover:scale-105 active:scale-95">
                     <svg class="w-6 h-6 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16"/>
                     </svg>
                 </button>
                 
-                <div class="flex items-center gap-2">
+                {{-- Logo & Brand --}}
+                <div class="flex items-center gap-2.5 absolute left-1/2 -translate-x-1/2">
                     @if(file_exists(public_path('icons/logo72x72.png')))
-                        <img src="{{ asset('icons/logo72x72.png') }}" alt="Logo" class="w-8 h-8 rounded-full shadow-md" />
+                        <img src="{{ asset('icons/logo72x72.png') }}" 
+                            alt="Logo" 
+                            class="w-9 h-9 rounded-full shadow-md ring-2 ring-purple-100" />
                     @else
-                        <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg shadow-md flex items-center justify-center">
+                        <div class="w-9 h-9 bg-gradient-to-br from-purple-500 via-purple-600 to-pink-500 rounded-full shadow-lg flex items-center justify-center ring-2 ring-purple-100">
                             <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                             </svg>
                         </div>
                     @endif
-                    <span class="text-lg font-bold text-gray-900">TaskFlow</span>
+                    <span class="text-lg font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">TaskFlow</span>
                 </div>
                 
-                <div class="w-10">
-                    {{-- Spacer for alignment --}}
+                {{-- Mobile Profile Dropdown --}}
+                <div class="relative">
+                    <button id="mobile-profile-dropdown-btn" 
+                            class="flex items-center gap-2 p-1.5 rounded-full hover:bg-gray-100 active:bg-gray-200 transition-all duration-200 hover:scale-105 active:scale-95">
+                        @if(Auth::user()->avatar)
+                            <img src="{{ asset('storage/' . Auth::user()->avatar) }}" 
+                                alt="Avatar {{ Auth::user()->name }}"
+                                class="w-11 h-11 rounded-full object-cover border-2 border-purple-200 shadow-sm">
+                        @else
+                            <div class="w-11 h-11 bg-gradient-to-br from-purple-500 via-purple-600 to-pink-600 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md">
+                                {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
+                            </div>
+                        @endif
+                    </button>
+                    
+                    {{-- Mobile Dropdown Menu --}}
+                    <div id="mobile-profile-dropdown-menu" 
+                        class="hidden absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50 animate-fadeIn">
+                        
+                        {{-- User Info Header --}}
+                        <div class="px-4 py-4 bg-gradient-to-br from-purple-50 to-pink-50 border-b border-gray-100">
+                            <div class="flex items-center gap-3">
+                                @if(Auth::user()->avatar)
+                                    <img src="{{ asset('storage/' . Auth::user()->avatar) }}" 
+                                        alt="Avatar"
+                                        class="w-12 h-12 rounded-full object-cover border-2 border-white shadow-md">
+                                @else
+                                    <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md">
+                                        {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
+                                    </div>
+                                @endif
+                                <div class="flex-1 min-w-0">
+                                    <div class="text-sm font-bold text-gray-900 truncate">{{ Auth::user()->name }}</div>
+                                    <div class="text-xs text-purple-600 font-medium truncate">{{ Auth::user()->email }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {{-- Menu Items --}}
+                        <div class="py-2">
+                            <a href="{{ route('superadmin.profile') }}" 
+                            class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-all group">
+                                <div class="w-9 h-9 bg-purple-100 group-hover:bg-purple-200 rounded-xl flex items-center justify-center transition-all duration-200">
+                                    <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                    </svg>
+                                </div>
+                                <span class="flex-1">Profil Saya</span>
+                                <svg class="w-4 h-4 text-gray-400 group-hover:text-purple-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </a>
+                        </div>
+                        
+                        {{-- Logout Button --}}
+                        <div class="border-t border-gray-100 py-2">
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" 
+                                        class="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 transition-all group">
+                                    <div class="w-9 h-9 bg-red-100 group-hover:bg-red-200 rounded-xl flex items-center justify-center transition-all duration-200">
+                                        <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                                        </svg>
+                                    </div>
+                                    <span class="flex-1 text-left">Keluar</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
         </header>
@@ -911,6 +998,31 @@ document.addEventListener('visibilitychange', function() {
         updateResetPasswordBadge();
     }
 });
+
+// Mobile Profile Dropdown
+const mobileDropdownBtn = document.getElementById('mobile-profile-dropdown-btn');
+const mobileDropdownMenu = document.getElementById('mobile-profile-dropdown-menu');
+
+if (mobileDropdownBtn && mobileDropdownMenu) {
+    mobileDropdownBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        mobileDropdownMenu.classList.toggle('hidden');
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!mobileDropdownBtn.contains(e.target) && !mobileDropdownMenu.contains(e.target)) {
+            mobileDropdownMenu.classList.add('hidden');
+        }
+    });
+    
+    // Close dropdown when clicking on menu items
+    mobileDropdownMenu.querySelectorAll('a, button').forEach(item => {
+        item.addEventListener('click', function() {
+            mobileDropdownMenu.classList.add('hidden');
+        });
+    });
+}
 </script>
 
 </body>
