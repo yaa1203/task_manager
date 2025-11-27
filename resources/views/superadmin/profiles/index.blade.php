@@ -62,11 +62,11 @@
                                         <span class="text-3xl font-bold">{{ strtoupper(substr($admin->name, 0, 2)) }}</span>
                                     </div>
                                 @endif
-                                
-                                <button onclick="openAvatarModal()" 
-                                        class="absolute bottom-0 right-0 w-8 h-8 bg-white text-purple-600 rounded-full shadow-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-purple-50">
+                                <button onclick="openAvatarModal()"
+                                    class="absolute bottom-0 right-0 w-9 h-9 bg-white text-purple-600 rounded-full shadow-lg flex items-center justify-center hover:bg-purple-50">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                     </svg>
                                 </button>
                             </div>
