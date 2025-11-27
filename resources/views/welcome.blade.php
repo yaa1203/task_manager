@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Taskly - Kelola Tugas Anda dengan Mudah</title>
+    <title>TaskFlow - Kelola Tugas Anda dengan Mudah</title>
     
     <!-- PWA Meta Tags -->
     <link rel="manifest" href="/manifest.json">
@@ -413,7 +413,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12 md:mb-16">
                 <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
-                    Fitur Unggulan <span class="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Taskly</span>
+                    Fitur Unggulan <span class="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">TaskFlow</span>
                 </h2>
                 <p class="text-base sm:text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
                     Dibuat khusus untuk membantu Anda mengelola tugas dengan efisien
@@ -495,10 +495,10 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12 md:mb-16">
                 <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
-                    Mengapa Pilih <span class="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Taskly?</span>
+                    Mengapa Pilih <span class="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">TaskFlow?</span>
                 </h2>
                 <p class="text-base sm:text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
-                    Ribuan pengguna profesional telah meningkatkan produktivitas mereka dengan Taskly
+                    Ribuan pengguna profesional telah meningkatkan produktivitas mereka dengan TaskFlow
                 </p>
             </div>
             
@@ -546,7 +546,7 @@
     <div id="pwa-install-prompt" class="pwa-install-prompt">
         <div class="pwa-content">
             <div class="pwa-icon">
-                <img src="/icons/logo72x72.png" alt="Taskly Icon">
+                <img src="/icons/logo72x72.png" alt="TaskFlow Icon">
             </div>
             <div class="pwa-text">
                 <div class="pwa-title">Instal TaskFlow</div>
